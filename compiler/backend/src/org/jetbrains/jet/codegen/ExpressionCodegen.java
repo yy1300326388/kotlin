@@ -1340,17 +1340,6 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
 
         pushClosureOnStack(closure, false, defaultCallGenerator);
 
-        JetDelegatorToSuperCall superCall = closure.getSuperCall();
-        if (superCall != null) {
-            ConstructorDescriptor superConstructor = (ConstructorDescriptor) bindingContext
-                    .get(REFERENCE_TARGET, superCall.getCalleeExpression().getConstructorReferenceExpression());
-            assert superConstructor != null;
-            CallableMethod superCallable = typeMapper.mapToCallableMethod(superConstructor);
-            Type[] argumentTypes = superCallable.getAsmMethod().getArgumentTypes();
-            ResolvedCall<?> resolvedCall = resolvedCall(superCall.getCalleeExpression());
-            pushMethodArgumentsWithoutCallReceiver(resolvedCall, Arrays.asList(argumentTypes), false, defaultCallGenerator);
-        }
-
         v.invokespecial(type.getInternalName(), "<init>", constructor.getAsmMethod().getDescriptor());
         return StackValue.onStack(type);
     }
@@ -2231,7 +2220,7 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
                 result = cur.getOuterExpression(result, false);
             }
 
-            cur = cur.getParentContext();
+            cur = cur.getOuterClassContext();
         }
 
         throw new UnsupportedOperationException();

@@ -389,7 +389,7 @@ public class FunctionCodegen extends ParentCodegenAwareImpl {
     }
 
     private static boolean needIndexForVar(JvmMethodParameterKind kind) {
-        return kind == JvmMethodParameterKind.CAPTURED_LOCAL_VARIABLE || kind == JvmMethodParameterKind.SUPER_OF_ANONYMOUS_CALL_PARAM;
+        return kind == JvmMethodParameterKind.CAPTURED_LOCAL_VARIABLE;
     }
 
     public static void endVisit(MethodVisitor mv, @Nullable String description, @Nullable PsiElement method) {

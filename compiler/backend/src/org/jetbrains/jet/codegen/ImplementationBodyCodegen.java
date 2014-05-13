@@ -1481,7 +1481,6 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
             iv.load(2, Type.INT_TYPE);
         }
 
-        CallableMethod method = typeMapper.mapToCallableMethod(constructorDescriptor);
 
         ResolvedCall<?> resolvedCall = bindingContext.get(BindingContext.RESOLVED_CALL, ((JetCallElement) superCall).getCalleeExpression());
         assert resolvedCall != null;
@@ -1494,29 +1493,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
         }
 
         CallableMethod superCallable = typeMapper.mapToCallableMethod(superConstructor);
-
-        if (isAnonymousObject(descriptor) && superCall instanceof JetDelegatorToSuperCall) {
-            int nextVar = findFirstSuperArgument(method);
-            for (Type t : superCallable.getAsmMethod().getArgumentTypes()) {
-                iv.load(nextVar, t);
-                nextVar += t.getSize();
-            }
-            superCallable.invokeWithNotNullAssertion(codegen.v, state, resolvedCall);
-        }
-        else {
-            codegen.invokeMethodWithArguments(null, superCallable, resolvedCall, StackValue.none());
-        }
-    }
-
-    private static int findFirstSuperArgument(@NotNull CallableMethod method) {
-        int i = 0;
-        for (JvmMethodParameterSignature type : method.getValueParameters()) {
-            if (type.getKind() == JvmMethodParameterKind.SUPER_OF_ANONYMOUS_CALL_PARAM) {
-                return i + 1; // because of this
-            }
-            i += type.getAsmType().getSize();
-        }
-        return -1;
+        codegen.invokeMethodWithArguments(null, superCallable, resolvedCall, StackValue.none());
     }
 
     @Override

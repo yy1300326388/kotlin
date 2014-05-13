@@ -121,6 +121,24 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
         return getOuterExpression(prefix, ignoreNoOuter, true);
     }
 
+    @Nullable
+    public CodegenContext<?> getOuterClassContext() {
+        if (closure == null) {
+            throw new IllegalStateException("Can't capture this for context without closure: " + getContextDescriptor());
+        }
+
+        if (closure.getCaptureThis() == null) {
+            throw new IllegalStateException("This method should be called after getOuterExpression to set 'this capture' flag: " + getContextDescriptor());
+        }
+
+        CodegenContext context = getEnclosingClassContext();
+        while (context != null && context.getContextDescriptor() != closure.getCaptureThis()) {
+            context = context.getParentContext();
+        }
+
+        return context;
+    }
+
     private StackValue getOuterExpression(@Nullable StackValue prefix, boolean ignoreNoOuter, boolean captureThis) {
         if (lazyOuterExpression == null || lazyOuterExpression.invoke() == null) {
             if (!ignoreNoOuter) {
@@ -229,13 +247,19 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
         return parentContext;
     }
 
+    @Nullable
     public ClassDescriptor getEnclosingClass() {
+        CodegenContext cur = getEnclosingClassContext();
+        return cur == null ? null : (ClassDescriptor) cur.getContextDescriptor();
+    }
+
+    @Nullable
+    private CodegenContext getEnclosingClassContext() {
         CodegenContext cur = getParentContext();
         while (cur != null && !(cur.getContextDescriptor() instanceof ClassDescriptor)) {
             cur = cur.getParentContext();
         }
-
-        return cur == null ? null : (ClassDescriptor) cur.getContextDescriptor();
+        return cur;
     }
 
     @Nullable
@@ -299,7 +323,8 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             @Override
             public StackValue invoke() {
                 BindingContext bindingContext = typeMapper.getBindingContext();
-                ClassDescriptor enclosingClass = getEnclosingClass();
+                assert closure != null : "Closure should be not null for outer expression";
+                ClassDescriptor enclosingClass = closure.getEnclosingClass();
                 return enclosingClass != null && canHaveOuter(bindingContext, classDescriptor)
                        ? StackValue.field(typeMapper.mapType(enclosingClass),
                                           CodegenBinding.getAsmType(bindingContext, classDescriptor),

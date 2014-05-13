@@ -755,20 +755,6 @@ public class JetTypeMapper {
                 signatureWriter.writeParameterTypeEnd();
             }
         }
-
-        JetDelegatorToSuperCall superCall = closure.getSuperCall();
-        if (superCall != null) {
-            DeclarationDescriptor superDescriptor = bindingContext
-                    .get(BindingContext.REFERENCE_TARGET, superCall.getCalleeExpression().getConstructorReferenceExpression());
-
-            if (superDescriptor instanceof ConstructorDescriptor && isAnonymousObject(descriptor.getContainingDeclaration())) {
-                for (JvmMethodParameterSignature parameter : mapSignature((ConstructorDescriptor) superDescriptor).getValueParameters()) {
-                    signatureWriter.writeParameterType(JvmMethodParameterKind.SUPER_OF_ANONYMOUS_CALL_PARAM);
-                    signatureWriter.writeAsmType(parameter.getAsmType());
-                    signatureWriter.writeParameterTypeEnd();
-                }
-            }
-        }
     }
 
     @NotNull

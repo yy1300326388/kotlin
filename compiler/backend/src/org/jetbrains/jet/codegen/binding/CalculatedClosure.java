@@ -32,7 +32,7 @@ import java.util.Map;
 public interface CalculatedClosure {
 
     @Nullable
-    ClassDescriptor getEnclosingClass();
+    ClassDescriptor getOuterClass();
 
     @Nullable
     JetDelegatorToSuperCall getSuperCall();

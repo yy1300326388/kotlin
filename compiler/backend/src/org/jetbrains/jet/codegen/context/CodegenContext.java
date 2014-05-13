@@ -324,7 +324,7 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             public StackValue invoke() {
                 BindingContext bindingContext = typeMapper.getBindingContext();
                 assert closure != null : "Closure should be not null for outer expression";
-                ClassDescriptor enclosingClass = closure.getEnclosingClass();
+                ClassDescriptor enclosingClass = closure.getOuterClass();
                 return enclosingClass != null && canHaveOuter(bindingContext, classDescriptor)
                        ? StackValue.field(typeMapper.mapType(enclosingClass),
                                           CodegenBinding.getAsmType(bindingContext, classDescriptor),

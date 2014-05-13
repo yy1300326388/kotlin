@@ -33,7 +33,7 @@ import java.util.*;
 public final class MutableClosure implements CalculatedClosure {
     private final JetDelegatorToSuperCall superCall;
 
-    private final ClassDescriptor enclosingClass;
+    private final ClassDescriptor outerClass;
     private final CallableDescriptor enclosingReceiverDescriptor;
 
     private boolean captureThis;
@@ -44,18 +44,18 @@ public final class MutableClosure implements CalculatedClosure {
 
     MutableClosure(
             JetDelegatorToSuperCall superCall,
-            ClassDescriptor enclosingClass,
+            ClassDescriptor outerClass,
             CallableDescriptor enclosingReceiverDescriptor
     ) {
         this.superCall = superCall;
-        this.enclosingClass = enclosingClass;
+        this.outerClass = outerClass;
         this.enclosingReceiverDescriptor = enclosingReceiverDescriptor;
     }
 
     @Nullable
     @Override
-    public ClassDescriptor getEnclosingClass() {
-        return enclosingClass;
+    public ClassDescriptor getOuterClass() {
+        return outerClass;
     }
 
     @Override
@@ -65,7 +65,7 @@ public final class MutableClosure implements CalculatedClosure {
 
     @Override
     public ClassDescriptor getCaptureThis() {
-        return captureThis ? enclosingClass : null;
+        return captureThis ? outerClass : null;
     }
 
     public void setCaptureThis() {

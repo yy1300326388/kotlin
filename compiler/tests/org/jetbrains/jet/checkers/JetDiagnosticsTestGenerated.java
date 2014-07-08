@@ -4689,6 +4689,11 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                     doTest("compiler/testData/diagnostics/tests/inline/nonLocalReturns/nonInlinedClass.kt");
                 }
                 
+                @TestMetadata("onlyLocalReturnLambda.kt")
+                public void testOnlyLocalReturnLambda() throws Exception {
+                    doTest("compiler/testData/diagnostics/tests/inline/nonLocalReturns/onlyLocalReturnLambda.kt");
+                }
+                
                 @TestMetadata("propertyAccessorsAndConstructor.kt")
                 public void testPropertyAccessorsAndConstructor() throws Exception {
                     doTest("compiler/testData/diagnostics/tests/inline/nonLocalReturns/propertyAccessorsAndConstructor.kt");

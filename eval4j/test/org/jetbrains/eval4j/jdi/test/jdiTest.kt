@@ -30,6 +30,8 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.eval4j.test.getTestName
 import com.sun.jdi.ObjectReference
+import java.io.File
+import com.sun.jdi.ArrayReference
 
 val DEBUGEE_CLASS = javaClass<Debugee>()
 
@@ -69,19 +71,30 @@ fun suite(): TestSuite {
                                     val breakpointRequest = vm.eventRequestManager().createBreakpointRequest(l)
                                     breakpointRequest.enable()
                                     println("Breakpoint: $breakpointRequest")
-                                    vm.resume()
                                     break
                                 }
                             }
+                            for (l in _class.allLineLocations()) {
+                                if (l.method().name() == "foo") {
+                                    val breakpointRequest = vm.eventRequestManager().createBreakpointRequest(l)
+                                    breakpointRequest.enable()
+                                    println("Breakpoint: $breakpointRequest")
+                                    break
+                                }
+                            }
+                            vm.resume()
                         }
                     }
                     is jdi.event.BreakpointEvent -> {
-                        println("Suspended at: " + event.location())
+                        println("Suspended at: " + event.location() + " in " + event.location().method())
 
-                        thread = event.thread()
-                        latch.countDown()
-
-                        break @mainLoop
+                        if (event.location().method().name() == "main") {
+                            thread = event.thread()
+                            latch.countDown()
+                        }
+                        else {
+                            vm.resume()
+                        }
                     }
                     else -> {}
                 }
@@ -92,6 +105,60 @@ fun suite(): TestSuite {
     vm.resume()
 
     latch.await()
+    println("Latch passed")
+
+    val eval = JDIEval(vm, classLoader!!, thread!!, 0)
+    eval.invokeStaticMethod(
+            MethodDescription(
+                    debugeeName.replace('.', '/'),
+                    "foo",
+                    "()V",
+                    true
+            ),
+            listOf()
+    )
+
+    try {
+        val classLoaderReference = classLoader!!
+        val threadReference = thread!!
+        val eval = JDIEval(vm, classLoaderReference, threadReference, 0)
+        val classFile = File("out/production/eval4j.runtime/org/jetbrains/eval4j/runtime/1.class")
+        val bytes = classFile.readBytes()
+
+        val start = System.nanoTime()
+
+        val arr = eval.newArray(Type.getType("[B"), bytes.size).jdiObj as ArrayReference
+
+        for (j in 1..1) {
+            var i = 0;
+            for (b in bytes) {
+                arr.setValue(i, vm.mirrorOf(b))
+                i++
+            }
+        }
+
+        val loaded =  classLoader!!.invokeMethod(
+                thread,
+                classLoader!!.referenceType().methodsByName("defineClass", "(Ljava/lang/String;[BII)Ljava/lang/Class;")[0],
+                listOf(
+                        vm.mirrorOf("0.0"),
+                        arr,
+                        vm.mirrorOf(0),
+                        vm.mirrorOf(bytes.size)
+                ),
+                0
+        ) as jdi.ClassObjectReference
+
+        println(java.lang.String.format("Loaded: %.2f", (System.nanoTime() - start) * 1e-9))
+
+//        for (m in loaded.referenceType().methods()) {
+//            println(m)
+//        }
+    }
+    catch (e: jdi.InvocationException) {
+        val ex = e.exception()
+        println(ex)
+    }
 
     var remainingTests = AtomicInteger(0)
 

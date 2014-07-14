@@ -20,9 +20,9 @@ import org.jetbrains.eval4j.*
 import org.jetbrains.org.objectweb.asm.Type
 import com.sun.jdi
 import com.sun.jdi.ClassNotLoadedException
-import com.sun.tools.jdi.ReferenceTypeImpl
 import com.sun.jdi.ObjectReference
 import com.sun.jdi.Method
+import com.sun.jdi.ArrayReference
 
 val CLASS = Type.getType(javaClass<Class<*>>())
 val BOOTSTRAP_CLASS_DESCRIPTORS = setOf("Ljava/lang/String;", "Ljava/lang/ClassLoader;", "Ljava/lang/Class;")
@@ -46,7 +46,9 @@ class JDIEval(
     )
 
     override fun loadClass(classType: Type): Value {
-        val loadedClasses = vm.classesByName(classType.getInternalName())
+        val canonicalName = classType.getInternalName().replace('/', '.')
+
+        val loadedClasses = vm.classesByName(canonicalName)
         if (!loadedClasses.isEmpty()) {
             val loadedClass = loadedClasses[0]
             if (classType.getDescriptor() in BOOTSTRAP_CLASS_DESCRIPTORS || loadedClass.classLoader() == classLoader) {
@@ -61,7 +63,7 @@ class JDIEval(
                         true
                 ),
                 listOf(
-                        vm.mirrorOf(classType.getInternalName().replace('/', '.')).asValue(),
+                        vm.mirrorOf(canonicalName).asValue(),
                         boolean(true),
                         classLoader.asValue()
                 )

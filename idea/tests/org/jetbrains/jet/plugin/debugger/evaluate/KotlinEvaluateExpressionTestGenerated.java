@@ -108,6 +108,11 @@ public class KotlinEvaluateExpressionTestGenerated extends AbstractKotlinEvaluat
             doSingleBreakpointTest("idea/testData/debugger/tinyApp/src/evaluate/singleBreakpoint/insertInBlock.kt");
         }
         
+        @TestMetadata("loadLambda.kt")
+        public void testLoadLambda() throws Exception {
+            doSingleBreakpointTest("idea/testData/debugger/tinyApp/src/evaluate/singleBreakpoint/loadLambda.kt");
+        }
+        
         @TestMetadata("multilineExpressionAtBreakpoint.kt")
         public void testMultilineExpressionAtBreakpoint() throws Exception {
             doSingleBreakpointTest("idea/testData/debugger/tinyApp/src/evaluate/singleBreakpoint/multilineExpressionAtBreakpoint.kt");

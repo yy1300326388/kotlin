@@ -134,21 +134,33 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
             val classFileFactory = createClassFileFactory(codeFragment, extractedFunction)
 
             // KT-4509
-            val outputFiles = (classFileFactory : OutputFileCollection).asList().filter { it.relativePath != "$packageInternalName.class" }
-            if (outputFiles.size() != 1) exception("Expression compiles to more than one class file. Note that lambdas, classes and objects are unsupported yet. List of files: ${outputFiles.makeString(",")}")
+            val outputFiles = (classFileFactory : OutputFileCollection).asList().filter { it.relativePath != "$packageInternalName.class" }.sortBy { it.relativePath }.reverse()
+            for (o in outputFiles) {
+                println(o.relativePath)
+            }
+//            if (outputFiles.size() != 1) exception("Expression compiles to more than one class file. Note that lambdas, classes and objects are unsupported yet. List of files: ${outputFiles.makeString(",")}")
 
             val funName = extractedFunction.getName()
             if (funName == null) {
                 throw IllegalStateException("Extracted function should have a name: ${extractedFunction.getText()}")
             }
-            return CompiledDataDescriptor(outputFiles.first().asByteArray(), sourcePosition, funName, extractedFunction.getParametersForDebugger())
+            return CompiledDataDescriptor(outputFiles.map { it.asByteArray() }, sourcePosition, funName, extractedFunction.getParametersForDebugger())
         }
 
         private fun runEval4j(context: EvaluationContextImpl, compiledData: CompiledDataDescriptor): InterpreterResult {
             val virtualMachine = context.getDebugProcess().getVirtualMachineProxy().getVirtualMachine()
 
+            val eval = JDIEval(virtualMachine,
+                               context.getClassLoader()!!,
+                               context.getSuspendContext().getThread()?.getThreadReference()!!,
+                               context.getSuspendContext().getInvokePolicy())
+
+            for (bytesToLoad in compiledData.bytecodes.drop(1)) {
+                eval.defineClass(bytesToLoad)
+            }
+
             var resultValue: InterpreterResult? = null
-            ClassReader(compiledData.bytecodes).accept(object : ClassVisitor(ASM5) {
+            ClassReader(compiledData.bytecodes.first()).accept(object : ClassVisitor(ASM5) {
                 override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                     if (name == compiledData.funName) {
                         val args = context.getArgumentsForEval4j(compiledData.parameters.getParameterNames(), Type.getArgumentTypes(desc))
@@ -157,10 +169,7 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
                                 resultValue = interpreterLoop(
                                         this,
                                         makeInitialFrame(this, args),
-                                        JDIEval(virtualMachine,
-                                                context.getClassLoader()!!,
-                                                context.getSuspendContext().getThread()?.getThreadReference()!!,
-                                                context.getSuspendContext().getInvokePolicy())
+                                        eval
                                 )
                             }
                         }

@@ -40,6 +40,7 @@ import org.jetbrains.jet.lang.resolve.java.structure.impl.JavaClassImpl
 import org.jetbrains.jet.lang.resolve.java.JvmClassName
 import org.jetbrains.jet.codegen.AsmUtil
 import org.apache.log4j.Logger
+import org.jetbrains.jet.OutputFile
 
 class KotlinEvaluateExpressionCache(val project: Project) {
 
@@ -107,7 +108,7 @@ class KotlinEvaluateExpressionCache(val project: Project) {
         }
     }
 
-    data class CompiledDataDescriptor(val bytecodes: List<ByteArray>, val sourcePosition: SourcePosition, val funName: String, val parameters: ParametersDescriptor)
+    data class CompiledDataDescriptor(val bytecodes: List<OutputFile>, val sourcePosition: SourcePosition, val funName: String, val parameters: ParametersDescriptor)
 
     class ParametersDescriptor : Iterable<Pair<String, JetType>> {
         private val list = ArrayList<Pair<String, JetType>>()

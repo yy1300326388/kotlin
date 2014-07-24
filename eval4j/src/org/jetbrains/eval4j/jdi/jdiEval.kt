@@ -35,6 +35,7 @@ import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
 import com.sun.jdi.request.EventRequest
 import com.sun.tools.jdi.ClassLoaderReferenceImpl
+import com.sun.jdi.ReferenceType
 
 val CLASS = Type.getType(javaClass<Class<*>>())
 val CLASS_LOADER = Type.getType(javaClass<ClassLoader>())
@@ -83,7 +84,7 @@ class JDIEval(
         )
     }
 
-    fun defineClass(bytes: ByteArray) {
+    fun defineClass(bytes: ByteArray, createClassPrepareEvent: (name: String, callback: (refType: ReferenceType) -> Unit) -> Unit) {
 //        val debugeeName = "packageForDebugger.PackageForDebuggerPackage\$i$1"
 //        println("Debugee name: $debugeeName")
 //        val debugFileBytes = File("C:/Development/kotlin/out/production/eval4j/packageForDebugger/PackageForDebuggerPackage\$i$1.class").readBytes()
@@ -96,34 +97,43 @@ class JDIEval(
             setArrayElement(newArray, int(i), byte(b))
         }
 
-        val req = vm.eventRequestManager().createClassPrepareRequest()
-        req.addClassFilter("packageForDebugger*")
-        req.enable()
+        val classLoaderValue = classLoader.asValue()
+        val result = invokeMethod(
+                classLoaderValue,
+                MethodDescription(
+                        classLoaderValue.asmType.getInternalName(),
+                        "defineClass",
+                        "(Ljava/lang/String;[BII)Ljava/lang/Class;",
+                        false),
+                listOf(vm.mirrorOf("packageForDebugger.PackageForDebuggerPackage\$i$1").asValue(),
+                       newArray,
+                       int(0),
+                       int(debugFileBytes.size)
+                )
+        )
 
-        val latch = CountDownLatch(1)
+        val list = vm.allClasses()
+        println(list)
+        for (aList in list) {
+            if (aList.toString().contains("debugger")) {
+                val refType = aList as ReferenceType
 
-        Thread {
-            try {
-                val eventQueue = vm.eventQueue()
-                while (true) {
-                    val eventSet = eventQueue.remove()
-                    for (event in eventSet.eventIterator()) {
-                        println(event.javaClass)
-                    }
+                if (refType.isPrepared()) {
+                    println("processClassPrepare $refType")
                 }
             }
-            catch (e: Throwable) {
-                println("EXCEPTION")
-                e.printStackTrace(System.out)
-            }
+        }
 
-        }.start()
+//        val req = vm.eventRequestManager().createClassPrepareRequest()
+//        req.addClassFilter("packageForDebugger/PackageForDebuggerPackage\$i$1")
+//        req.enable()
 
-        vm.resume()
-
+        val latch = CountDownLatch(1)
+        createClassPrepareEvent("packageForDebugger/PackageForDebuggerPackage\$i$1") {
+            println("prepared $it")
+            latch.countDown()
+        }
         latch.await()
-
-        println("Latch passed")
     }
 
     override fun loadString(str: String): Value = vm.mirrorOf(str).asValue()

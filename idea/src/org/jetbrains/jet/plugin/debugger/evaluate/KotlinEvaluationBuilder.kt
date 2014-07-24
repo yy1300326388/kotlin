@@ -63,6 +63,9 @@ import com.sun.jdi.StackFrame
 import com.sun.jdi.VirtualMachine
 import org.jetbrains.jet.codegen.AsmUtil
 import com.sun.jdi.InvalidStackFrameException
+import com.intellij.debugger.requests.ClassPrepareRequestor
+import com.intellij.debugger.engine.DebugProcess
+import com.sun.jdi.ReferenceType
 
 private val RECEIVER_NAME = "\$receiver"
 private val THIS_NAME = "this"
@@ -143,7 +146,7 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
             if (funName == null) {
                 throw IllegalStateException("Extracted function should have a name: ${extractedFunction.getText()}")
             }
-            return CompiledDataDescriptor(outputFiles.map { it.asByteArray() }, sourcePosition, funName, extractedFunction.getParametersForDebugger())
+            return CompiledDataDescriptor(outputFiles, sourcePosition, funName, extractedFunction.getParametersForDebugger())
         }
 
         private fun runEval4j(context: EvaluationContextImpl, compiledData: CompiledDataDescriptor): InterpreterResult {
@@ -155,11 +158,24 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
                                context.getSuspendContext().getInvokePolicy())
 
             for (bytesToLoad in compiledData.bytecodes.drop(1)) {
-                eval.defineClass(bytesToLoad)
+                eval.defineClass(bytesToLoad.asByteArray()) {
+                    name, callback ->
+                    println("defineClass")
+                    val className = bytesToLoad.relativePath.substring(0, bytesToLoad.relativePath.size - 6)
+                    println(className)
+                    context.getDebugProcess().getRequestsManager()?.callbackOnPrepareClasses(object : ClassPrepareRequestor {
+                        override fun processClassPrepare(debuggerProcess: DebugProcess?, referenceType: ReferenceType?) {
+                            println("processClassPrepare")
+                            callback(referenceType!!)
+                        }
+                    }, "packageForDebugger*")
+
+
+                }
             }
 
             var resultValue: InterpreterResult? = null
-            ClassReader(compiledData.bytecodes.first()).accept(object : ClassVisitor(ASM5) {
+            ClassReader(compiledData.bytecodes.first().asByteArray()).accept(object : ClassVisitor(ASM5) {
                 override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                     if (name == compiledData.funName) {
                         val args = context.getArgumentsForEval4j(compiledData.parameters.getParameterNames(), Type.getArgumentTypes(desc))

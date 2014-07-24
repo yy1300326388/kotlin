@@ -133,8 +133,7 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
 
             val classFileFactory = createClassFileFactory(codeFragment, extractedFunction)
 
-            // KT-4509
-            val outputFiles = (classFileFactory : OutputFileCollection).asList().filter { it.relativePath != "$packageInternalName.class" }.sortBy { it.relativePath }.reverse()
+            val outputFiles = classFileFactory.asList().filter { it.relativePath != "$packageInternalName.class" }.sortBy { it.relativePath }.reverse()
             for (o in outputFiles) {
                 println(o.relativePath)
             }

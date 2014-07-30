@@ -25,7 +25,6 @@ import org.junit.Assert.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.eval4j.jdi.*
-import java.io.File
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.eval4j.test.getTestName
@@ -52,6 +51,10 @@ fun suite(): TestSuite {
     req.addClassFilter("*.Debugee")
     req.enable()
 
+    val req1 = vm.eventRequestManager().createClassPrepareRequest()
+    req1.addClassFilter("0.0")
+    req1.enable()
+
     val latch = CountDownLatch(1)
     var classLoader : jdi.ClassLoaderReference? = null
     var thread : jdi.ThreadReference? = null
@@ -64,13 +67,14 @@ fun suite(): TestSuite {
                 when (event) {
                     is jdi.event.ClassPrepareEvent -> {
                         val _class = event.referenceType()!!
+                        println("    Prepared $_class")
                         if (_class.name() == debugeeName) {
                             for (l in _class.allLineLocations()) {
                                 if (l.method().name() == "main") {
                                     classLoader = l.method().declaringType().classLoader()
                                     val breakpointRequest = vm.eventRequestManager().createBreakpointRequest(l)
                                     breakpointRequest.enable()
-                                    println("Breakpoint: $breakpointRequest")
+                                    println("Breakpoint: $breakpointRequest in ${l.method()}")
                                     break
                                 }
                             }
@@ -78,12 +82,12 @@ fun suite(): TestSuite {
                                 if (l.method().name() == "foo") {
                                     val breakpointRequest = vm.eventRequestManager().createBreakpointRequest(l)
                                     breakpointRequest.enable()
-                                    println("Breakpoint: $breakpointRequest")
+                                    println("Breakpoint: $breakpointRequest in ${l.method()}")
                                     break
                                 }
                             }
-                            vm.resume()
                         }
+                        vm.resume()
                     }
                     is jdi.event.BreakpointEvent -> {
                         println("Suspended at: " + event.location() + " in " + event.location().method())
@@ -149,11 +153,52 @@ fun suite(): TestSuite {
                 0
         ) as jdi.ClassObjectReference
 
+
+        classLoader!!.invokeMethod(
+                thread,
+                classLoader!!.referenceType().methodsByName("resolveClass", "(Ljava/lang/Class;)V")[0],
+                listOf(loaded),
+                0
+        )
         println(java.lang.String.format("Loaded: %.2f", (System.nanoTime() - start) * 1e-9))
 
-//        for (m in loaded.referenceType().methods()) {
-//            println(m)
-//        }
+        println("Defined classes:")
+        for (definedClass in classLoader!!.definedClasses()!!) {
+            println(" * " + definedClass)
+        }
+
+//        val ddd = classLoader!!.invokeMethod(
+//                thread,
+//                classLoader!!.referenceType().methodsByName("loadClass", "(Ljava/lang/String;Z)Ljava/lang/Class;")[0],
+//                listOf(
+//                        vm.mirrorOf("org.jetbrains.eval4j.jdi.test.DDD"),
+//                        vm.mirrorOf(true)
+//                ),
+//                0
+//        ) as jdi.ClassObjectReference
+        val ddd = eval.invokeStaticMethod(
+                MethodDescription(
+                        "java/lang/Class", "forName", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;", true
+                ),
+                listOf(
+                        vm.mirrorOf("0.0").asValue(),
+                        boolean(true),
+                        classLoader.asValue()
+                )
+        ).jdiClass!!
+        println("Defined classes:")
+        for (definedClass in classLoader!!.definedClasses()!!) {
+            println(" * " + definedClass)
+        }
+
+        println("!!! Loaded: $ddd")
+        for (m in ddd.reflectedType().methods()) {
+            println(m)
+        }
+
+        for (m in loaded.reflectedType().methods()) {
+            println(m)
+        }
     }
     catch (e: jdi.InvocationException) {
         val ex = e.exception()

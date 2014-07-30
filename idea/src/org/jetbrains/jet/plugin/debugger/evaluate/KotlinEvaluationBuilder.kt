@@ -24,7 +24,6 @@ import com.intellij.debugger.engine.evaluation.expression.*
 import org.jetbrains.jet.lang.resolve.AnalyzingUtils
 import org.jetbrains.jet.codegen.state.GenerationState
 import org.jetbrains.jet.codegen.ClassBuilderFactories
-import java.util.Collections
 import org.jetbrains.jet.codegen.KotlinCodegenFacade
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightVirtualFile
@@ -46,7 +45,6 @@ import org.jetbrains.jet.lang.resolve.name.FqName
 import org.jetbrains.eval4j.jdi.asValue
 import org.jetbrains.jet.lang.psi.JetNamedFunction
 import org.jetbrains.jet.codegen.ClassFileFactory
-import org.jetbrains.jet.OutputFileCollection
 import org.jetbrains.jet.plugin.caches.resolve.getAnalysisResults
 import org.jetbrains.jet.lang.psi.JetCodeFragment
 import org.jetbrains.jet.lang.psi.codeFragmentUtil.skipVisibilityCheck
@@ -59,13 +57,16 @@ import com.sun.jdi.ObjectReference
 import com.intellij.debugger.engine.SuspendContext
 import org.jetbrains.jet.plugin.debugger.evaluate.KotlinEvaluateExpressionCache.*
 import org.jetbrains.jet.lang.resolve.BindingContext
-import com.sun.jdi.StackFrame
 import com.sun.jdi.VirtualMachine
 import org.jetbrains.jet.codegen.AsmUtil
 import com.sun.jdi.InvalidStackFrameException
+import com.intellij.debugger.engine.events.DebuggerCommandImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.debugger.engine.DebugProcess
 import com.sun.jdi.ReferenceType
+import com.intellij.debugger.ui.breakpoints.FilteredRequestorImpl
+import com.intellij.debugger.engine.events.SuspendContextCommandImpl
+import com.sun.jdi.event.LocatableEvent
 
 private val RECEIVER_NAME = "\$receiver"
 private val THIS_NAME = "this"
@@ -137,10 +138,6 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
             val classFileFactory = createClassFileFactory(codeFragment, extractedFunction)
 
             val outputFiles = classFileFactory.asList().filter { it.relativePath != "$packageInternalName.class" }.sortBy { it.relativePath }.reverse()
-            for (o in outputFiles) {
-                println(o.relativePath)
-            }
-//            if (outputFiles.size() != 1) exception("Expression compiles to more than one class file. Note that lambdas, classes and objects are unsupported yet. List of files: ${outputFiles.makeString(",")}")
 
             val funName = extractedFunction.getName()
             if (funName == null) {
@@ -150,27 +147,18 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
         }
 
         private fun runEval4j(context: EvaluationContextImpl, compiledData: CompiledDataDescriptor): InterpreterResult {
-            val virtualMachine = context.getDebugProcess().getVirtualMachineProxy().getVirtualMachine()
+            val debugProcess = context.getDebugProcess()
+            val virtualMachine = debugProcess.getVirtualMachineProxy().getVirtualMachine()
 
             val eval = JDIEval(virtualMachine,
                                context.getClassLoader()!!,
                                context.getSuspendContext().getThread()?.getThreadReference()!!,
                                context.getSuspendContext().getInvokePolicy())
 
+            var done = false
             for (bytesToLoad in compiledData.bytecodes.drop(1)) {
                 eval.defineClass(bytesToLoad.asByteArray()) {
-                    name, callback ->
-                    println("defineClass")
-                    val className = bytesToLoad.relativePath.substring(0, bytesToLoad.relativePath.size - 6)
-                    println(className)
-                    context.getDebugProcess().getRequestsManager()?.callbackOnPrepareClasses(object : ClassPrepareRequestor {
-                        override fun processClassPrepare(debuggerProcess: DebugProcess?, referenceType: ReferenceType?) {
-                            println("processClassPrepare")
-                            callback(referenceType!!)
-                        }
-                    }, "packageForDebugger*")
-
-
+                    done
                 }
             }
 
@@ -194,6 +182,7 @@ class KotlinEvaluator(val codeFragment: JetCodeFragment,
                 }
             }, 0)
 
+            done = true
             return resultValue ?: throw IllegalStateException("resultValue is null: cannot find method ${compiledData.funName}")
         }
 

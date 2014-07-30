@@ -134,3 +134,7 @@ fun throwEvalException(e: Throwable): Nothing {
 fun throwBrokenCodeException(e: Throwable): Nothing {
     throw BrokenCode(e)
 }
+
+fun main(args: Array<String>) {
+    println()
+}

@@ -22,20 +22,12 @@ import com.sun.jdi
 import com.sun.jdi.ClassNotLoadedException
 import com.sun.jdi.ObjectReference
 import com.sun.jdi.Method
-import com.sun.jdi.ArrayReference
-import java.io.File
-import com.sun.jdi.ClassObjectReference
 import java.util.concurrent.CountDownLatch
-import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.Opcodes.ASM5
-import org.jetbrains.org.objectweb.asm.MethodVisitor
-import org.jetbrains.org.objectweb.asm.tree.MethodNode
-import org.jetbrains.org.objectweb.asm.Opcodes
-import org.jetbrains.org.objectweb.asm.ClassReader
-import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
-import com.sun.jdi.request.EventRequest
-import com.sun.tools.jdi.ClassLoaderReferenceImpl
 import com.sun.jdi.ReferenceType
+import com.sun.jdi.AbsentInformationException
+import kotlin.concurrent.thread
+import com.sun.jdi.event.BreakpointEvent
+import com.sun.jdi.request.EventRequest
 
 val CLASS = Type.getType(javaClass<Class<*>>())
 val CLASS_LOADER = Type.getType(javaClass<ClassLoader>())
@@ -84,10 +76,8 @@ class JDIEval(
         )
     }
 
-    fun defineClass(bytes: ByteArray, createClassPrepareEvent: (name: String, callback: (refType: ReferenceType) -> Unit) -> Unit) {
-//        val debugeeName = "packageForDebugger.PackageForDebuggerPackage\$i$1"
-//        println("Debugee name: $debugeeName")
-//        val debugFileBytes = File("C:/Development/kotlin/out/production/eval4j/packageForDebugger/PackageForDebuggerPackage\$i$1.class").readBytes()
+    fun defineClass(bytes: ByteArray, done: () -> Boolean) {
+        val className = "packageForDebugger.PackageForDebuggerPackage\$i$1"
 
         val newArray = newArray(Type.getType("[B"), bytes.size)
 
@@ -98,6 +88,7 @@ class JDIEval(
         }
 
         val classLoaderValue = classLoader.asValue()
+        val classNameValue = loadString(className)
         val result = invokeMethod(
                 classLoaderValue,
                 MethodDescription(
@@ -105,35 +96,51 @@ class JDIEval(
                         "defineClass",
                         "(Ljava/lang/String;[BII)Ljava/lang/Class;",
                         false),
-                listOf(vm.mirrorOf("packageForDebugger.PackageForDebuggerPackage\$i$1").asValue(),
+                listOf(classNameValue,
                        newArray,
                        int(0),
                        int(debugFileBytes.size)
                 )
         )
 
-        val list = vm.allClasses()
-        println(list)
-        for (aList in list) {
-            if (aList.toString().contains("debugger")) {
-                val refType = aList as ReferenceType
+        invokeStaticMethod(
+                MethodDescription(
+                        "java/lang/Class", "forName", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;", true
+                ),
+                listOf(
+                        classNameValue,
+                        boolean(true),
+                        classLoaderValue
+                )
+        )
 
-                if (refType.isPrepared()) {
-                    println("processClassPrepare $refType")
-                }
+        for (method in result.jdiClass!!.reflectedType().methods()) {
+            try {
+                val locations = method.allLineLocations()
+                val breakpointRequest = vm.eventRequestManager().createBreakpointRequest(locations!!.first())
+                breakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD)
+                breakpointRequest.enable()
+            }
+            catch(e: AbsentInformationException) {
+                // skip
             }
         }
 
-//        val req = vm.eventRequestManager().createClassPrepareRequest()
-//        req.addClassFilter("packageForDebugger/PackageForDebuggerPackage\$i$1")
-//        req.enable()
+        thread(start = true, name = "temporary thread for debugger") {
+            val eventQueue = vm.eventQueue()
+            while (!done()) {
+                val eventSet = eventQueue.remove(100)
+                if (eventSet == null) continue
 
-        val latch = CountDownLatch(1)
-        createClassPrepareEvent("packageForDebugger/PackageForDebuggerPackage\$i$1") {
-            println("prepared $it")
-            latch.countDown()
+                for (event in eventSet.eventIterator()) {
+                    when (event) {
+                        is BreakpointEvent -> {
+                            event.thread().resume()
+                        }
+                    }
+                }
+            }
         }
-        latch.await()
     }
 
     override fun loadString(str: String): Value = vm.mirrorOf(str).asValue()

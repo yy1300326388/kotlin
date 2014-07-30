@@ -108,6 +108,11 @@ public class KotlinEvaluateExpressionTestGenerated extends AbstractKotlinEvaluat
             doSingleBreakpointTest("idea/testData/debugger/tinyApp/src/evaluate/singleBreakpoint/insertInBlock.kt");
         }
         
+        @TestMetadata("lambdaAccessingPrivates.kt")
+        public void testLambdaAccessingPrivates() throws Exception {
+            doSingleBreakpointTest("idea/testData/debugger/tinyApp/src/evaluate/singleBreakpoint/lambdaAccessingPrivates.kt");
+        }
+        
         @TestMetadata("loadLambda.kt")
         public void testLoadLambda() throws Exception {
             doSingleBreakpointTest("idea/testData/debugger/tinyApp/src/evaluate/singleBreakpoint/loadLambda.kt");
@@ -159,6 +164,11 @@ public class KotlinEvaluateExpressionTestGenerated extends AbstractKotlinEvaluat
         @TestMetadata("exceptions.kt")
         public void testExceptions() throws Exception {
             doMultipleBreakpointsTest("idea/testData/debugger/tinyApp/src/evaluate/multipleBreakpoints/exceptions.kt");
+        }
+        
+        @TestMetadata("loadLambdaM.kt")
+        public void testLoadLambdaM() throws Exception {
+            doMultipleBreakpointsTest("idea/testData/debugger/tinyApp/src/evaluate/multipleBreakpoints/loadLambdaM.kt");
         }
         
     }

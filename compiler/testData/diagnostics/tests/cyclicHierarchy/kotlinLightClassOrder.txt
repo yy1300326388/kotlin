@@ -1,0 +1,26 @@
+package
+
+internal final class AClass : SomeTraitImpl {
+    public constructor AClass()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    java.lang.Override() public open override /*1*/ /*fake_override*/ fun foo(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ fun hi(): kotlin.Any
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+internal trait SomeTrait {
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    internal abstract fun foo(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public open class SomeTraitImpl : SomeTrait {
+    public constructor SomeTraitImpl()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    java.lang.Override() public open override /*1*/ fun foo(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open fun hi(): kotlin.Any!
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

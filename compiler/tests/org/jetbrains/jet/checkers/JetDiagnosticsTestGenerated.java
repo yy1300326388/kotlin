@@ -2001,6 +2001,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("kotlinLightClassOrder.kt")
+            public void testKotlinLightClassOrder() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/cyclicHierarchy/kotlinLightClassOrder.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("kt303.kt")
             public void testKt303() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/cyclicHierarchy/kt303.kt");

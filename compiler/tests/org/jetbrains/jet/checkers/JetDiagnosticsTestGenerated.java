@@ -1691,6 +1691,11 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest("compiler/testData/diagnostics/tests/cyclicHierarchy/kotlinJavaNestedCycle.kt");
             }
             
+            @TestMetadata("kotlinLightClassOrder.kt")
+            public void testKotlinLightClassOrder() throws Exception {
+                doTest("compiler/testData/diagnostics/tests/cyclicHierarchy/kotlinLightClassOrder.kt");
+            }
+            
             @TestMetadata("kt303.kt")
             public void testKt303() throws Exception {
                 doTest("compiler/testData/diagnostics/tests/cyclicHierarchy/kt303.kt");

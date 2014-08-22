@@ -18,20 +18,30 @@ package org.jetbrains.jet.lang.resolve;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import kotlin.KotlinPackage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.context.GlobalContextImpl;
+import org.jetbrains.jet.di.InjectorForLazyResolve;
 import org.jetbrains.jet.lang.descriptors.*;
+import org.jetbrains.jet.lang.descriptors.impl.CompositePackageFragmentProvider;
+import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.psi.*;
 import org.jetbrains.jet.lang.resolve.calls.CallsPackage;
 import org.jetbrains.jet.lang.resolve.lazy.KotlinCodeAnalyzer;
 import org.jetbrains.jet.lang.resolve.lazy.LazyImportScope;
+import org.jetbrains.jet.lang.resolve.lazy.ResolveSession;
+import org.jetbrains.jet.lang.resolve.lazy.declarations.FileBasedDeclarationProviderFactory;
 import org.jetbrains.jet.lang.resolve.lazy.descriptors.LazyClassDescriptor;
 import org.jetbrains.jet.lang.resolve.name.FqName;
+import org.jetbrains.jet.storage.LockBasedStorageManager;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -91,6 +101,37 @@ public class LazyTopDownAnalyzer {
     @Inject
     public void setBodyResolver(@NotNull BodyResolver bodyResolver) {
         this.bodyResolver = bodyResolver;
+    }
+
+    @NotNull
+    public TopDownAnalysisContext analyzeFiles(
+            @NotNull Project project,
+            @NotNull TopDownAnalysisParameters topDownAnalysisParameters,
+            @NotNull Collection<JetFile> files,
+            @NotNull List<? extends PackageFragmentProvider> additionalProviders
+    ) {
+        TopDownAnalysisContext c = new TopDownAnalysisContext(topDownAnalysisParameters);
+
+        ResolveSession resolveSession = new InjectorForLazyResolve(
+                project,
+                new GlobalContextImpl((LockBasedStorageManager) c.getStorageManager(), c.getExceptionTracker()), // TODO
+                (ModuleDescriptorImpl) moduleDescriptor, // TODO
+                new FileBasedDeclarationProviderFactory(c.getStorageManager(), files),
+                trace
+        ).getResolveSession();
+
+        CompositePackageFragmentProvider provider =
+                new CompositePackageFragmentProvider(KotlinPackage.plus(Arrays.asList(resolveSession.getPackageFragmentProvider()), additionalProviders));
+
+        ((ModuleDescriptorImpl) moduleDescriptor).initialize(provider);
+
+        analyzeDeclarations(
+                resolveSession,
+                c.getTopDownAnalysisParameters(),
+                files
+        );
+
+        return c;
     }
 
     @NotNull
@@ -348,7 +389,6 @@ public class LazyTopDownAnalyzer {
             }
         }
     }
-
 }
 
 

@@ -119,6 +119,10 @@ public class LazyTopDownAnalyzer {
                 new FileBasedDeclarationProviderFactory(c.getStorageManager(), files),
                 trace
         ).getResolveSession();
+        
+        if (trace instanceof CliClassGenerationSupportTrace) {
+            ((CliClassGenerationSupportTrace) trace).setResolveSession(resolveSession);
+        }
 
         CompositePackageFragmentProvider provider =
                 new CompositePackageFragmentProvider(KotlinPackage.plus(Arrays.asList(resolveSession.getPackageFragmentProvider()), additionalProviders));
@@ -152,7 +156,6 @@ public class LazyTopDownAnalyzer {
         for (PsiElement declaration : declarations) {
             declaration.accept(
                     new JetVisitorVoid() {
-
                         private void registerDeclarations(@NotNull List<JetDeclaration> declarations) {
                             for (JetDeclaration jetDeclaration : declarations) {
                                 jetDeclaration.accept(this);

@@ -130,6 +130,10 @@ public class LazyTopDownAnalyzer {
 
         ((ModuleDescriptorImpl) resolveSession.getModuleDescriptor()).initialize(provider);
 
+        if (trace instanceof CliClassGenerationSupportTrace) {
+            ((CliClassGenerationSupportTrace) trace).setResolveSession((ResolveSession)resolveSession);
+        }
+
         return analyzeDeclarations(topDownAnalysisParameters, files);
     }
 
@@ -387,11 +391,6 @@ public class LazyTopDownAnalyzer {
                 topLevelFqNames.put(fqName, declaration);
             }
         }
-    }
-
-    @NotNull
-    public KotlinCodeAnalyzer getCodeAnalyzer() {
-        return resolveSession;
     }
 }
 

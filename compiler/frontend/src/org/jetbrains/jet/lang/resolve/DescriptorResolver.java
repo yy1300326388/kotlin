@@ -629,7 +629,7 @@ public class DescriptorResolver {
         ConstructorDescriptorImpl constructorDescriptor =
                 DescriptorFactory.createPrimaryConstructorForObject(classDescriptor, toSourceElement(object));
         if (object != null) {
-            trace.record(CONSTRUCTOR, object, constructorDescriptor);
+            // trace.record(CONSTRUCTOR, object, constructorDescriptor);
         }
         return constructorDescriptor;
     }
@@ -1271,7 +1271,7 @@ public class DescriptorResolver {
                 isPrimary,
                 toSourceElement(declarationToTrace)
         );
-        trace.record(BindingContext.CONSTRUCTOR, declarationToTrace, constructorDescriptor);
+        // trace.record(BindingContext.CONSTRUCTOR, declarationToTrace, constructorDescriptor);
         WritableScopeImpl parameterScope = new WritableScopeImpl(
                 scope, constructorDescriptor, new TraceBasedRedeclarationHandler(trace), "Scope with value parameters of a constructor");
         parameterScope.changeLockLevel(WritableScope.LockLevel.BOTH);

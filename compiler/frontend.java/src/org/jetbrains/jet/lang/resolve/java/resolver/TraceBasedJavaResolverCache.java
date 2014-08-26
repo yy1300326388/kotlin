@@ -60,7 +60,7 @@ public class TraceBasedJavaResolverCache implements JavaResolverCache {
 
     @Override
     public void recordConstructor(@NotNull JavaElement element, @NotNull ConstructorDescriptor descriptor) {
-        trace.record(CONSTRUCTOR, ((JavaElementImpl) element).getPsi(), descriptor);
+        // trace.record(CONSTRUCTOR, ((JavaElementImpl) element).getPsi(), descriptor);
     }
 
     @Override

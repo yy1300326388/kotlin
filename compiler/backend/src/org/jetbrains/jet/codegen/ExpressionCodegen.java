@@ -25,6 +25,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.Stack;
+import kotlin.KotlinPackage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.codegen.binding.CalculatedClosure;
@@ -1328,8 +1329,15 @@ public class ExpressionCodegen extends JetVisitor<StackValue, StackValue> implem
     public StackValue visitObjectLiteralExpression(@NotNull JetObjectLiteralExpression expression, StackValue receiver) {
         CalculatedClosure closure = generateObjectLiteral(expression);
 
-        ConstructorDescriptor constructorDescriptor = bindingContext.get(CONSTRUCTOR, expression.getObjectDeclaration());
+        ClassDescriptor classDescriptor = bindingContext.get(CLASS, expression.getObjectDeclaration());
+        assert classDescriptor != null;
+
+        Collection<ConstructorDescriptor> constructors = classDescriptor.getConstructors();
+        assert constructors.size() == 1 : "Unexpected number of constructors for class: " + classDescriptor + " " + constructors;
+
+        ConstructorDescriptor constructorDescriptor = KotlinPackage.first(constructors);
         assert constructorDescriptor != null : "Unresolved constructor: " + expression.getText();
+
         JvmMethodSignature constructor = typeMapper.mapSignature(constructorDescriptor);
 
         Type type = typeMapper.mapType(constructorDescriptor.getContainingDeclaration());

@@ -4089,7 +4089,7 @@ public class LoadJavaTestGenerated extends AbstractLoadJavaTest {
         @InnerTestClasses({})
         public static class Override extends AbstractLoadJavaTest {
             public void testAllFilesPresentInOverride() throws Exception {
-                JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/loadJava/javaAgainstKotlin/override"), Pattern.compile("^(.+)\\.txt$"), true);
+                JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), "org.jetbrains.jet.generators.tests.TestsPackage", new File("compiler/testData/loadJava/javaAgainstKotlin/override"), Pattern.compile("^(.+)\\.txt$"), true);
             }
             
             @TestMetadata("OverrideTrait.txt")

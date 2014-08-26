@@ -19,6 +19,7 @@ package org.jetbrains.jet.lang.resolve.lazy;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.JetTestUtils;
@@ -44,15 +45,19 @@ public class LazyResolveTestUtil {
     private LazyResolveTestUtil() {
     }
 
-    public static ModuleDescriptor resolveEagerlyWithLazy(List<JetFile> files, JetCoreEnvironment environment) {
+    public static Pair<ModuleDescriptor, BindingTrace> resolveEagerlyWithLazy(List<JetFile> files, JetCoreEnvironment environment) {
         return doResolveEagerly(files, environment, true);
     }
 
-    public static ModuleDescriptor resolveEagerly(List<JetFile> files, JetCoreEnvironment environment) {
+    public static Pair<ModuleDescriptor, BindingTrace> resolveEagerly(List<JetFile> files, JetCoreEnvironment environment) {
         return doResolveEagerly(files, environment, false);
     }
 
-    private static ModuleDescriptor doResolveEagerly(List<JetFile> files, JetCoreEnvironment environment, boolean lazyTopDownAnalysis) {
+    private static Pair<ModuleDescriptor, BindingTrace> doResolveEagerly(
+            List<JetFile> files,
+            JetCoreEnvironment environment,
+            boolean lazyTopDownAnalysis
+    ) {
         JetTestUtils.newTrace(environment);
 
         GlobalContextImpl globalContext = ContextPackage.GlobalContext();
@@ -68,7 +73,7 @@ public class LazyResolveTestUtil {
         InjectorForTopDownAnalyzerForJvm injector =
                 new InjectorForTopDownAnalyzerForJvm(environment.getProject(), params, sharedTrace, sharedModule);
         injector.getTopDownAnalyzer().analyzeFiles(params, files, injector.getJavaDescriptorResolver().getPackageFragmentProvider());
-        return injector.getModuleDescriptor();
+        return Pair.create(injector.getModuleDescriptor(), sharedTrace);
     }
 
     @NotNull

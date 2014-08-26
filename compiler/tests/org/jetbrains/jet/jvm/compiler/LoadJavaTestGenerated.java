@@ -4079,10 +4079,29 @@ public class LoadJavaTestGenerated extends AbstractLoadJavaTest {
     }
     
     @TestMetadata("compiler/testData/loadJava/javaAgainstKotlin")
-    @InnerTestClasses({JavaAgainstKotlin.SamAdapters.class, JavaAgainstKotlin.SignaturePropagation.class, JavaAgainstKotlin.Visibility.class})
+    @InnerTestClasses({JavaAgainstKotlin.Override.class, JavaAgainstKotlin.SamAdapters.class, JavaAgainstKotlin.SignaturePropagation.class, JavaAgainstKotlin.Visibility.class})
     public static class JavaAgainstKotlin extends AbstractLoadJavaTest {
         public void testAllFilesPresentInJavaAgainstKotlin() throws Exception {
             JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/loadJava/javaAgainstKotlin"), Pattern.compile("^(.+)\\.txt$"), true);
+        }
+        
+        @TestMetadata("compiler/testData/loadJava/javaAgainstKotlin/override")
+        @InnerTestClasses({})
+        public static class Override extends AbstractLoadJavaTest {
+            public void testAllFilesPresentInOverride() throws Exception {
+                JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), "org.jetbrains.jet.generators.tests.TestsPackage", new File("compiler/testData/loadJava/javaAgainstKotlin/override"), Pattern.compile("^(.+)\\.txt$"), true);
+            }
+            
+            @TestMetadata("OverrideTrait.txt")
+            public void testOverrideTrait() throws Exception {
+                doTestJavaAgainstKotlin("compiler/testData/loadJava/javaAgainstKotlin/override/OverrideTrait.txt");
+            }
+            
+            public static Test innerSuite() {
+                TestSuite suite = new TestSuite("Override");
+                suite.addTestSuite(Override.class);
+                return suite;
+            }
         }
         
         @TestMetadata("compiler/testData/loadJava/javaAgainstKotlin/samAdapters")
@@ -4190,6 +4209,7 @@ public class LoadJavaTestGenerated extends AbstractLoadJavaTest {
         public static Test innerSuite() {
             TestSuite suite = new TestSuite("JavaAgainstKotlin");
             suite.addTestSuite(JavaAgainstKotlin.class);
+            suite.addTest(Override.innerSuite());
             suite.addTest(SamAdapters.innerSuite());
             suite.addTest(SignaturePropagation.innerSuite());
             suite.addTest(Visibility.innerSuite());

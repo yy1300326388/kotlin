@@ -582,7 +582,7 @@ public class JetTypeCheckerTest extends JetLiteFixture {
         ModuleDescriptor moduleDescriptor = LazyResolveTestUtil.resolveEagerly(
                 Collections.singletonList(JetTestUtils.loadJetFile(getProject(), new File(path))),
                 getEnvironment()
-        );
+        ).getFirst();
 
         FqName fqName = new FqName("testData");
         PackageViewDescriptor packageView = moduleDescriptor.getPackage(fqName);

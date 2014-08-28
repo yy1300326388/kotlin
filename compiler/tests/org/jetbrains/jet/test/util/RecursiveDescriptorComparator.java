@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.JetTestUtils;
 import org.jetbrains.jet.jvm.compiler.ExpectedLoadErrorsUtil;
 import org.jetbrains.jet.lang.descriptors.*;
+import org.jetbrains.jet.lang.resolve.DescriptorUtils;
 import org.jetbrains.jet.lang.resolve.MemberComparator;
 import org.jetbrains.jet.lang.resolve.name.FqName;
 import org.jetbrains.jet.lang.resolve.scopes.JetScope;
@@ -65,17 +66,22 @@ public class RecursiveDescriptorComparator {
 
     private final Configuration conf;
 
-    private RecursiveDescriptorComparator(@NotNull Configuration conf) {
+    public RecursiveDescriptorComparator(@NotNull Configuration conf) {
         this.conf = conf;
     }
 
-    private String serializeRecursively(@NotNull DeclarationDescriptor declarationDescriptor) {
+    public String serializeRecursively(@NotNull DeclarationDescriptor declarationDescriptor) {
         StringBuilder result = new StringBuilder();
-        appendDeclarationRecursively(declarationDescriptor, new Printer(result, 1), true);
+        appendDeclarationRecursively(declarationDescriptor, DescriptorUtils.getContainingModule(declarationDescriptor), new Printer(result, 1), true);
         return result.toString();
     }
 
-    private void appendDeclarationRecursively(@NotNull DeclarationDescriptor descriptor, @NotNull Printer printer, boolean topLevel) {
+    private void appendDeclarationRecursively(
+            @NotNull DeclarationDescriptor descriptor,
+            ModuleDescriptor module,
+            @NotNull Printer printer,
+            boolean topLevel
+    ) {
         if ((descriptor instanceof ClassOrPackageFragmentDescriptor || descriptor instanceof PackageViewDescriptor) && !topLevel) {
             printer.println();
         }
@@ -94,14 +100,17 @@ public class RecursiveDescriptorComparator {
 
             if (descriptor instanceof ClassDescriptor) {
                 ClassDescriptor klass = (ClassDescriptor) descriptor;
-                appendSubDescriptors(klass.getDefaultType().getMemberScope(), getConstructorsAndClassObject(klass), printer);
+                appendSubDescriptors(descriptor, module,
+                                     klass.getDefaultType().getMemberScope(), getConstructorsAndClassObject(klass), printer);
             }
             else if (descriptor instanceof PackageFragmentDescriptor) {
-                appendSubDescriptors(((PackageFragmentDescriptor) descriptor).getMemberScope(),
+                appendSubDescriptors(descriptor, module,
+                                     ((PackageFragmentDescriptor) descriptor).getMemberScope(),
                                      Collections.<DeclarationDescriptor>emptyList(), printer);
             }
             else if (descriptor instanceof PackageViewDescriptor) {
-                appendSubDescriptors(((PackageViewDescriptor) descriptor).getMemberScope(),
+                appendSubDescriptors(descriptor, module,
+                                     ((PackageViewDescriptor) descriptor).getMemberScope(),
                                      Collections.<DeclarationDescriptor>emptyList(), printer);
             }
 
@@ -149,10 +158,16 @@ public class RecursiveDescriptorComparator {
     }
 
     private void appendSubDescriptors(
-            @NotNull JetScope memberScope,
+            DeclarationDescriptor descriptor,
+            ModuleDescriptor module, @NotNull JetScope memberScope,
             @NotNull Collection<DeclarationDescriptor> extraSubDescriptors,
             @NotNull Printer printer
     ) {
+        if (module != DescriptorUtils.getContainingModule(descriptor)) {
+            printer.println(String.format("// -- Module: %s --", DescriptorUtils.getContainingModule(descriptor).getName()));
+            return;
+        }
+
         List<DeclarationDescriptor> subDescriptors = Lists.newArrayList();
 
         subDescriptors.addAll(memberScope.getAllDescriptors());
@@ -162,7 +177,7 @@ public class RecursiveDescriptorComparator {
 
         for (DeclarationDescriptor subDescriptor : subDescriptors) {
             if (!shouldSkip(subDescriptor)) {
-                appendDeclarationRecursively(subDescriptor, printer, false);
+                appendDeclarationRecursively(subDescriptor, module, printer, false);
             }
         }
     }

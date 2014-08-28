@@ -16,9 +16,12 @@
 
 package org.jetbrains.jet.checkers;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import kotlin.Function1;
@@ -26,6 +29,7 @@ import kotlin.KotlinPackage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.JetTestUtils;
 import org.jetbrains.jet.cli.jvm.compiler.CliLightClassGenerationSupport;
+import org.jetbrains.jet.lang.descriptors.*;
 import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.diagnostics.*;
 import org.jetbrains.jet.lang.psi.Call;
@@ -36,15 +40,20 @@ import org.jetbrains.jet.lang.resolve.*;
 import org.jetbrains.jet.lang.resolve.calls.model.MutableResolvedCall;
 import org.jetbrains.jet.lang.resolve.calls.model.ResolvedCall;
 import org.jetbrains.jet.lang.resolve.java.TopDownAnalyzerFacadeForJVM;
+import org.jetbrains.jet.lang.resolve.lazy.LazyResolveTestUtil;
+import org.jetbrains.jet.lang.resolve.name.FqName;
+import org.jetbrains.jet.lang.resolve.name.Name;
 import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
+import org.jetbrains.jet.test.util.DescriptorValidator;
+import org.jetbrains.jet.test.util.RecursiveDescriptorComparator;
 
 import java.io.File;
 import java.util.*;
 
 import static org.jetbrains.jet.lang.diagnostics.Errors.*;
+import static org.jetbrains.jet.test.util.RecursiveDescriptorComparator.RECURSIVE;
 
 public abstract class AbstractJetDiagnosticsTest extends BaseDiagnosticsTest {
-
     @Override
     protected void analyzeAndCheck(File testDataFile, List<TestFile> testFiles) {
         Map<TestModule, List<TestFile>> groupedByModule = KotlinPackage.groupByTo(
@@ -80,6 +89,7 @@ public abstract class AbstractJetDiagnosticsTest extends BaseDiagnosticsTest {
 
             if (module == null) {
                 module = support.newModule();
+                modules.put(entry.getKey(), module);
             }
             else {
                 module.addDependencyOnModule(KotlinBuiltIns.getInstance().getBuiltInsModule());
@@ -97,6 +107,7 @@ public abstract class AbstractJetDiagnosticsTest extends BaseDiagnosticsTest {
                     null,
                     null
             );
+
             checkAllResolvedCallsAreCompleted(jetFiles, moduleTrace.getBindingContext());
         }
 
@@ -112,9 +123,98 @@ public abstract class AbstractJetDiagnosticsTest extends BaseDiagnosticsTest {
         assertTrue("Diagnostics mismatch. See the output above", ok);
 
         checkAllResolvedCallsAreCompleted(allJetFiles, supportTrace.getBindingContext());
+
+        validateAndCompareDescriptorWithFile(testDataFile, testFiles, support, modules);
     }
 
-    private Map<TestModule, ModuleDescriptorImpl> createModules(Map<TestModule, List<TestFile>> groupedByModule) {
+    private void validateAndCompareDescriptorWithFile(
+            File testDataFile,
+            List<TestFile> testFiles,
+            CliLightClassGenerationSupport support,
+            Map<TestModule, ModuleDescriptorImpl> modules
+    ) {
+        StringBuilder rootPackageText = new StringBuilder();
+
+        ModuleDescriptorImpl lightClassModule = support.getLightClassModuleModule();
+        if (lightClassModule == null) {
+            // FIXME: must be separate cli for each module analysis
+            ModuleDescriptorImpl cliModule = support.newModule();
+            cliModule.initialize(new PackageFragmentProvider() {
+                @NotNull
+                @Override
+                public List<PackageFragmentDescriptor> getPackageFragments(@NotNull FqName fqName) {
+                    return Collections.emptyList();
+                }
+
+                @NotNull
+                @Override
+                public Collection<FqName> getSubPackagesOf(@NotNull FqName fqName) {
+                    return Collections.emptyList();
+                }
+            });
+        }
+
+        RecursiveDescriptorComparator comparator = new RecursiveDescriptorComparator(createdAffectedPackagesConfiguration(testFiles));
+
+        boolean isMultiModuleTest = modules.size() != 1;
+
+        for (TestModule module : Ordering.natural().sortedCopy(modules.keySet())) {
+            ModuleDescriptorImpl moduleDescriptor = modules.get(module);
+            DeclarationDescriptor aPackage = moduleDescriptor.getPackage(FqName.ROOT);
+
+            if (isMultiModuleTest) {
+                rootPackageText.append(String.format("// -- Module: %s --\n", moduleDescriptor.getName()));
+            }
+
+            String actualSerialized = comparator.serializeRecursively(aPackage);
+            rootPackageText.append(actualSerialized);
+
+            if (isMultiModuleTest) {
+                rootPackageText.append("\n\n");
+            }
+        }
+
+        String path = JetTestUtils
+                .getFilePath(new File(FileUtil.getRelativePath(new File("compiler/testData/diagnostics/tests"), testDataFile)));
+        String txtFileRelativePath = path.replaceAll("\\.kt$|\\.kts$", ".txt");
+        File txtFile = new File("compiler/testData/lazyResolve/diagnostics/" + txtFileRelativePath);
+
+        JetTestUtils.assertEqualsToFile(txtFile, rootPackageText.toString());
+    }
+
+    public static RecursiveDescriptorComparator.Configuration createdAffectedPackagesConfiguration(List<TestFile> testFiles) {
+        final Set<Name> names = LazyResolveTestUtil.getTopLevelPackagesFromFileList(getJetFiles(testFiles));
+
+        final Predicate<FqName> fqNameFilter = new Predicate<FqName>() {
+            @Override
+            public boolean apply(FqName fqName) {
+                if (fqName.isRoot()) return true;
+
+                Name firstName = fqName.pathSegments().get(0);
+                return names.contains(firstName);
+            }
+        };
+
+        return RECURSIVE.filterRecursion(fqNameFilter).withValidationStrategy(
+                DescriptorValidator.ValidationVisitor.allowErrorTypes(
+                        new Predicate<DeclarationDescriptor>() {
+                            @Override
+                            public boolean apply(DeclarationDescriptor input) {
+                                if (input instanceof PackageViewDescriptor) {
+                                    PackageViewDescriptor descriptor = (PackageViewDescriptor) input;
+                                    FqName fqName = descriptor.getFqName();
+                                    System.out.println(fqName);
+
+                                    return fqNameFilter.apply(fqName);
+                                }
+                                return true;
+                            }
+                        }
+                )
+        );
+    }
+
+    public static Map<TestModule, ModuleDescriptorImpl> createModules(Map<TestModule, List<TestFile>> groupedByModule) {
         Map<TestModule, ModuleDescriptorImpl> modules = new HashMap<TestModule, ModuleDescriptorImpl>();
 
         for (TestModule testModule : groupedByModule.keySet()) {

@@ -40,6 +40,6 @@ public class CharValue extends IntegerValueConstant<Character> {
 
     @Override
     public String toString() {
-        return "#" + ((int) value) + "(" + value + ")";
+        return "#" + ((int) value) + "(" + (Character.isLowSurrogate(value) || Character.isHighSurrogate(value) ? '?' : value) + ")";
     }
 }

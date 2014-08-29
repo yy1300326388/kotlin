@@ -2,11 +2,11 @@
     <property file="resources/manifest.properties"/>
 
     <!-- Set to false to disable proguard run on kotlin-compiler.jar. Speeds up the build -->
-    <property name="shrink" value="true"/>
+    <property name="shrink" value="false"/>
     <!-- Set to false to disable compiler's @NotNull assertions. Speeds up the build -->
     <property name="generate.assertions" value="true"/>
     <!-- Set to false to disable compiler's javadoc generation. Speeds up the build -->
-    <property name="generate.javadoc" value="true"/>
+    <property name="generate.javadoc" value="false"/>
 
     <property name="bootstrap.home" value="dependencies/bootstrap-compiler"/>
     <property name="bootstrap.compiler.home" value="${bootstrap.home}/Kotlin/kotlinc"/>

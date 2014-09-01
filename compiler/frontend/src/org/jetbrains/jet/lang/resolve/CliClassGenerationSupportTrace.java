@@ -45,11 +45,13 @@ public class CliClassGenerationSupportTrace extends BindingTraceContext {
 
     @Override
     public <K, V> V get(ReadOnlySlice<K, V> slice, K key) {
-        if (BindingContext.FUNCTION == slice || BindingContext.VARIABLE == slice) {
-            if (super.get(slice, key) == null && key instanceof JetDeclaration) {
-                JetDeclaration jetDeclaration = (JetDeclaration) key;
-                if (!JetPsiUtil.isLocal(jetDeclaration)) {
-                    resolveSession.resolveToDescriptor(jetDeclaration);
+        if (resolveSession != null) {
+            if (BindingContext.FUNCTION == slice || BindingContext.VARIABLE == slice) {
+                if (super.get(slice, key) == null && key instanceof JetDeclaration) {
+                    JetDeclaration jetDeclaration = (JetDeclaration) key;
+                    if (!JetPsiUtil.isLocal(jetDeclaration)) {
+                        resolveSession.resolveToDescriptor(jetDeclaration);
+                    }
                 }
             }
         }

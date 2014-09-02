@@ -60,7 +60,7 @@ public abstract class AbstractLazyResolveRecursiveComparingTest extends KotlinTe
                                  });
 
         ModuleDescriptor eagerModule = LazyResolveTestUtil.resolveEagerly(files, getEnvironment());
-        ModuleDescriptor lazyModule = LazyResolveTestUtil.resolveLazily(files, getEnvironment());
+        ModuleDescriptor lazyModule = LazyResolveTestUtil.resolveEagerlyWithLazy(files, getEnvironment());
 
         FqName test = new FqName("test");
 

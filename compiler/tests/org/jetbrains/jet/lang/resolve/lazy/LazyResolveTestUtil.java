@@ -44,12 +44,23 @@ public class LazyResolveTestUtil {
     private LazyResolveTestUtil() {
     }
 
+    public static ModuleDescriptor resolveEagerlyWithLazy(List<JetFile> files, JetCoreEnvironment environment) {
+        return doResolveEagerly(files, environment, true);
+    }
+
     public static ModuleDescriptor resolveEagerly(List<JetFile> files, JetCoreEnvironment environment) {
+        return doResolveEagerly(files, environment, false);
+    }
+
+    private static ModuleDescriptor doResolveEagerly(List<JetFile> files, JetCoreEnvironment environment, boolean lazyTopDownAnalysis) {
         JetTestUtils.newTrace(environment);
 
         GlobalContextImpl globalContext = ContextPackage.GlobalContext();
         TopDownAnalysisParameters params = TopDownAnalysisParameters.create(
-                globalContext.getStorageManager(), globalContext.getExceptionTracker(), Predicates.<PsiFile>alwaysTrue(), false, false);
+                globalContext.getStorageManager(),
+                globalContext.getExceptionTracker(),
+                Predicates.<PsiFile>alwaysTrue(),
+                false, false, lazyTopDownAnalysis);
         CliLightClassGenerationSupport support = CliLightClassGenerationSupport.getInstanceForCli(environment.getProject());
         BindingTrace sharedTrace = support.getTrace();
         ModuleDescriptorImpl sharedModule = support.newModule();

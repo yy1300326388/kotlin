@@ -1,0 +1,17 @@
+fun varargFun(vararg types: String) {}
+fun str() = "str"
+
+fun test() {
+    varargFun(
+            str(),
+            str(),
+            str(),
+            str(),
+            str(),
+            str(),
+            str(),
+            str(),
+            str(),
+            str()
+    )
+}

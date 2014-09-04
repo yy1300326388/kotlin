@@ -205,10 +205,13 @@ public class DeclarationResolver {
             JetClassOrObject klass = entry.getKey();
             MutableClassDescriptor classDescriptor = (MutableClassDescriptor) entry.getValue();
 
-            if (klass instanceof JetClass && klass.hasPrimaryConstructor() && KotlinBuiltIns.getInstance().isData(classDescriptor)) {
-                ConstructorDescriptor constructor = getConstructorOfDataClass(classDescriptor);
-                createComponentFunctions(classDescriptor, constructor);
-                createCopyFunction(classDescriptor, constructor);
+            if (klass instanceof JetClass && KotlinBuiltIns.getInstance().isData(classDescriptor)) {
+                if (klass.hasPrimaryConstructor()) {
+                    ConstructorDescriptor constructor = getConstructorOfDataClass(classDescriptor);
+
+                    createComponentFunctions(classDescriptor, constructor);
+                    createCopyFunction(classDescriptor, constructor);
+                }
             }
         }
     }
@@ -238,6 +241,8 @@ public class DeclarationResolver {
     }
 
     private void createCopyFunction(@NotNull MutableClassDescriptor classDescriptor, @NotNull ConstructorDescriptor constructorDescriptor) {
+        if (constructorDescriptor.getValueParameters().isEmpty()) return;
+
         SimpleFunctionDescriptor functionDescriptor = DescriptorResolver.createCopyFunctionDescriptor(
                 constructorDescriptor.getValueParameters(), classDescriptor, trace);
 

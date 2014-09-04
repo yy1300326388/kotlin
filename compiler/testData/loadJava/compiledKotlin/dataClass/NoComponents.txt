@@ -3,3 +3,7 @@ package test
 kotlin.data() internal final class DataClass {
     /*primary*/ public constructor DataClass()
 }
+
+kotlin.data() internal final class OtherDataClass {
+    /*primary*/ public constructor OtherDataClass()
+}

@@ -16,6 +16,9 @@
 
 package org.jetbrains.jet.plugin.highlighter;
 
+import com.google.common.collect.Ordering;
+import kotlin.Function1;
+import kotlin.KotlinPackage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.lang.descriptors.CallableMemberDescriptor;
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
@@ -28,6 +31,8 @@ import org.jetbrains.jet.renderer.DescriptorRenderer;
 import org.jetbrains.jet.renderer.Renderer;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.jetbrains.jet.lang.diagnostics.rendering.Renderers.*;
 import static org.jetbrains.jet.plugin.highlighter.renderersUtil.RenderersUtilPackage.renderResolvedCall;
@@ -35,6 +40,12 @@ import static org.jetbrains.jet.plugin.highlighter.renderersUtil.RenderersUtilPa
 public class IdeRenderers {
     private static final String RED_TEMPLATE = "<font color=red><b>%s</b></font>";
     private static final String STRONG_TEMPLATE = "<b>%s</b>";
+    private static final Comparator<ResolvedCall> RESOLVED_CALL_COMPARATOR = new Comparator<ResolvedCall>() {
+        @Override
+        public int compare(@NotNull ResolvedCall first, @NotNull ResolvedCall second) {
+            return first.toString().compareTo(second.toString());
+        }
+    };
 
     @NotNull
     public static String strong(Object o) {
@@ -76,16 +87,21 @@ public class IdeRenderers {
 
     public static final Renderer<Collection<? extends ResolvedCall<?>>> HTML_NONE_APPLICABLE_CALLS =
             new Renderer<Collection<? extends ResolvedCall<?>>>() {
-
                 @NotNull
                 @Override
                 public String render(@NotNull Collection<? extends ResolvedCall<?>> calls) {
+                    List<String> renderedCalls = KotlinPackage.map(calls, new Function1<ResolvedCall<?>, String>() {
+                        @Override
+                        public String invoke(ResolvedCall<?> call) {
+                            return renderResolvedCall(call);
+                        }
+                    });
+
                     StringBuilder stringBuilder = new StringBuilder("");
-                    for (ResolvedCall<?> resolvedCall : calls) {
-                        stringBuilder.append("<li>");
-                        stringBuilder.append(renderResolvedCall(resolvedCall));
-                        stringBuilder.append("</li>");
+                    for (String renderedCall : Ordering.natural().sortedCopy(renderedCalls)) {
+                        stringBuilder.append("<li>").append(renderedCall).append("</li>");
                     }
+
                     return stringBuilder.toString();
                 }
             };

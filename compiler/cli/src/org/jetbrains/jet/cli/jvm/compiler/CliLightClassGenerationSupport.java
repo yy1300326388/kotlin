@@ -27,6 +27,7 @@ import com.intellij.psi.search.PsiSearchScopeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -35,16 +36,19 @@ import org.jetbrains.jet.asJava.LightClassConstructionContext;
 import org.jetbrains.jet.asJava.LightClassGenerationSupport;
 import org.jetbrains.jet.lang.descriptors.ClassDescriptor;
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
+import org.jetbrains.jet.lang.descriptors.ModuleDescriptor;
 import org.jetbrains.jet.lang.descriptors.PackageViewDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.psi.*;
-import org.jetbrains.jet.lang.resolve.*;
-import org.jetbrains.jet.lang.resolve.java.TopDownAnalyzerFacadeForJVM;
+import org.jetbrains.jet.lang.resolve.BindingContext;
+import org.jetbrains.jet.lang.resolve.BindingTrace;
+import org.jetbrains.jet.lang.resolve.DescriptorToSourceUtils;
 import org.jetbrains.jet.lang.resolve.java.JvmAbi;
 import org.jetbrains.jet.lang.resolve.name.FqName;
-import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This class solves the problem of interdependency between analyzing Kotlin code and generating JetLightClasses
@@ -65,47 +69,28 @@ public class CliLightClassGenerationSupport extends LightClassGenerationSupport 
     }
 
     private BindingTrace trace;
-    private ModuleDescriptorImpl module;
+    private ModuleDescriptor module;
+
+    public Boolean initialize(BindingTrace trace, ModuleDescriptor moduleDescriptor) {
+        this.trace = trace;
+        this.module = moduleDescriptor;
+
+        return true;
+    }
 
     public CliLightClassGenerationSupport() {
     }
 
     @NotNull
-    public BindingTrace getTrace() {
-        if (trace == null) {
-            trace = new CliClassGenerationSupportTrace();
-        }
+    private BindingTrace getTrace() {
+        assert trace != null : "Call initialize() first";
         return trace;
     }
 
     @NotNull
-    public ModuleDescriptorImpl newModule() {
-        assert this.module == null : "module already configured: " + module;
-        module = TopDownAnalyzerFacadeForJVM.createJavaModule("<shared-module-for-cli-light-classes>");
-        module.addDependencyOnModule(module);
-        module.addDependencyOnModule(KotlinBuiltIns.getInstance().getBuiltInsModule());
-        module.seal();
+    private ModuleDescriptor getModule() {
+        assert module != null : "Call initialize() first";
         return module;
-    }
-
-    @NotNull
-    private ModuleDescriptorImpl getModule() {
-        if (module == null) {
-           return newModule();
-        }
-        return module;
-    }
-
-    @TestOnly
-    @Nullable
-    public ModuleDescriptorImpl getLightClassModuleModule() {
-        return module;
-    }
-
-    @TestOnly
-    public void setModule(@NotNull ModuleDescriptorImpl module) {
-        assert this.module == null : "module already configured: " + module;
-        this.module = module;
     }
 
     @TestOnly

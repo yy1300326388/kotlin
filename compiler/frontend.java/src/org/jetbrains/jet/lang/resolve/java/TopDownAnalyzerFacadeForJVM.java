@@ -30,6 +30,7 @@ import org.jetbrains.jet.lang.descriptors.PackageFragmentProvider;
 import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.BindingTrace;
+import org.jetbrains.jet.lang.resolve.BindingTraceContext;
 import org.jetbrains.jet.lang.resolve.ImportPath;
 import org.jetbrains.jet.lang.resolve.TopDownAnalysisParameters;
 import org.jetbrains.jet.lang.resolve.java.mapping.JavaToKotlinClassMap;
@@ -37,6 +38,7 @@ import org.jetbrains.jet.lang.resolve.kotlin.incremental.IncrementalPackageFragm
 import org.jetbrains.jet.lang.resolve.kotlin.incremental.cache.IncrementalCache;
 import org.jetbrains.jet.lang.resolve.kotlin.incremental.cache.IncrementalCacheProvider;
 import org.jetbrains.jet.lang.resolve.name.Name;
+import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,12 +62,13 @@ public enum TopDownAnalyzerFacadeForJVM {
     public static AnalyzeExhaust analyzeFilesWithJavaIntegration(
             Project project,
             Collection<JetFile> files,
-            BindingTrace trace,
             Predicate<PsiFile> filesToAnalyzeCompletely,
             ModuleDescriptorImpl module,
             List<String> moduleIds,
             @Nullable IncrementalCacheProvider incrementalCacheProvider
     ) {
+        BindingTraceContext trace = new BindingTraceContext();
+
         GlobalContext globalContext = ContextPackage.GlobalContext();
         TopDownAnalysisParameters topDownAnalysisParameters = TopDownAnalysisParameters.create(
                 globalContext.getStorageManager(),
@@ -74,6 +77,7 @@ public enum TopDownAnalyzerFacadeForJVM {
                 false,
                 false
         );
+
 
         InjectorForTopDownAnalyzerForJvm injector = new InjectorForTopDownAnalyzerForJvm(project, topDownAnalysisParameters, trace, module);
         try {
@@ -103,6 +107,17 @@ public enum TopDownAnalyzerFacadeForJVM {
 
     @NotNull
     public static ModuleDescriptorImpl createJavaModule(@NotNull String name) {
-        return new ModuleDescriptorImpl(Name.special(name), DEFAULT_IMPORTS, JavaToKotlinClassMap.getInstance());
+        return new ModuleDescriptorImpl(Name.special(name),
+                                        DEFAULT_IMPORTS,
+                                        JavaToKotlinClassMap.getInstance());
+    }
+
+    @NotNull
+    public static ModuleDescriptorImpl createAnalyzeModule() {
+        ModuleDescriptorImpl module = createJavaModule("<shared-module-for-cli-light-classes>");
+        module.addDependencyOnModule(module);
+        module.addDependencyOnModule(KotlinBuiltIns.getInstance().getBuiltInsModule());
+        module.seal();
+        return module;
     }
 }

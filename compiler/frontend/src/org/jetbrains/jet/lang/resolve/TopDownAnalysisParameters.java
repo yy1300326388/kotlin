@@ -31,6 +31,7 @@ public class TopDownAnalysisParameters implements GlobalContext {
 
     static {
         LAZY = "true".equals(System.getProperty("lazy.tda"));
+        LAZY = true;
     }
 
     @NotNull

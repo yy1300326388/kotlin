@@ -74,17 +74,15 @@ public class JvmResolveUtil {
             @NotNull Collection<JetFile> files,
             @NotNull Predicate<PsiFile> filesToAnalyzeCompletely
     ) {
-        BindingTraceContext bindingTraceContext = new BindingTraceContext();
-
         ModuleDescriptorImpl module = TopDownAnalyzerFacadeForJVM.createJavaModule("<module>");
         module.addDependencyOnModule(module);
         module.addDependencyOnModule(KotlinBuiltIns.getInstance().getBuiltInsModule());
         module.seal();
-        CliLightClassGenerationSupport lightClassGenerationSupport = CliLightClassGenerationSupport.getInstanceForCli(project);
-        if (lightClassGenerationSupport != null) {
-            lightClassGenerationSupport.setModule(module);
-        }
-        return TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(project, files, bindingTraceContext, filesToAnalyzeCompletely,
-                                                                           module, null, null);
+        //CliLightClassGenerationSupport lightClassGenerationSupport = CliLightClassGenerationSupport.getInstanceForCli(project);
+        //if (lightClassGenerationSupport != null) {
+        //    lightClassGenerationSupport.setModule(module);
+        //}
+        return TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
+                project, files, filesToAnalyzeCompletely, module, null, null);
     }
 }

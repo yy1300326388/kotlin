@@ -32,7 +32,9 @@ import org.jetbrains.jet.lang.descriptors.ModuleDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.BindingTrace;
+import org.jetbrains.jet.lang.resolve.BindingTraceContext;
 import org.jetbrains.jet.lang.resolve.TopDownAnalysisParameters;
+import org.jetbrains.jet.lang.resolve.java.TopDownAnalyzerFacadeForJVM;
 import org.jetbrains.jet.lang.resolve.name.Name;
 import org.jetbrains.jet.lang.resolve.name.SpecialNames;
 
@@ -66,14 +68,13 @@ public class LazyResolveTestUtil {
                 globalContext.getExceptionTracker(),
                 Predicates.<PsiFile>alwaysTrue(),
                 false, false, lazyTopDownAnalysis);
-        CliLightClassGenerationSupport support = CliLightClassGenerationSupport.getInstanceForCli(environment.getProject());
-        BindingTrace sharedTrace = support.getTrace();
-        ModuleDescriptorImpl sharedModule = support.newModule();
+        ModuleDescriptorImpl sharedModule = TopDownAnalyzerFacadeForJVM.createAnalyzeModule();
+        BindingTrace context = new BindingTraceContext();
 
         InjectorForTopDownAnalyzerForJvm injector =
-                new InjectorForTopDownAnalyzerForJvm(environment.getProject(), params, sharedTrace, sharedModule);
+                new InjectorForTopDownAnalyzerForJvm(environment.getProject(), params, context, sharedModule);
         injector.getTopDownAnalyzer().analyzeFiles(params, files, injector.getJavaDescriptorResolver().getPackageFragmentProvider());
-        return Pair.create(injector.getModuleDescriptor(), sharedTrace);
+        return Pair.create(injector.getModuleDescriptor(), context);
     }
 
     @NotNull
@@ -87,7 +88,7 @@ public class LazyResolveTestUtil {
         Project project = environment.getProject();
         CliLightClassGenerationSupport support = CliLightClassGenerationSupport.getInstanceForCli(project);
         ResolveSession lazyResolveSession = createResolveSessionForFiles(project, files, addBuiltIns);
-        support.setModule((ModuleDescriptorImpl) lazyResolveSession.getModuleDescriptor());
+        // support.setModule((ModuleDescriptorImpl) lazyResolveSession.getModuleDescriptor());
 
         return lazyResolveSession;
     }

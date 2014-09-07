@@ -28,7 +28,6 @@ import org.jetbrains.jet.JetTestUtils;
 import org.jetbrains.jet.TestJdkKind;
 import org.jetbrains.jet.analyzer.AnalyzeExhaust;
 import org.jetbrains.jet.cli.jvm.JVMConfigurationKeys;
-import org.jetbrains.jet.cli.jvm.compiler.CliLightClassGenerationSupport;
 import org.jetbrains.jet.cli.jvm.compiler.JetCoreEnvironment;
 import org.jetbrains.jet.config.CommonConfigurationKeys;
 import org.jetbrains.jet.config.CompilerConfiguration;
@@ -40,9 +39,10 @@ import org.jetbrains.jet.lang.descriptors.PackageViewDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.BindingContext;
-import org.jetbrains.jet.lang.resolve.BindingTrace;
+import org.jetbrains.jet.lang.resolve.BindingTraceContext;
 import org.jetbrains.jet.lang.resolve.DescriptorUtils;
 import org.jetbrains.jet.lang.resolve.TopDownAnalysisParameters;
+import org.jetbrains.jet.lang.resolve.java.TopDownAnalyzerFacadeForJVM;
 import org.jetbrains.jet.lang.resolve.lazy.JvmResolveUtil;
 import org.jetbrains.jet.storage.ExceptionTracker;
 import org.jetbrains.jet.storage.LockBasedStorageManager;
@@ -143,10 +143,8 @@ public abstract class AbstractLoadJavaTest extends TestCaseWithTmpdir {
         configuration.add(JVMConfigurationKeys.CLASSPATH_KEY, new File("compiler/tests")); // for @ExpectLoadError annotation
         JetCoreEnvironment environment = JetCoreEnvironment.createForTests(getTestRootDisposable(), configuration);
 
-        // we need the same binding trace for resolve from Java and Kotlin
-        CliLightClassGenerationSupport support = CliLightClassGenerationSupport.getInstanceForCli(environment.getProject());
-        BindingTrace trace = support.getTrace();
-        ModuleDescriptorImpl module = support.newModule();
+        BindingTraceContext trace = new BindingTraceContext();
+        ModuleDescriptorImpl module = TopDownAnalyzerFacadeForJVM.createAnalyzeModule();
 
         TopDownAnalysisParameters parameters = TopDownAnalysisParameters.create(
                 new LockBasedStorageManager(),
@@ -155,6 +153,7 @@ public abstract class AbstractLoadJavaTest extends TestCaseWithTmpdir {
                 false,
                 false
         );
+
         InjectorForTopDownAnalyzerForJvm injectorForAnalyzer = new InjectorForTopDownAnalyzerForJvm(
                 environment.getProject(),
                 parameters,

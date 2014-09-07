@@ -290,16 +290,17 @@ public class KotlinToJVMBytecodeCompiler {
                     @NotNull
                     @Override
                     public AnalyzeExhaust invoke() {
-                        CliLightClassGenerationSupport support = CliLightClassGenerationSupport.getInstanceForCli(environment.getProject());
-                        BindingTrace sharedTrace = support.getTrace();
-                        ModuleDescriptorImpl sharedModule = support.newModule();
+                        //CliLightClassGenerationSupport support = CliLightClassGenerationSupport.getInstanceForCli(environment.getProject());
+                        //BindingTrace sharedTrace = support.getTrace();
+                        //ModuleDescriptorImpl sharedModule = support.newModule();
+
+                        ModuleDescriptorImpl analyzeModule = TopDownAnalyzerFacadeForJVM.createAnalyzeModule();
 
                         return TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
                                 environment.getProject(),
                                 environment.getSourceFiles(),
-                                sharedTrace,
                                 Predicates.<PsiFile>alwaysTrue(),
-                                sharedModule,
+                                analyzeModule,
                                 environment.getConfiguration().get(JVMConfigurationKeys.MODULE_IDS),
                                 environment.getConfiguration().get(JVMConfigurationKeys.INCREMENTAL_CACHE_PROVIDER)
                         );

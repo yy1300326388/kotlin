@@ -18,7 +18,9 @@ package org.jetbrains.jet.plugin.highlighter;
 
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,9 +40,7 @@ import org.jetbrains.jet.plugin.PluginTestCaseBase;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.jetbrains.jet.plugin.highlighter.formatHtml.FormatHtmlPackage.formatHtml;
 
@@ -79,7 +79,7 @@ public abstract class AbstractDiagnosticMessageTest extends JetLiteFixture {
         Map<String,String> directives = JetTestUtils.parseDirectives(fileData);
         int diagnosticNumber = getDiagnosticNumber(directives);
         final Set<DiagnosticFactory<?>> diagnosticFactories = getDiagnosticFactories(directives);
-        MessageType messageType = getMessageTypeDirective(directives);
+        final MessageType messageType = getMessageTypeDirective(directives);
 
         JetFile psiFile = createPsiFile(null, fileName, loadFile(fileName));
         AnalyzeExhaust analyzeExhaust = JvmResolveUtil.analyzeOneFileWithJavaIntegration(psiFile);
@@ -94,22 +94,34 @@ public abstract class AbstractDiagnosticMessageTest extends JetLiteFixture {
 
         assertEquals("Expected diagnostics number mismatch:", diagnosticNumber, diagnostics.size());
 
+        List<Pair<String, MessageType>> messages = ContainerUtil.map(diagnostics, new Function<Diagnostic, Pair<String, MessageType>>() {
+            @Override
+            public Pair<String, MessageType> fun(Diagnostic diagnostic) {
+                if (messageType != MessageType.TEXT && IdeErrorMessages.MAP.get(diagnostic.getFactory()) != null) {
+                    return Pair.create(formatHtml(IdeErrorMessages.RENDERER.render(diagnostic)), MessageType.HTML);
+                }
+                else {
+                    return Pair.create(DefaultErrorMessages.RENDERER.render(diagnostic), MessageType.TEXT);
+                }
+            }
+        });
+
+        Collections.sort(messages, new Comparator<Pair<String, MessageType>>() {
+            @Override
+            public int compare(@NotNull Pair<String, MessageType> firstMessage, @NotNull Pair<String, MessageType> secondMessage) {
+                return firstMessage.getFirst().compareTo(secondMessage.getFirst());
+            }
+        });
+
         int index = 1;
         String name = FileUtil.getNameWithoutExtension(fileName);
-        for (Diagnostic diagnostic : diagnostics) {
-            String readableDiagnosticText;
-            String extension;
-            if (messageType != MessageType.TEXT && IdeErrorMessages.MAP.get(diagnostic.getFactory()) != null) {
-                readableDiagnosticText = formatHtml(IdeErrorMessages.RENDERER.render(diagnostic));
-                extension = MessageType.HTML.extension;
-            }
-            else {
-                readableDiagnosticText = DefaultErrorMessages.RENDERER.render(diagnostic);
-                extension = MessageType.TEXT.extension;
-            }
+        for (Pair<String, MessageType> diagnosticMessage : messages) {
+            String message = diagnosticMessage.getFirst();
+            String extension = diagnosticMessage.getSecond().extension;
+
             String errorMessageFileName = name + index;
             String path = getTestDataPath() + "/" + errorMessageFileName + "." + extension;
-            String actualText = "<!-- " + errorMessageFileName + " -->\n" + readableDiagnosticText;
+            String actualText = "<!-- " + errorMessageFileName + " -->\n" + message;
             assertSameLinesWithFile(path, actualText);
 
             index++;

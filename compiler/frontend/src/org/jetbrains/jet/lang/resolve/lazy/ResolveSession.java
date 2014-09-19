@@ -177,6 +177,7 @@ public class ResolveSession implements KotlinCodeAnalyzer {
         });
     }
 
+    @Override
     @NotNull
     public PackageFragmentProvider getPackageFragmentProvider() {
         return packageFragmentProvider;

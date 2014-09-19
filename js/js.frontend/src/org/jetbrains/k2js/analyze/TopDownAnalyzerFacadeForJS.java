@@ -29,14 +29,17 @@ import org.jetbrains.jet.context.GlobalContextImpl;
 import org.jetbrains.jet.di.InjectorForTopDownAnalyzerForJs;
 import org.jetbrains.jet.lang.PlatformToKotlinClassMap;
 import org.jetbrains.jet.lang.descriptors.ModuleDescriptor;
+import org.jetbrains.jet.lang.descriptors.PackageFragmentProvider;
 import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.lang.resolve.*;
+import org.jetbrains.jet.lang.resolve.lazy.declarations.FileBasedDeclarationProviderFactory;
 import org.jetbrains.jet.lang.resolve.name.Name;
 import org.jetbrains.jet.lang.types.lang.KotlinBuiltIns;
 import org.jetbrains.k2js.config.Config;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public final class TopDownAnalyzerFacadeForJS {
@@ -85,12 +88,20 @@ public final class TopDownAnalyzerFacadeForJS {
         BindingTrace trace = libraryContext == null
                              ? new BindingTraceContext()
                              : new DelegatingBindingTrace(libraryContext, "trace with preanalyzed library");
-        InjectorForTopDownAnalyzerForJs injector = new InjectorForTopDownAnalyzerForJs(project, topDownAnalysisParameters, trace, owner);
+
+        Collection<JetFile> allFiles = libraryModule != null ?
+                                       files :
+                                       Config.withJsLibAdded(files, config);
+
+        InjectorForTopDownAnalyzerForJs injector = new InjectorForTopDownAnalyzerForJs(
+                project,
+                globalContext,
+                trace,
+                owner,
+                new FileBasedDeclarationProviderFactory(globalContext.getStorageManager(), allFiles));
+
         try {
-            Collection<JetFile> allFiles = libraryModule != null ?
-                                           files :
-                                           Config.withJsLibAdded(files, config);
-            injector.getTopDownAnalyzer().analyzeFiles(topDownAnalysisParameters, allFiles);
+            injector.getLazyTopDownAnalyzer().analyzeFiles(topDownAnalysisParameters, allFiles, Collections.<PackageFragmentProvider>emptyList());
             return AnalyzeExhaust.success(trace.getBindingContext(), owner);
         }
         finally {

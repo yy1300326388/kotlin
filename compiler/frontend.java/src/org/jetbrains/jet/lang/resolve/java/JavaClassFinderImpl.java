@@ -24,6 +24,7 @@ import com.intellij.psi.search.DelegatingGlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jet.lang.resolve.AnalyzerPostConstruct;
 import org.jetbrains.jet.lang.resolve.java.structure.JavaClass;
 import org.jetbrains.jet.lang.resolve.java.structure.JavaPackage;
 import org.jetbrains.jet.lang.resolve.java.structure.impl.JavaClassImpl;
@@ -51,6 +52,11 @@ public class JavaClassFinderImpl implements JavaClassFinder {
     @Inject
     public void setScope(@NotNull GlobalSearchScope scope) {
         this.baseScope = scope;
+    }
+
+    @Inject
+    public void setComponentPostConstruct(@NotNull AnalyzerPostConstruct componentPostConstruct) {
+        // Only activate post create
     }
 
     @PostConstruct

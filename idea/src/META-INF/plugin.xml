@@ -175,6 +175,9 @@
     <projectService serviceInterface="org.jetbrains.jet.lang.resolve.kotlin.VirtualFileFinderFactory"
                     serviceImplementation="org.jetbrains.jet.plugin.vfilefinder.IDEVirtualFileFinderFactory"/>
 
+    <projectService serviceInterface="org.jetbrains.jet.lang.resolve.AnalyzeSessionProvider"
+                    serviceImplementation="org.jetbrains.jet.lang.resolve.AnalyzeSessionProvider"/>
+
     <projectService serviceInterface="org.jetbrains.jet.lang.parsing.JetScriptDefinitionProvider"
                     serviceImplementation="org.jetbrains.jet.lang.parsing.JetScriptDefinitionProvider"/>
 

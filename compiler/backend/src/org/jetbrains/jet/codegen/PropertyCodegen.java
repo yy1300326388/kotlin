@@ -257,7 +257,9 @@ public class PropertyCodegen {
             backingFieldContext = codegen.context;
             v.getSerializationBindings().put(STATIC_FIELD_IN_OUTER_CLASS, propertyDescriptor);
         } else {
-            if (kind != OwnerKind.PACKAGE || isDelegate) {
+            if (AsmUtil.isInstancePropertyWithStaticBackingField(propertyDescriptor)) {
+                modifiers |= ACC_STATIC | getVisibilityForSpecialPropertyBackingField(propertyDescriptor, isDelegate);
+            } else if (kind != OwnerKind.PACKAGE || isDelegate) {
                 modifiers |= ACC_PRIVATE;
             }
         }

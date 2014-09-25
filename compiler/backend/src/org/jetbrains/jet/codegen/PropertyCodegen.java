@@ -384,12 +384,12 @@ public class PropertyCodegen {
             PropertyDescriptor propertyDescriptor = callableDescriptor.getCorrespondingProperty();
 
             int paramCode = 0;
-            if (codegen.getContext().getContextKind() != OwnerKind.PACKAGE) {
+            StackValue.Property property = codegen.intermediateValueForProperty(propertyDescriptor, true, null);
+
+            if (!property.isStatic) {
                 v.load(0, OBJECT_TYPE);
                 paramCode = 1;
             }
-
-            StackValue property = codegen.intermediateValueForProperty(propertyDescriptor, true, null);
 
             if (callableDescriptor instanceof PropertyGetterDescriptor) {
                 Type type = signature.getReturnType();

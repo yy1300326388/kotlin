@@ -21,9 +21,12 @@ import org.jetbrains.jet.lang.resolve.lazy.KotlinCodeAnalyzer
 import com.intellij.openapi.project.Project
 import org.jetbrains.jet.lang.resolve.BindingTrace
 import org.jetbrains.jet.lang.descriptors.ModuleDescriptor
+import org.jetbrains.jet.lang.resolve.BindingTraceContext
 
 public class CliAnalyzeSessionProvider(project: Project) : AnalyzeSessionProvider(project) {
     override fun initialize(trace: BindingTrace, module: ModuleDescriptor, codeAnalyzer: KotlinCodeAnalyzer?) {
         CliLightClassGenerationSupport.getInstanceForCli(project)!!.initialize(trace, module, codeAnalyzer)
     }
+
+    override fun createTrace(): BindingTraceContext = CliLightClassGenerationSupport.createTrace()
 }

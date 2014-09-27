@@ -36,6 +36,8 @@ public open class AnalyzeSessionProvider(protected val project: Project) {
     public open fun initialize(trace: BindingTrace, module: ModuleDescriptor, codeAnalyzer: KotlinCodeAnalyzer?) {
         // Do nothing by default
     }
+
+    public open fun createTrace(): BindingTraceContext = BindingTraceContext()
 }
 
 public open class AnalyzerPostConstruct {

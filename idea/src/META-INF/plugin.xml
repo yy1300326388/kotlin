@@ -125,15 +125,6 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceInterface="org.jetbrains.jet.lang.psi.stubs.elements.StubIndexService"
-                        serviceImplementation="org.jetbrains.jet.plugin.stubindex.StubIndexServiceImpl"/>
-
-    <applicationService serviceInterface="org.jetbrains.jet.OperationModeProvider"
-                        serviceImplementation="org.jetbrains.jet.plugin.IdeModeProvider"/>
-
-    <applicationService serviceInterface="org.jetbrains.jet.lang.resolve.kotlin.KotlinBinaryClassCache"
-                        serviceImplementation="org.jetbrains.jet.lang.resolve.kotlin.KotlinBinaryClassCache"/>
-
     <applicationService serviceInterface="org.jetbrains.jet.plugin.configuration.JetModuleTypeManager"
                         serviceImplementation="org.jetbrains.jet.plugin.JetModuleTypeManagerImpl"/>
     <applicationService serviceInterface="org.jetbrains.jet.plugin.quickfix.ImportInsertHelper"
@@ -141,15 +132,6 @@
 
     <projectService serviceInterface="org.jetbrains.jet.plugin.caches.resolve.KotlinCacheService"
                     serviceImplementation="org.jetbrains.jet.plugin.caches.resolve.KotlinCacheService"/>
-
-    <projectService serviceInterface="org.jetbrains.jet.lang.resolve.kotlin.VirtualFileFinderFactory"
-                    serviceImplementation="org.jetbrains.jet.plugin.vfilefinder.IDEVirtualFileFinderFactory"/>
-
-    <projectService serviceInterface="org.jetbrains.jet.asJava.LightClassGenerationSupport"
-                    serviceImplementation="org.jetbrains.jet.plugin.caches.resolve.IDELightClassGenerationSupport"/>
-
-    <projectService serviceInterface="org.jetbrains.jet.lang.parsing.JetScriptDefinitionProvider"
-                    serviceImplementation="org.jetbrains.jet.lang.parsing.JetScriptDefinitionProvider"/>
 
     <projectService serviceInterface="org.jetbrains.jet.plugin.configuration.ModuleTypeCacheManager"
                     serviceImplementation="org.jetbrains.jet.plugin.configuration.ModuleTypeCacheManager"/>
@@ -174,14 +156,33 @@
     <projectService serviceInterface="org.jetbrains.jet.plugin.debugger.evaluate.KotlinEvaluateExpressionCache"
                     serviceImplementation="org.jetbrains.jet.plugin.debugger.evaluate.KotlinEvaluateExpressionCache"/>
 
-    <projectService serviceInterface="org.jetbrains.jet.lang.resolve.lazy.declarations.DeclarationProviderFactoryService"
-                    serviceImplementation="org.jetbrains.jet.plugin.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
-
     <projectService serviceInterface="org.jetbrains.jet.plugin.stubindex.SubpackagesIndexService"
                     serviceImplementation="org.jetbrains.jet.plugin.stubindex.SubpackagesIndexService"/>
 
     <projectService serviceInterface="org.jetbrains.jet.plugin.caches.resolve.LibraryModificationTracker"
                     serviceImplementation="org.jetbrains.jet.plugin.caches.resolve.LibraryModificationTracker"/>
+
+    <!-- Services also registered in compiler -->
+    <applicationService serviceInterface="org.jetbrains.jet.lang.resolve.kotlin.KotlinBinaryClassCache"
+                        serviceImplementation="org.jetbrains.jet.lang.resolve.kotlin.KotlinBinaryClassCache"/>
+
+    <applicationService serviceInterface="org.jetbrains.jet.lang.psi.stubs.elements.StubIndexService"
+                        serviceImplementation="org.jetbrains.jet.plugin.stubindex.StubIndexServiceImpl"/>
+
+    <applicationService serviceInterface="org.jetbrains.jet.OperationModeProvider"
+                        serviceImplementation="org.jetbrains.jet.plugin.IdeModeProvider"/>
+
+    <projectService serviceInterface="org.jetbrains.jet.lang.resolve.kotlin.VirtualFileFinderFactory"
+                    serviceImplementation="org.jetbrains.jet.plugin.vfilefinder.IDEVirtualFileFinderFactory"/>
+
+    <projectService serviceInterface="org.jetbrains.jet.lang.parsing.JetScriptDefinitionProvider"
+                    serviceImplementation="org.jetbrains.jet.lang.parsing.JetScriptDefinitionProvider"/>
+
+    <projectService serviceInterface="org.jetbrains.jet.asJava.LightClassGenerationSupport"
+                    serviceImplementation="org.jetbrains.jet.plugin.caches.resolve.IDELightClassGenerationSupport"/>
+
+    <projectService serviceInterface="org.jetbrains.jet.lang.resolve.lazy.declarations.DeclarationProviderFactoryService"
+                    serviceImplementation="org.jetbrains.jet.plugin.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
 
     <errorHandler implementation="org.jetbrains.jet.plugin.reporter.KotlinReportSubmitter"/>
 

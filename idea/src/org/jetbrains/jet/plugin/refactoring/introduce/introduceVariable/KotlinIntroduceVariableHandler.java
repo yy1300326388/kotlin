@@ -62,7 +62,6 @@ import org.jetbrains.jet.plugin.util.psi.patternMatching.JetPsiRange;
 import org.jetbrains.jet.plugin.util.psi.patternMatching.JetPsiUnifier;
 import org.jetbrains.jet.plugin.util.psi.patternMatching.PatternMatchingPackage;
 import org.jetbrains.jet.plugin.util.psiModificationUtil.PsiModificationUtilPackage;
-import org.jetbrains.jet.renderer.DescriptorRenderer;
 
 import java.util.ArrayList;
 import java.util.Collections;

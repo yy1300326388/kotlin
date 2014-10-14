@@ -98,7 +98,7 @@ public object ShortenReferences {
 
     private fun process(elements: Iterable<JetElement>, elementFilter: (PsiElement) -> FilterResult) {
         for ((file, fileElements) in elements.groupBy { element -> element.getContainingJetFile() }) {
-            ImportInsertHelper.optimizeImportsIfNeeded(file)
+            ImportInsertHelper.getInstance().optimizeImportsIfNeeded(file)
 
             // first resolve all qualified references - optimization
             val referenceToContext = JetFileReferencesResolver.resolve(file, fileElements, resolveShortNames = false)
@@ -335,6 +335,6 @@ public object ShortenReferences {
 
     //TODO: do we need this "IfNeeded" check?
     private fun addImportIfNeeded(descriptor: DeclarationDescriptor, file: JetFile) {
-        ImportInsertHelper.addImportDirectiveIfNeeded(DescriptorUtils.getFqNameSafe(descriptor), file, false)
+        ImportInsertHelper.getInstance().addImportDirectiveIfNeeded(DescriptorUtils.getFqNameSafe(descriptor), file, false)
     }
 }

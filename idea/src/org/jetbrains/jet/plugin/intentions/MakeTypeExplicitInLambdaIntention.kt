@@ -23,8 +23,8 @@ import org.jetbrains.jet.lang.resolve.BindingContext
 import org.jetbrains.jet.lang.types.ErrorUtils
 import org.jetbrains.jet.lang.psi.JetPsiFactory
 import com.intellij.psi.PsiWhiteSpace
-import org.jetbrains.jet.plugin.codeInsight.ShortenReferences
 import org.jetbrains.jet.plugin.util.IdeDescriptorRenderers
+import org.jetbrains.jet.plugin.codeInsight.ShortenReferences
 
 public class MakeTypeExplicitInLambdaIntention : JetSelfTargetingIntention<JetFunctionLiteralExpression>(
         "make.type.explicit.in.lambda", javaClass()) {
@@ -99,7 +99,7 @@ public class MakeTypeExplicitInLambdaIntention : JetSelfTargetingIntention<JetFu
             val receiverTypeString = IdeDescriptorRenderers.SOURCE_CODE.renderType(expectedReceiverType)
             val dot = functionLiteral.addBefore(psiFactory.createDot(), functionLiteral.getValueParameterList())
             functionLiteral.addBefore(psiFactory.createType(receiverTypeString), dot)
-            ShortenReferences.process(functionLiteral.getReceiverTypeReference()!!)
+            org.jetbrains.jet.plugin.codeInsight.ShortenReferences.process(functionLiteral.getReceiverTypeReference()!!)
         }
     }
 

@@ -34,7 +34,7 @@ public object JetJavaClassInsertHandler : InsertHandler<JavaPsiClassReferenceEle
 
         val file = context.getFile()
         if (file is JetFile) {
-            ImportInsertHelper.addImportDirectiveOrChangeToFqName(FqName(item.getQualifiedName()!!), file, context.getStartOffset(), item.getObject())
+            ImportInsertHelper.getInstance().addImportDirectiveOrChangeToFqName(FqName(item.getQualifiedName()!!), file, context.getStartOffset(), item.getObject())
         }
 
         // check annotation

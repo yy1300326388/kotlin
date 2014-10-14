@@ -186,7 +186,7 @@ fun postProcessMoveUsages(usages: List<UsageInfo>,
             is MoveRenameUsageInfoForExtension -> {
                 val element = counterpart(usage.getReferencedElement()!!)
                 val file = with(usage) { if (addImportToOriginalFile) originalFile else counterpart(originalFile) } as JetFile
-                ImportInsertHelper.addImportDirectiveIfNeeded(element.getKotlinFqName()!!, file)
+                ImportInsertHelper.getInstance().addImportDirectiveIfNeeded(element.getKotlinFqName()!!, file)
             }
 
             is MoveRenameUsageInfo -> {

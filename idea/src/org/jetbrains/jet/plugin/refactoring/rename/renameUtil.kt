@@ -20,13 +20,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import java.util.ArrayList
 import com.intellij.refactoring.util.MoveRenameUsageInfo
-import org.jetbrains.jet.plugin.references.JetMultiDeclarationReference
-import org.jetbrains.jet.lang.psi.psiUtil.getParentByTypeAndBranch
-import org.jetbrains.jet.lang.psi.JetWhenConditionInRange
 import com.intellij.refactoring.rename.UnresolvableCollisionUsageInfo
 import org.jetbrains.jet.plugin.refactoring.JetRefactoringBundle
-import org.jetbrains.jet.plugin.references.JetForLoopInReference
-import org.jetbrains.jet.plugin.references.JetReference
 import org.jetbrains.jet.plugin.references.AbstractJetReference
 
 fun checkConflictsAndReplaceUsageInfos(result: MutableList<UsageInfo>) {

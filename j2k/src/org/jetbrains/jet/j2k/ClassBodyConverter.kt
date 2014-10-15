@@ -39,6 +39,11 @@ import com.intellij.psi.PsiElementFactory
 
 class FieldCorrectionInfo(val name: Identifier, val access: Modifier?, val setterAccess: Modifier?)
 
+enum class AccessorKind {
+    GETTER
+    SETTER
+}
+
 class ClassBodyConverter(private val psiClass: PsiClass,
                          private val converter: Converter) {
     private val membersToRemove = HashSet<PsiMember>()
@@ -175,11 +180,6 @@ class ClassBodyConverter(private val psiClass: PsiClass,
                                                           getterAccess,
                                                           setterAccess)
         }
-    }
-
-    private enum class AccessorKind {
-        GETTER
-        SETTER
     }
 
     private class AccessorInfo(val method: PsiMethod, val field: PsiField, val kind: AccessorKind, val propertyName: String)

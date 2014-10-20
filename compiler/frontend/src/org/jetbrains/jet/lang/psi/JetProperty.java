@@ -21,6 +21,7 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProviders;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiModifiableCodeBlock;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -37,7 +38,8 @@ import java.util.List;
 import static org.jetbrains.jet.JetNodeTypes.PROPERTY_DELEGATE;
 import static org.jetbrains.jet.lexer.JetTokens.*;
 
-public class JetProperty extends JetTypeParameterListOwnerStub<PsiJetPropertyStub> implements JetVariableDeclaration {
+public class JetProperty extends JetTypeParameterListOwnerStub<PsiJetPropertyStub>
+        implements JetVariableDeclaration, PsiModifiableCodeBlock {
 
     private static final Logger LOG = Logger.getInstance(JetProperty.class);
 
@@ -63,6 +65,8 @@ public class JetProperty extends JetTypeParameterListOwnerStub<PsiJetPropertyStu
 
         return getNode().findChildByType(JetTokens.VAR_KEYWORD) != null;
     }
+
+
 
     public boolean isLocal() {
         PsiElement parent = getParent();
@@ -262,5 +266,11 @@ public class JetProperty extends JetTypeParameterListOwnerStub<PsiJetPropertyStu
     @Override
     public ItemPresentation getPresentation() {
         return ItemPresentationProviders.getItemPresentation(this);
+    }
+
+    @Override
+    public boolean shouldChangeModificationCount(PsiElement place) {
+        // Suppress Java check for out-of-block
+        return false;
     }
 }

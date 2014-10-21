@@ -1,6 +1,4 @@
-// TRUE
-// (Investigation starts from function block)
-
+// FALSE
 object Some {
     fun test() {
         <caret>

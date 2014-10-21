@@ -1,5 +1,4 @@
-// TRUE
-// (Investigation starts from function block)
+// FALSE
 
 class Test {
     class Other {

@@ -115,7 +115,7 @@ public class KotlinCodeBlockModificationListener(modificationTracker: PsiModific
             when (blockDeclarationCandidate) {
                 is JetNamedFunction -> {
                     val function = blockDeclarationCandidate : JetNamedFunction
-                    if (function.hasBlockBody() && PsiTreeUtil.isAncestor(function.getBodyExpression(), element, true)) {
+                    if (function.hasBlockBody() && PsiTreeUtil.isAncestor(function.getBodyExpression(), element, false)) {
                         return true
                     }
 

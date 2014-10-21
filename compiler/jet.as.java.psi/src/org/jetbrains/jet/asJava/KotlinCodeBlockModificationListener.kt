@@ -125,8 +125,11 @@ public class KotlinCodeBlockModificationListener(modificationTracker: PsiModific
                 }
                 is JetProperty -> {
                     val property = blockDeclarationCandidate : JetProperty
-                    if (property.getTypeReference() != null && PsiTreeUtil.isAncestor(property.getInitializer(), element, false)) {
-                        return true
+                    val typeReference = property.getTypeReference()
+                    if (typeReference != null && PsiTreeUtil.isAncestor(property.getInitializer(), element, false)) {
+                        if (typeReference.getChildren().none { it is JetNullableType }) {
+                            return true
+                        }
                     }
 
                     for (accessor in property.getAccessors()) {
@@ -142,4 +145,3 @@ public class KotlinCodeBlockModificationListener(modificationTracker: PsiModific
         }
     }
 }
-

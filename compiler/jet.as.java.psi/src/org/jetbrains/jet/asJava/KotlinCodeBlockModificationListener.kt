@@ -107,77 +107,35 @@ public class KotlinCodeBlockModificationListener(modificationTracker: PsiModific
             if (element is PsiFileSystemItem) return false
             if (element == null || element.getParent() == null) return true
 
-            var parent = element
-            while (parent !is PsiFile && parent !is PsiDirectory && parent != null) {
-                if (parent is JetClass) return false // anonymous or local class
+            val blockDeclarationCandidate = JetPsiUtil.getTopmostParentOfTypes(
+                    element,
+                    javaClass<JetProperty>(),
+                    javaClass<JetNamedFunction>())
 
-                if (parent is JetBlockExpression) {
-                    if (!shouldChangeModificationCount(element)) {
-                        return true;
-                    }
-                }
-
-                parent = parent!!.getParent()
-            }
-
-            return false
-        }
-
-        public fun shouldChangeModificationCount(place: PsiElement): Boolean {
-            // false -> inside code block
-            // true -> means nothing, parent will be checked
-
-            val declaration = PsiTreeUtil.getParentOfType<JetDeclaration>(place, javaClass<JetDeclaration>(), true)
-            if (declaration == null) return true
-
-            return when (declaration) {
+            when (blockDeclarationCandidate) {
                 is JetNamedFunction -> {
-                    val function: JetNamedFunction = declaration
-                    if (function.hasDeclaredReturnType() || function.hasBlockBody()) {
-                        takePartInDeclarationTypeInference(function)
+                    val function = blockDeclarationCandidate : JetNamedFunction
+                    if (function.hasBlockBody() && PsiTreeUtil.isAncestor(function.getBodyExpression(), element, true)) {
+                        return true
                     }
-                    else {
-                        shouldChangeModificationCount(function)
+
+                    if (function.hasDeclaredReturnType() && PsiTreeUtil.isAncestor(function.getInitializer(), element, false)) {
+                        return true
                     }
-                }
-                is JetPropertyAccessor -> {
-                    takePartInDeclarationTypeInference(declaration)
                 }
                 is JetProperty -> {
-                    val property = declaration as JetProperty
-                    if (property.getTypeReference() != null) {
-                        takePartInDeclarationTypeInference(property)
-                    }
-                    else {
-                        shouldChangeModificationCount(property)
-                    }
-                }
-                is JetMultiDeclaration, is JetMultiDeclarationEntry, is JetFunctionLiteral -> {
-                    shouldChangeModificationCount(declaration)
-                }
-                else -> {
-                    true
-                }
-            }
-        }
-
-        private fun takePartInDeclarationTypeInference(place: PsiElement): Boolean {
-            val declaration = PsiTreeUtil.getParentOfType<JetDeclaration>(place, javaClass<JetDeclaration>(), true)
-            if (declaration != null) {
-                if (declaration is JetNamedFunction) {
-                    val function = declaration as JetNamedFunction
-                    if (!function.hasDeclaredReturnType() && !function.hasBlockBody()) {
+                    val property = blockDeclarationCandidate : JetProperty
+                    if (property.getTypeReference() != null && PsiTreeUtil.isAncestor(property.getInitializer(), element, false)) {
                         return true
                     }
-                }
-                else if (declaration is JetProperty) {
-                    val property = declaration as JetProperty
-                    if (property.getTypeReference() == null) {
-                        return true
+
+                    for (accessor in property.getAccessors()) {
+                        when {
+                            PsiTreeUtil.isAncestor(accessor.getInitializer(), element, false) -> return true
+                            PsiTreeUtil.isAncestor(accessor.getBodyExpression(), element, false) -> return true
+                        }
                     }
                 }
-
-                return takePartInDeclarationTypeInference(declaration)
             }
 
             return false

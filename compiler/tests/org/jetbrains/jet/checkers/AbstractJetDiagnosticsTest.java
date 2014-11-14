@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jet.JetTestUtils;
 import org.jetbrains.jet.cli.jvm.compiler.CliLightClassGenerationSupport;
 import org.jetbrains.jet.context.GlobalContext;
-import org.jetbrains.jet.context.SimpleGlobalContext;
+import org.jetbrains.jet.context.GlobalContextImpl;
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor;
 import org.jetbrains.jet.lang.descriptors.PackageViewDescriptor;
 import org.jetbrains.jet.lang.descriptors.impl.ModuleDescriptorImpl;
@@ -102,11 +102,10 @@ public abstract class AbstractJetDiagnosticsTest extends BaseDiagnosticsTest {
             // New JavaDescriptorResolver is created for each module, which is good because it emulates different Java libraries for each module,
             // albeit with same class names
             ExceptionTracker tracker = new ExceptionTracker();
-            GlobalContext context = new SimpleGlobalContext(
-                    new LoggingStorageManager(
-                            LockBasedStorageManager.createWithExceptionHandling(tracker),
-                            lazyOperationsLog.getAddRecordFunction()
-                    ),
+
+            // TODO: Temp revert logging manager
+            GlobalContext context = new GlobalContextImpl(
+                    LockBasedStorageManager.createWithExceptionHandling(tracker),
                     tracker
             );
 
@@ -126,7 +125,7 @@ public abstract class AbstractJetDiagnosticsTest extends BaseDiagnosticsTest {
 
         // We want to always create a test data file (txt) if it was missing,
         // but don't want to skip the following checks in case this one fails
-        Throwable exceptionFromLazyResolveLogValidation = checkLazyResolveLog(lazyOperationsLog, testDataFile);
+        Throwable exceptionFromLazyResolveLogValidation = null; //checkLazyResolveLog(lazyOperationsLog, testDataFile);
 
         Throwable exceptionFromDescriptorValidation = null;
         try {

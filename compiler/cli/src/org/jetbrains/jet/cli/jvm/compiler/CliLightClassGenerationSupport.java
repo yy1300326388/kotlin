@@ -255,7 +255,7 @@ public class CliLightClassGenerationSupport extends LightClassGenerationSupport 
 
         @Override
         public <K, V> V get(ReadOnlySlice<K, V> slice, K key) {
-            if (kotlinCodeAnalyzer != null) {
+            if (kotlinCodeAnalyzer != null && TopDownAnalysisParameters.LAZY) {
                 if (BindingContext.FUNCTION == slice || BindingContext.VARIABLE == slice) {
                     if (super.get(slice, key) == null && key instanceof JetDeclaration) {
                         JetDeclaration jetDeclaration = (JetDeclaration) key;

@@ -35,7 +35,6 @@ import org.jetbrains.jet.codegen.defaultConstructor.AbstractDefaultArgumentsRefl
 import org.jetbrains.jet.jvm.compiler.AbstractLoadJavaTest
 import org.jetbrains.jet.jvm.compiler.AbstractCompileJavaAgainstKotlinTest
 import org.jetbrains.jet.jvm.compiler.AbstractCompileKotlinAgainstKotlinTest
-import org.jetbrains.jet.lang.resolve.lazy.AbstractLazyResolveDescriptorRendererTest
 import org.jetbrains.jet.lang.resolve.lazy.AbstractLazyResolveRecursiveComparingTest
 import org.jetbrains.jet.modules.xml.AbstractModuleXmlParserTest
 import org.jetbrains.jet.jvm.compiler.AbstractWriteSignatureTest
@@ -132,6 +131,7 @@ import org.jetbrains.jet.completion.AbstractMultiFileSmartCompletionTest
 import org.jetbrains.jet.completion.handlers.AbstractCompletionCharFilterTest
 import org.jetbrains.jet.resolve.AbstractPartialBodyResolveTest
 import org.jetbrains.jet.checkers.AbstractJetDiagnosticsTestWithJsStdLib
+import org.jetbrains.jet.renderer.AbstractDescriptorRendererTest
 import org.jetbrains.jet.types.AbstractJetTypeBindingTest
 
 fun main(args: Array<String>) {
@@ -244,7 +244,7 @@ fun main(args: Array<String>) {
             model("compileKotlinAgainstKotlin", extension = "A.kt")
         }
 
-        testClass(javaClass<AbstractLazyResolveDescriptorRendererTest>()) {
+        testClass(javaClass<AbstractDescriptorRendererTest>()) {
             model("renderer")
         }
 

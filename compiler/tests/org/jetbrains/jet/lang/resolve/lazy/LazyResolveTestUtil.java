@@ -20,6 +20,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jet.analyzer.AnalysisResult;
 import org.jetbrains.jet.cli.jvm.compiler.CliLightClassGenerationSupport;
 import org.jetbrains.jet.cli.jvm.compiler.JetCoreEnvironment;
 import org.jetbrains.jet.context.ContextPackage;
@@ -43,10 +44,10 @@ public class LazyResolveTestUtil {
     }
 
     public static ModuleDescriptor resolve(List<JetFile> files, JetCoreEnvironment environment) {
-        return doResolve(files, environment);
+        return resolveResult(files, environment).getModuleDescriptor();
     }
 
-    private static ModuleDescriptor doResolve(List<JetFile> files, JetCoreEnvironment environment) {
+    public static AnalysisResult resolveResult(List<JetFile> files, JetCoreEnvironment environment) {
         GlobalContextImpl globalContext = ContextPackage.GlobalContext();
         TopDownAnalysisParameters params = TopDownAnalysisParameters.create(
                 globalContext.getStorageManager(),
@@ -56,13 +57,11 @@ public class LazyResolveTestUtil {
         BindingTrace trace = new CliLightClassGenerationSupport.NoScopeRecordCliBindingTrace();
         ModuleDescriptorImpl sharedModule = TopDownAnalyzerFacadeForJVM.createSealedJavaModule();
 
-        TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegrationNoIncremental(
+        return TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegrationNoIncremental(
                 environment.getProject(),
                 files,
                 trace,
                 params, sharedModule);
-
-        return sharedModule;
     }
 
     @NotNull

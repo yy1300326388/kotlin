@@ -106,7 +106,7 @@ import org.jetbrains.jet.plugin.debugger.evaluate.AbstractKotlinEvaluateExpressi
 import org.jetbrains.jet.plugin.debugger.evaluate.AbstractSelectExpressionForDebuggerTest
 import org.jetbrains.jet.plugin.debugger.evaluate.AbstractCodeFragmentCompletionTest
 import org.jetbrains.jet.plugin.debugger.evaluate.AbstractCodeFragmentHighlightingTest
-import org.jetbrains.jet.plugin.stubs.AbstractLazyResolveByStubTest
+import org.jetbrains.jet.plugin.stubs.AbstractResolveByStubTest
 import org.jetbrains.jet.plugin.stubs.AbstractMultiFileHighlightingTest
 import org.jetbrains.jet.cfg.AbstractPseudoValueTest
 import org.jetbrains.jet.plugin.structureView.AbstractKotlinFileStructureTest
@@ -642,7 +642,7 @@ fun main(args: Array<String>) {
     }
 
     testGroup("idea/tests", "compiler/testData") {
-        testClass(javaClass<AbstractLazyResolveByStubTest>()) {
+        testClass(javaClass<AbstractResolveByStubTest>()) {
             model("loadJava/compiledKotlin")
         }
     }

@@ -1,10 +1,10 @@
 package test
 
 trait A
-trait B : A, E
-trait C : B
-trait D : B
-trait E : F
-trait F : D, C
+trait B : A, <!CYCLIC_INHERITANCE_HIERARCHY!>E<!>
+trait C : <!CYCLIC_INHERITANCE_HIERARCHY!>B<!>
+trait D : <!CYCLIC_INHERITANCE_HIERARCHY!>B<!>
+trait E : <!CYCLIC_INHERITANCE_HIERARCHY!>F<!>
+trait F : <!CYCLIC_INHERITANCE_HIERARCHY!>D<!>, <!CYCLIC_INHERITANCE_HIERARCHY!>C<!>
 trait G : F
 trait H : F

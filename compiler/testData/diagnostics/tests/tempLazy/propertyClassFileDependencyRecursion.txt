@@ -1,8 +1,16 @@
-package test
+package 
 
-internal val checkTypeProp: test.PropType? = null
-    internal fun <get-checkTypeProp>(): test.PropType?
+package other {
+    internal val prop: test.PropType? = null
+}
 
-internal final class PropType {
-    /*primary*/ public constructor PropType()
+package test {
+    internal val checkTypeProp: test.PropType? = null
+
+    internal final class PropType {
+        public constructor PropType()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
 }

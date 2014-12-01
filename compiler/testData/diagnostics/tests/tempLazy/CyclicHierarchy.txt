@@ -1,25 +1,34 @@
-package test
+package 
 
-internal trait A {
-}
+package test {
 
-internal trait B : test.A {
-}
+    internal trait A {
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
 
-internal trait C {
-}
+    internal trait B : test.A {
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
 
-internal trait D {
-}
+    internal trait C {
+    }
 
-internal trait E {
-}
+    internal trait D {
+    }
 
-internal trait F {
-}
+    internal trait E {
+    }
 
-internal trait G : test.F {
-}
+    internal trait F {
+    }
 
-internal trait H : test.F {
+    internal trait G : test.F {
+    }
+
+    internal trait H : test.F {
+    }
 }

@@ -1,9 +1,9 @@
 package test
 
 open class A {
-  open fun foo(a: E) {}
+  open fun foo(a: <!UNRESOLVED_REFERENCE!>E<!>) {}
 }
 
 class B : A() {
-  override fun foo(a: E) {}
+  override fun foo(a: <!UNRESOLVED_REFERENCE!>E<!>) {}
 }

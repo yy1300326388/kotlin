@@ -1,8 +1,23 @@
-package test
+package
 
-internal val inferTypeFromImportedFun: kotlin.Int
-    internal fun <get-inferTypeFromImportedFun>(): kotlin.Int
+package test {
+    internal val inferTypeFromImportedFun: kotlin.Int
 
-internal final class B : testOther.A {
-    /*primary*/ public constructor B()
+    internal final class B : testOther.A {
+        public constructor B()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+}
+
+package testOther {
+    internal fun testFun(): kotlin.Int
+
+    internal open class A {
+        public constructor A()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
 }

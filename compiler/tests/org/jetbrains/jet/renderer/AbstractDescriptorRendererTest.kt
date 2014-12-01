@@ -16,48 +16,127 @@
 
 package org.jetbrains.jet.renderer
 
-import org.jetbrains.jet.lang.resolve.lazy.JvmResolveUtil
-import org.jetbrains.jet.lang.resolve.BindingContext
 import org.jetbrains.jet.lang.descriptors.DeclarationDescriptor
 import org.jetbrains.jet.lang.psi.JetVisitorVoid
 import org.jetbrains.jet.lang.psi.JetElement
 import org.jetbrains.jet.lang.descriptors.ClassDescriptor
 import com.intellij.openapi.editor.impl.DocumentImpl
 import org.jetbrains.jet.JetTestUtils
-import org.jetbrains.jet.JetLiteFixture
 import java.util.ArrayList
-import com.intellij.psi.PsiElement
 import org.jetbrains.jet.cli.jvm.compiler.JetCoreEnvironment
 import org.jetbrains.jet.ConfigurationKind
-import org.jetbrains.jet.JetTestCaseBuilder
 import com.intellij.testFramework.UsefulTestCase
 import java.io.File
+import org.jetbrains.jet.lang.resolve.lazy.ResolveSession
+import org.jetbrains.jet.lang.psi.JetDeclaration
+import org.jetbrains.jet.lang.resolve.java.TopDownAnalyzerFacadeForJVM
+import org.jetbrains.jet.context.GlobalContext
+import org.jetbrains.jet.di.InjectorForLazyResolve
+import org.jetbrains.jet.lang.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
+import org.jetbrains.jet.cli.jvm.compiler.CliLightClassGenerationSupport
+import org.jetbrains.jet.lang.resolve.kotlin.JavaDeclarationCheckerProvider
+import org.jetbrains.jet.lang.psi.JetFile
+import org.jetbrains.jet.lang.psi.JetClassObject
+import org.jetbrains.jet.lang.psi.JetParameter
+import org.jetbrains.jet.lang.psi.JetFunctionType
+import org.jetbrains.jet.lang.psi.JetNamedFunction
+import org.jetbrains.jet.lang.psi.JetClass
+import org.jetbrains.jet.lang.descriptors.FunctionDescriptor
+import org.jetbrains.jet.lang.psi.JetPropertyAccessor
+import org.jetbrains.jet.lang.psi.JetProperty
+import org.jetbrains.jet.lang.descriptors.PropertyDescriptor
+import org.jetbrains.jet.lang.psi.JetClassInitializer
+import org.jetbrains.jet.lang.resolve.lazy.KotlinTestWithEnvironment
+import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.jet.lang.psi.JetPsiFactory
 
-public abstract class AbstractDescriptorRendererTest : JetLiteFixture() {
+public abstract class AbstractDescriptorRendererTest : KotlinTestWithEnvironment() {
+    protected open fun getDescriptor(declaration: JetDeclaration, resolveSession: ResolveSession): DeclarationDescriptor {
+        return resolveSession.resolveToDescriptor(declaration)
+    }
+
     public fun doTest(path: String) {
-        val file = File(path)
-        val psiFile = createPsiFile(null, file.getName(), loadFile(path))
-        val analysisResult = JvmResolveUtil.analyzeOneFileWithJavaIntegration(psiFile)
-        val bindingContext = analysisResult.bindingContext
+        val fileText = FileUtil.loadFile(File(path), true)
+        val psiFile = JetPsiFactory(getProject()).createFile(fileText)
+
+        val lazyModule = TopDownAnalyzerFacadeForJVM.createSealedJavaModule()
+        val globalContext = GlobalContext()
+
+        val resolveSession = InjectorForLazyResolve(
+                getProject(), globalContext, lazyModule,
+                FileBasedDeclarationProviderFactory(globalContext.storageManager, listOf(psiFile)),
+                CliLightClassGenerationSupport.NoScopeRecordCliBindingTrace(),
+                JavaDeclarationCheckerProvider).getResolveSession()
+
+        lazyModule.initialize(resolveSession.getPackageFragmentProvider())
 
         val descriptors = ArrayList<DeclarationDescriptor>()
 
-        val fqName = psiFile.getPackageFqName()
-        if (!fqName.isRoot()) {
-            val packageDescriptor = analysisResult.moduleDescriptor.getPackage(fqName)
-            descriptors.add(packageDescriptor)
-        }
+        psiFile.accept(object : JetVisitorVoid() {
+            override fun visitJetFile(file: JetFile) {
+                val fqName = file.getPackageFqName()
+                if (!fqName.isRoot()) {
+                    val packageDescriptor = lazyModule.getPackage(fqName)
+                    descriptors.add(packageDescriptor)
+                }
+                file.acceptChildren(this)
+            }
 
-        psiFile.acceptChildren(object : JetVisitorVoid() {
-            override fun visitJetElement(element: JetElement) {
-                val descriptor = bindingContext.get<PsiElement, DeclarationDescriptor>(BindingContext.DECLARATION_TO_DESCRIPTOR, element)
-                if (descriptor != null) {
-                    descriptors.add(descriptor)
-                    if (descriptor is ClassDescriptor) {
-                        descriptors.addAll(descriptor.getConstructors())
+            override fun visitClassObject(classObject: JetClassObject) {
+                classObject.acceptChildren(this)
+            }
+
+            override fun visitParameter(parameter: JetParameter) {
+                val declaringElement = parameter.getParent().getParent()
+                when (declaringElement) {
+                    is JetFunctionType -> return
+                    is JetNamedFunction ->
+                        addCorrespondingParameterDescriptor(getDescriptor(declaringElement, resolveSession) as FunctionDescriptor, parameter)
+                    is JetClass -> {
+                        val jetClass: JetClass = declaringElement
+                        val classDescriptor = getDescriptor(jetClass, resolveSession) as ClassDescriptor
+                        addCorrespondingParameterDescriptor(classDescriptor.getConstructors().first(), parameter)
                     }
+                    else ->  super.visitParameter(parameter)
+                }
+            }
+
+            override fun visitPropertyAccessor(accessor: JetPropertyAccessor) {
+                val parent = accessor.getParent() as JetProperty
+                val propertyDescriptor = getDescriptor(parent, resolveSession) as PropertyDescriptor
+                if (accessor.isGetter()) {
+                    descriptors.add(propertyDescriptor.getGetter())
+                }
+                else {
+                    descriptors.add(propertyDescriptor.getSetter())
+                }
+                accessor.acceptChildren(this)
+            }
+
+            override fun visitAnonymousInitializer(initializer: JetClassInitializer) {
+                initializer.acceptChildren(this)
+            }
+
+            override fun visitDeclaration(element: JetDeclaration) {
+                val descriptor = getDescriptor(element, resolveSession)
+                descriptors.add(descriptor)
+                if (descriptor is ClassDescriptor) {
+                    descriptors.addAll(descriptor.getConstructors())
                 }
                 element.acceptChildren(this)
+            }
+
+            override fun visitJetElement(element: JetElement) {
+                element.acceptChildren(this)
+            }
+
+            private fun addCorrespondingParameterDescriptor(functionDescriptor: FunctionDescriptor, parameter: JetParameter) {
+                for (valueParameterDescriptor in functionDescriptor.getValueParameters()) {
+                    if (valueParameterDescriptor.getName() == parameter.getNameAsName()) {
+                        descriptors.add(valueParameterDescriptor)
+                    }
+                }
+                parameter.acceptChildren(this)
             }
         })
 
@@ -70,8 +149,6 @@ public abstract class AbstractDescriptorRendererTest : JetLiteFixture() {
     override fun createEnvironment(): JetCoreEnvironment {
         return createEnvironmentWithMockJdk(ConfigurationKind.JDK_ONLY)
     }
-
-    override fun getTestDataPath() = JetTestCaseBuilder.getHomeDirectory()
 }
 
 

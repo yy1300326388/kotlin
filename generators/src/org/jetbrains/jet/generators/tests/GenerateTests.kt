@@ -80,7 +80,7 @@ import org.jetbrains.jet.plugin.conversion.copy.AbstractJavaToKotlinCopyPasteCon
 import org.jetbrains.jet.shortenRefs.AbstractShortenRefsTest
 import org.jetbrains.jet.completion.handlers.AbstractSmartCompletionHandlerTest
 import org.jetbrains.jet.generators.tests.generator.TestGeneratorUtil
-import org.jetbrains.jet.resolve.AbstractAdditionalLazyResolveDescriptorRendererTest
+import org.jetbrains.jet.resolve.AbstractAdditionalResolveDescriptorRendererTest
 import org.jetbrains.jet.resolve.AbstractReferenceResolveInLibrarySourcesTest
 import org.jetbrains.jet.resolve.constraintSystem.AbstractConstraintSystemTest
 import org.jetbrains.jet.completion.AbstractCompiledKotlinInJavaCompletionTest
@@ -308,7 +308,7 @@ fun main(args: Array<String>) {
             model("typeSubstitution", extension = "java")
         }
 
-        testClass(javaClass<AbstractAdditionalLazyResolveDescriptorRendererTest>()) {
+        testClass(javaClass<AbstractAdditionalResolveDescriptorRendererTest>()) {
             model("resolve/additionalLazyResolve")
         }
 

@@ -1,5 +1,5 @@
 <project name="Update Dependencies" default="update">
-    <property name="jb.buildserver.build.id" value="5286172"/>
+    <property name="jb.buildserver.build.id" value="5334662"/>
     <property name="public.buildserver.build.id" value="194214"/>
 
     <condition property="os.tag" value="win.zip">
@@ -277,7 +277,7 @@
                     <get src="${content.base.url}/core/trove4j.jar" dest="${core}/trove4j.jar" usetimestamp="true"/>
                     <!--<get src="${content.base.url}/core/snappy-java-1.0.5.jar" dest="${core}/snappy-java-1.0.5.jar" usetimestamp="true"/>-->
 
-                    <get src="${content.base.url}/jps/standalone-jps-IC-${idea.build.number}.zip"
+                    <get src="${content.base.url}/jps/standalone-jps-${idea.build.number}.zip"
                          dest="dependencies/download/standalone-jps.zip"
                          usetimestamp="true"/>
 
@@ -302,7 +302,7 @@
                         </resources>
                     </copy>
 
-                    <get src="${content.base.url}/jps/jps-build-test-IC-${idea.build.number}.jar" dest="${jps-test}/jps-build-test.jar"
+                    <get src="${content.base.url}/jps/jps-build-test-${idea.build.number}.jar" dest="${jps-test}/jps-build-test.jar"
                          usetimestamp="true"/>
 
                     <get src="${content.base.url}/${idea.archive.name}" dest="dependencies/download/${idea.archive.name}" usetimestamp="true"/>

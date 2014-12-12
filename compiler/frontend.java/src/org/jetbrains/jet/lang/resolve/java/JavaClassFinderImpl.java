@@ -16,6 +16,7 @@
 
 package org.jetbrains.jet.lang.resolve.java;
 
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -73,7 +74,7 @@ public class JavaClassFinderImpl implements JavaClassFinder {
                 return project;
             }
         };
-        javaFacade = new JavaPsiFacadeKotlinHacks(project);
+        javaFacade = ServiceManager.getService(project, JavaPsiFacadeKotlinHacks.class);
     }
 
     @Nullable

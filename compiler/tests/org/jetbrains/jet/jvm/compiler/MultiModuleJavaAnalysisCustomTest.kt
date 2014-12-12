@@ -50,6 +50,7 @@ public class MultiModuleJavaAnalysisCustomTest : UsefulTestCase() {
             ModuleInfo {
         override fun dependencies() = _dependencies()
         override val name = Name.special("<$_name>")
+        override val withDefaultImports: Boolean = true
     }
 
     fun testJavaEntitiesBelongToCorrectModule() {

@@ -84,6 +84,7 @@ public trait PlatformAnalysisParameters
 
 public trait ModuleInfo {
     public val name: Name
+    public val withDefaultImports: Boolean
     public fun dependencies(): List<ModuleInfo>
     public fun friends(): Collection<ModuleInfo> = listOf()
     public fun dependencyOnBuiltins(): DependencyOnBuiltins = DependenciesOnBuiltins.LAST
@@ -127,7 +128,10 @@ public trait AnalyzerFacade<A : ResolverForModule, in P : PlatformAnalysisParame
             val descriptorByModule = HashMap<M, ModuleDescriptorImpl>()
             modules.forEach {
                 module ->
-                descriptorByModule[module] = ModuleDescriptorImpl(module.name, defaultImports, platformToKotlinClassMap)
+                descriptorByModule[module] = ModuleDescriptorImpl(
+                        module.name,
+                        if (module.withDefaultImports) defaultImports else listOf(),
+                        platformToKotlinClassMap)
             }
             return ResolverForProjectImpl(descriptorByModule, delegateResolver)
         }

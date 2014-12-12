@@ -106,6 +106,7 @@ public class BuiltInsSerializer(private val dependOnOldBuiltIns: Boolean) {
 
     private inner class BuiltinsSourcesModule : ModuleInfo {
         override val name = Name.special("<module for resolving builtin source files>")
+        override val withDefaultImports = false
         override fun dependencies() = listOf(this)
         override fun dependencyOnBuiltins(): ModuleInfo.DependencyOnBuiltins =
                 if (dependOnOldBuiltIns) ModuleInfo.DependenciesOnBuiltins.LAST else ModuleInfo.DependenciesOnBuiltins.NONE

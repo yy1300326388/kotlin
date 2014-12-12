@@ -43,6 +43,9 @@ public fun createResolveSessionForFiles(
 
 private class TestModule(val dependsOnBuiltins: Boolean) : ModuleInfo {
     override val name: Name = Name.special("<Test module for lazy resolve>")
+
+    override val withDefaultImports: Boolean = true
+
     override fun dependencies() = listOf(this)
     override fun dependencyOnBuiltins() =
             if (dependsOnBuiltins)

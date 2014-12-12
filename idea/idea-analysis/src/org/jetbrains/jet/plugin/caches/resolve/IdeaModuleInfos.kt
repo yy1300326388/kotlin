@@ -86,6 +86,8 @@ public abstract class ModuleSourceInfo : IdeaModuleInfo() {
 public data class ModuleProductionSourceInfo(override val module: Module) : ModuleSourceInfo() {
     override val name = Name.special("<production sources for module ${module.getName()}>")
 
+    override val withDefaultImports: Boolean = true
+
     override fun contentScope() = ModuleProductionSourceScope(module)
 
     override fun dependencies() = ideaModelDependencies(module, productionOnly = true)
@@ -96,6 +98,8 @@ public data class ModuleProductionSourceInfo(override val module: Module) : Modu
 //TODO: (module refactoring) do not create ModuleTestSourceInfo when there are no test roots for module
 public data class ModuleTestSourceInfo(override val module: Module) : ModuleSourceInfo() {
     override val name = Name.special("<test sources for module ${module.getName()}>")
+
+    override val withDefaultImports: Boolean = true
 
     override fun contentScope() = ModuleTestSourceScope(module)
 
@@ -136,6 +140,8 @@ private data class ModuleTestSourceScope(override val module: Module) : ModuleSo
 public data class LibraryInfo(val project: Project, val library: Library) : IdeaModuleInfo() {
     override val name: Name = Name.special("<library ${library.getName()}>")
 
+    override val withDefaultImports: Boolean = false
+
     override fun contentScope() = LibraryWithoutSourceScope(project, library)
 
     override fun dependencies(): List<IdeaModuleInfo> {
@@ -156,6 +162,8 @@ public data class LibraryInfo(val project: Project, val library: Library) : Idea
 private data class LibrarySourceInfo(val project: Project, val library: Library) : IdeaModuleInfo() {
     override val name: Name = Name.special("<sources for library ${library.getName()}>")
 
+    override val withDefaultImports: Boolean = false
+
     override fun contentScope() = GlobalSearchScope.EMPTY_SCOPE
 
     override fun dependencies(): List<IdeaModuleInfo> {
@@ -169,6 +177,8 @@ private data class LibrarySourceInfo(val project: Project, val library: Library)
 public data class SdkInfo(val project: Project, val sdk: Sdk) : IdeaModuleInfo() {
     override val name: Name = Name.special("<library ${sdk.getName()}>")
 
+    override val withDefaultImports: Boolean = false
+
     override fun contentScope() = SdkScope(project, sdk)
 
     override fun dependencies(): List<IdeaModuleInfo> = listOf(this)
@@ -176,6 +186,8 @@ public data class SdkInfo(val project: Project, val sdk: Sdk) : IdeaModuleInfo()
 
 private object NotUnderContentRootModuleInfo : IdeaModuleInfo() {
     override val name: Name = Name.special("<special module for files not under source root>")
+
+    override val withDefaultImports: Boolean = true
 
     override fun contentScope() = GlobalSearchScope.EMPTY_SCOPE
 

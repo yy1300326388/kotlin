@@ -1,10 +1,8 @@
 package a
 
-import java.lang
-
 fun foo() {
     if (!true) {
-        throw lang.AssertionError("text")
+        throw java.lang.AssertionError("text")
     }
 }
 

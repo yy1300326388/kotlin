@@ -17,18 +17,16 @@
 package org.jetbrains.jet.plugin.intentions;
 
 import com.google.common.collect.Lists;
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.LightCodeInsightTestCase;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jet.InTextDirectivesUtils;
 import org.jetbrains.jet.lang.psi.JetFile;
 import org.jetbrains.jet.plugin.DirectiveBasedActionUtils;
+import org.jetbrains.jet.plugin.KotlinLightCodeInsightTestCase;
 import org.jetbrains.jet.plugin.PluginTestCaseBase;
 import org.jetbrains.jet.testing.ConfigLibraryUtil;
 import org.junit.Assert;
@@ -36,7 +34,7 @@ import org.junit.Assert;
 import java.io.File;
 import java.util.List;
 
-public abstract class AbstractIntentionTest extends LightCodeInsightTestCase {
+public abstract class AbstractIntentionTest extends KotlinLightCodeInsightTestCase {
     private static IntentionAction createIntention(File testDataFile) throws Exception {
         List<File> candidateFiles = Lists.newArrayList();
 

@@ -30,7 +30,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.refactoring.MultiFileTestCase;
 import com.intellij.testFramework.PsiTestUtil;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
@@ -41,6 +40,7 @@ import org.jetbrains.jet.OutputFileCollection;
 import org.jetbrains.jet.codegen.GenerationUtils;
 import org.jetbrains.jet.codegen.state.GenerationState;
 import org.jetbrains.jet.lang.psi.JetFile;
+import org.jetbrains.jet.plugin.KotlinMultiFileTestCase;
 import org.jetbrains.jet.plugin.PluginTestCaseBase;
 import org.jetbrains.jet.plugin.project.PluginJetFilesProvider;
 import org.jetbrains.jet.utils.UtilsPackage;
@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class AbstractJetPositionManagerTest extends MultiFileTestCase {
+public abstract class AbstractJetPositionManagerTest extends KotlinMultiFileTestCase {
     // Breakpoint is given as a line comment on a specific line, containing the regexp to match the name of the class where that line
     // can be found. This pattern matches against these line comments and saves the class name in the first group
     private static final Pattern BREAKPOINT_PATTERN = Pattern.compile("^.*//\\s*(.+)\\s*$");
@@ -135,7 +135,7 @@ public abstract class AbstractJetPositionManagerTest extends MultiFileTestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (debugProcess != null) {
             debugProcess.dispose();
         }

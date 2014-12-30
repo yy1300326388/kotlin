@@ -61,8 +61,9 @@ import org.jetbrains.jet.plugin.search.allScope
 import org.jetbrains.jet.InTextDirectivesUtils
 import org.jetbrains.jet.testing.ConfigLibraryUtil
 import org.jetbrains.jet.plugin.util.application.runWriteAction
+import org.jetbrains.jet.plugin.KotlinMultiFileTestCase
 
-public abstract class AbstractJetMoveTest : MultiFileTestCase() {
+public abstract class AbstractJetMoveTest : KotlinMultiFileTestCase() {
     protected fun doTest(path: String) {
         fun extractCaretOffset(doc: Document): Int {
             return runWriteAction {

@@ -50,6 +50,7 @@ import org.jetbrains.jet.plugin.caches.resolve.analyzeFully
 import org.jetbrains.jet.lang.resolve.DescriptorToSourceUtils
 import com.intellij.refactoring.BaseRefactoringProcessor.ConflictsInTestsException
 import com.intellij.refactoring.util.CommonRefactoringUtil.RefactoringErrorHintException
+import org.jetbrains.jet.plugin.KotlinMultiFileTestCase
 
 private enum class RenameType {
     JAVA_CLASS
@@ -60,7 +61,7 @@ private enum class RenameType {
     KOTLIN_PACKAGE
 }
 
-public abstract class AbstractRenameTest : MultiFileTestCase() {
+public abstract class AbstractRenameTest : KotlinMultiFileTestCase() {
     inner class TestContext(
             val project: Project = getProject()!!,
             val javaFacade: JavaPsiFacade = getJavaFacade()!!,

@@ -1,3 +1,1 @@
-import java.lang.reflect
-
-val x : reflect.Array<caret>
+val x : java.lang.reflect.Array

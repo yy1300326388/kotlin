@@ -308,7 +308,7 @@ public object ShortenReferences {
             else
                 target
 
-            if (realTarget !is ClassDescriptor && realTarget !is PackageViewDescriptor) return false
+            if (realTarget !is ClassDescriptor) return false
             if (realTarget.getContainingDeclaration() is ClassDescriptor) return false // do not insert imports for nested classes
 
             optimizeImports()

@@ -16,11 +16,12 @@
 
 package org.jetbrains.kotlin.idea.debugger;
 
-import com.intellij.debugger.ui.breakpoints.JavaLineBreakpointType;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.project.Project;
-import com.intellij.xdebugger.breakpoints.XBreakpointType;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileTypes.LanguageFileType;
+import com.intellij.psi.PsiElement;
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType;
+import com.intellij.xdebugger.evaluation.ExpressionInfo;
+import com.jetbrains.javascript.debugger.ExpressionInfoFactory;
 import com.jetbrains.javascript.debugger.JavaScriptDebugAware;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,13 +29,19 @@ import org.jetbrains.annotations.Nullable;
 public class KotlinJavaScriptDebugAware extends JavaScriptDebugAware {
     @Nullable
     @Override
-    public FileType getFileType() {
+    public LanguageFileType getFileType() {
         return null;
     }
 
     @Nullable
     @Override
-    public XLineBreakpointType<?> getBreakpointTypeClass(@NotNull Project project) {
-        return XBreakpointType.EXTENSION_POINT_NAME.findExtension(JavaLineBreakpointType.class);
+    protected ExpressionInfo getEvaluationInfo(@NotNull PsiElement elementAtOffset, @NotNull Document document, @NotNull ExpressionInfoFactory expressionInfoFactory) {
+        return null;  //TODO
+    }
+
+    @Nullable
+    @Override
+    public Class<? extends XLineBreakpointType<?>> getBreakpointTypeClass() {
+        return super.getBreakpointTypeClass();    //TODO
     }
 }

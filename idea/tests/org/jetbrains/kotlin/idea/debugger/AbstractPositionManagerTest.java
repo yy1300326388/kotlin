@@ -29,6 +29,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.LightProjectDescriptor;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.PsiTestUtil;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
 import kotlin.SequencesKt;
@@ -202,6 +206,12 @@ public abstract class AbstractPositionManagerTest extends KotlinLightCodeInsight
                     virtualMachineProxy = new MockVirtualMachineProxy(this, referencesByName);
                 }
                 return virtualMachineProxy;
+            }
+
+            @NotNull
+            @Override
+            public GlobalSearchScope getSearchScope() {
+                return super.getSearchScope();
             }
         };
     }

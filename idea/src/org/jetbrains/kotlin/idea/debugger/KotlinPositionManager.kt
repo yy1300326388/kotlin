@@ -130,8 +130,7 @@ public class KotlinPositionManager(private val myDebugProcess: DebugProcess) : M
     }
 
     private fun getLambdaOrFunIfInside(location: Location, file: KtFile, lineNumber: Int): KtFunction? {
-        val currentLocationFqName = location.declaringType().name()
-        if (currentLocationFqName == null) return null
+        val currentLocationFqName = location.declaringType().name() ?: return null
 
         val start = CodeInsightUtils.getStartLineOffset(file, lineNumber)
         val end = CodeInsightUtils.getEndLineOffset(file, lineNumber)
@@ -194,7 +193,7 @@ public class KotlinPositionManager(private val myDebugProcess: DebugProcess) : M
 
         val project = myDebugProcess.project
 
-        return DebuggerUtils.findSourceFileForClass(project, GlobalSearchScope.allScope(project), className, sourceName)
+        return DebuggerUtils.findSourceFileForClass(project, myDebugProcess.searchScope, className, sourceName)
     }
 
     private fun defaultInternalName(location: Location): String {
@@ -278,7 +277,7 @@ public class KotlinPositionManager(private val myDebugProcess: DebugProcess) : M
     private fun prepareTypeMapper(file: KtFile): JetTypeMapper {
         val key = createKeyForTypeMapper(file)
 
-        var value: CachedValue<JetTypeMapper>? = myTypeMappers.get(key)
+        var value: CachedValue<JetTypeMapper>? = myTypeMappers[key]
         if (value == null) {
             value = CachedValuesManager.getManager(file.project).createCachedValue<JetTypeMapper>(
                     {
@@ -430,7 +429,7 @@ public class KotlinPositionManager(private val myDebugProcess: DebugProcess) : M
 
         private fun isInPropertyAccessor(element: PsiElement?) =
                 element is KtPropertyAccessor ||
-                PsiTreeUtil.getParentOfType(element, KtProperty::class.java, KtPropertyAccessor::class.java) is KtPropertyAccessor
+                        PsiTreeUtil.getParentOfType(element, KtProperty::class.java, KtPropertyAccessor::class.java) is KtPropertyAccessor
 
         private fun getElementToCreateTypeMapperForLibraryFile(element: PsiElement?) =
                 if (element is KtElement) element else PsiTreeUtil.getParentOfType(element, KtElement::class.java)
@@ -473,7 +472,7 @@ public class KotlinPositionManager(private val myDebugProcess: DebugProcess) : M
             val psiElement = getInternalClassNameForElement(element, typeMapper, jetFile, isInLibrary).element;
 
             if (psiElement is KtNamedFunction &&
-                InlineUtil.isInline(typeMapper.bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, psiElement))
+                    InlineUtil.isInline(typeMapper.bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, psiElement))
             ) {
                 ReferencesSearch.search(psiElement).forEach {
                     if (!it.isImportUsage()) {

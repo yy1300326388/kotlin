@@ -35,11 +35,11 @@ public fun initializeOutputParser() {
         val patternAwareClass = Class.forName("com.android.ide.common.blame.parser.PatternAwareOutputParser") as Class<out Any>
 
         val array = field.get(null) as Array<*>
-        val arrayTypeInstance = java.lang.reflect.Array.newInstance(patternAwareClass, array.size + 1)
-        for ((i, item) in array.withIndices()) {
+        val arrayTypeInstance = java.lang.reflect.Array.newInstance(patternAwareClass, array.size() + 1)
+        for ((i, item) in array.withIndex()) {
             java.lang.reflect.Array.set(arrayTypeInstance, i, item)
         }
-        java.lang.reflect.Array.set(arrayTypeInstance, array.size, KotlinOutputParser())
+        java.lang.reflect.Array.set(arrayTypeInstance, array.size(), KotlinOutputParser())
         field.set(null, arrayTypeInstance)
     }
     catch (e: ClassNotFoundException) {

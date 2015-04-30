@@ -57,6 +57,7 @@ import static org.jetbrains.kotlin.resolve.BindingContext.VARIABLE_REASSIGNMENT;
 import static org.jetbrains.kotlin.resolve.calls.context.ContextDependency.INDEPENDENT;
 import static org.jetbrains.kotlin.types.TypeUtils.NO_EXPECTED_TYPE;
 import static org.jetbrains.kotlin.types.TypeUtils.noExpectedType;
+import static org.jetbrains.kotlin.types.TypesPackage.isDynamic;
 
 @SuppressWarnings("SuspiciousMethodCalls")
 public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisitor {
@@ -142,10 +143,11 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
             typeInfo = facade.getTypeInfo(initializer, context.replaceExpectedType(outType));
             DataFlowInfo dataFlowInfo = typeInfo.getDataFlowInfo();
             JetType type = typeInfo.getType();
-            // At this moment we do not take initializer value into account if type is given for a property
-            // We can comment first part of this condition to take them into account, like here: var s: String? = "xyz"
-            // In this case s will be not-nullable until it is changed
-            if (property.getTypeReference() == null && type != null) {
+            // Take initializer value into account if we have a non-dynamic variable (mutable): var s: String? = "",
+            // or if type is not given explicitly: val s = ""
+            if (type != null
+                && (property.getTypeReference() == null
+                    || (propertyDescriptor.isVar() && !isDynamic(propertyDescriptor.getType())))) {
                 DataFlowValue variableDataFlowValue = DataFlowValueFactory.createDataFlowValue(
                         propertyDescriptor, context.trace.getBindingContext(),
                         DescriptorUtils.getContainingModuleOrNull(scope.getOwnerDescriptor()));

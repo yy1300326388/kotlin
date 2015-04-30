@@ -28,7 +28,7 @@ package unused_variables {
         internal final fun testIf(): kotlin.Unit
         internal final fun testIncDec(): kotlin.Unit
         internal final fun testSimple(): kotlin.Unit
-        internal final fun testWhile(): kotlin.Unit
+        internal final fun testWhile(/*0*/ arg: kotlin.Any?): kotlin.Unit
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
     }
 

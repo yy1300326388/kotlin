@@ -1,7 +1,7 @@
 // !CHECK_TYPE
 
-fun test() : Unit {
-  var x : Int? = 0
+fun test(arg: Int?) : Unit {
+  var x : Int? = arg
   var y : Int = 0
 
   checkSubtype<Int?>(x)

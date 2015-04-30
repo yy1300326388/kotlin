@@ -1,7 +1,7 @@
 fun foo() {
     var v: String? = "xyz"
-    // It is possible in principle to provide smart cast here
-    v<!UNSAFE_CALL!>.<!>length()
+    // It is possible to provide smart cast here
+    <!DEBUG_INFO_SMARTCAST!>v<!>.length()
     v = null
     v<!UNSAFE_CALL!>.<!>length()
 }

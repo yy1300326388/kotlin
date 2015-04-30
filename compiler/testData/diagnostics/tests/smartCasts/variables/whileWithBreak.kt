@@ -4,7 +4,6 @@ fun String.next(): String {
 
 fun list(start: String) {
     var e: Any? = start
-    if (e==null) return
     while (e is String) {
         // Smart cast due to the loop condition
         if (<!DEBUG_INFO_SMARTCAST!>e<!>.length() == 0)

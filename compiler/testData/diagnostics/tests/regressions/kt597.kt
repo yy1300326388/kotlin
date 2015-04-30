@@ -13,7 +13,7 @@ fun Int?.inc() : Int {
         throw NullPointerException()
 }
 
-fun test() {
-   var i : Int? = 10
+fun test(arg: Int?) {
+   var i : Int? = arg
    var <!UNUSED_VARIABLE!>i_inc<!> = <!UNUSED_CHANGED_VALUE!>i++<!> // <- expected Int?, but returns Any?
 }

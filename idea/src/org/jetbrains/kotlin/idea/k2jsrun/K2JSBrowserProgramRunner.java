@@ -33,17 +33,11 @@ public final class K2JSBrowserProgramRunner extends GenericProgramRunner {
     @Nullable
     @Override
     protected RunContentDescriptor doExecute(
-            Project project,
-            RunProfileState state,
-            RunContentDescriptor contentToReuse,
-            ExecutionEnvironment env
+            @NotNull RunProfileState state, @NotNull ExecutionEnvironment environment
     ) throws ExecutionException {
-        if (project == null) {
-            return null;
-        }
         try {
-            copyJSFileFromOutputToDestination(project, K2JSRunnerUtils.getSettings(env));
-            openBrowser(K2JSRunnerUtils.getSettings(env));
+            copyJSFileFromOutputToDestination(environment.getProject(), K2JSRunnerUtils.getSettings(environment));
+            openBrowser(K2JSRunnerUtils.getSettings(environment));
         }
         catch (Throwable e) {
             throw new ExecutionException(e);

@@ -19,12 +19,12 @@ package org.jetbrains.kotlin.idea.codeInsight;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupEx;
 import com.intellij.codeInsight.lookup.LookupManager;
-import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.codeInsight.template.impl.TemplateState;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler;
 import com.intellij.openapi.editor.actionSystem.EditorActionManager;
 import com.intellij.testFramework.LightProjectDescriptor;
@@ -39,18 +39,18 @@ import org.jetbrains.kotlin.idea.test.PluginTestCaseBase;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class LiveTemplatesTest extends JetLightCodeInsightFixtureTestCase {
     @Override
     protected void setUp() {
         super.setUp();
         myFixture.setTestDataPath(new File(PluginTestCaseBase.getTestDataPathBase(), "/templates").getPath() + File.separator);
-        ((TemplateManagerImpl) TemplateManager.getInstance(getProject())).setTemplateTesting(true);
+        TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
     }
 
     @Override
     protected void tearDown() {
-        ((TemplateManagerImpl) TemplateManager.getInstance(getProject())).setTemplateTesting(false);
         super.tearDown();
     }
 
@@ -311,7 +311,12 @@ public class LiveTemplatesTest extends JetLightCodeInsightFixtureTestCase {
     private void doAction(@NotNull String actionId) {
         EditorActionManager actionManager = EditorActionManager.getInstance();
         EditorActionHandler actionHandler = actionManager.getActionHandler(actionId);
-        actionHandler.execute(myFixture.getEditor(), DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()));
+        Editor editor = myFixture.getEditor();
+
+        actionHandler.execute(
+                editor,
+                editor.getCaretModel().getCurrentCaret(), DataManager.getInstance().getDataContext(
+                editor.getComponent()));
     }
 
     private void assertStringItems(@NonNls String... items) {
@@ -321,7 +326,7 @@ public class LiveTemplatesTest extends JetLightCodeInsightFixtureTestCase {
     private String[] getItemStrings() {
         LookupEx lookup = LookupManager.getActiveLookup(myFixture.getEditor());
         assertNotNull(lookup);
-        ArrayList<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<String>();
         for (LookupElement element : lookup.getItems()) {
             result.add(element.getLookupString());
         }

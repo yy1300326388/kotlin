@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.cli;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.openapi.util.SystemInfo;
@@ -36,7 +37,7 @@ public abstract class AbstractKotlincExecutableTest extends TestCaseWithTmpdir {
 
         List<String> args = CliBaseTest.readArgs(argsFilePath, testDataDir, tmpdir.getAbsolutePath());
         args.add(0, kotlincFile.getAbsolutePath());
-        ProcessOutput processOutput = ExecUtil.execAndGetOutput(args, null);
+        ProcessOutput processOutput = ExecUtil.execAndGetOutput(new GeneralCommandLine(args));
 
         String stdout = processOutput.getStdout();
         String stderr = processOutput.getStderr();

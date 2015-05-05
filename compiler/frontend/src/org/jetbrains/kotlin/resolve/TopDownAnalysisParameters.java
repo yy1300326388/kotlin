@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.resolve;
 
-import com.google.common.base.Predicate;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.context.GlobalContext;
 import org.jetbrains.kotlin.context.TypeLazinessToken;

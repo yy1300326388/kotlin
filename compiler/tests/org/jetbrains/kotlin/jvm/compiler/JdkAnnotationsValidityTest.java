@@ -99,7 +99,7 @@ public class JdkAnnotationsValidityTest extends AbstractSdkAnnotationsValidityTe
                 public boolean visitFile(@NotNull VirtualFile file) {
                     if (ExternalAnnotationsManager.ANNOTATIONS_XML.equals(file.getName())) {
                         try {
-                            String text = StreamUtil.readText(file.getInputStream());
+                            String text = StreamUtil.readText(file.getInputStream(), "UTF-8");
                             Matcher matcher = Pattern.compile("<item name=['\"]([\\w\\d\\.]+)[\\s'\"]").matcher(text);
                             while (matcher.find()) {
                                 String className = matcher.group(1);

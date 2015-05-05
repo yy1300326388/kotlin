@@ -17,16 +17,13 @@
 package org.jetbrains.kotlin.idea.intentions.declarations;
 
 import com.intellij.codeInsight.editorActions.JoinLinesHandler;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.LightCodeInsightTestCase;
-import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractJoinLinesTest extends LightCodeInsightTestCase {
     public void doTest(@NotNull String path) throws Exception {
         configureByFile(path);
-        new JoinLinesHandler(null).execute(getEditor(), getCurrentEditorDataContext());
+        new JoinLinesHandler(null).execute(getEditor(), getEditor().getCaretModel().getCurrentCaret(), getCurrentEditorDataContext());
         checkResultByFile(path + ".after");
     }
 
@@ -34,9 +31,5 @@ public abstract class AbstractJoinLinesTest extends LightCodeInsightTestCase {
     @Override
     protected String getTestDataPath() {
         return "";
-    }
-
-    protected static Sdk getFullJavaJDK() {
-        return JavaSdk.getInstance().createJdk("JDK", SystemUtils.getJavaHome().getAbsolutePath());
     }
 }

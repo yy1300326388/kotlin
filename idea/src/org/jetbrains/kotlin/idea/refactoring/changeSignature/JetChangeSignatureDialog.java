@@ -26,10 +26,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiCodeFragment;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.*;
 import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.changeSignature.CallerChooserBase;
 import com.intellij.refactoring.changeSignature.ChangeSignatureDialogBase;
@@ -423,7 +420,7 @@ public class JetChangeSignatureDialog extends ChangeSignatureDialogBase<
 
     @Override
     protected void canRun() throws ConfigurationException {
-        if (myNamePanel.isVisible() && myMethod.canChangeName() && !JavaPsiFacade.getInstance(myProject).getNameHelper().isIdentifier(getMethodName()))
+        if (myNamePanel.isVisible() && myMethod.canChangeName() && !PsiNameHelper.getInstance(myProject).isIdentifier(getMethodName()))
             throw new ConfigurationException(JetRefactoringBundle.message("function.name.is.invalid"));
         if (myMethod.canChangeReturnType() == MethodDescriptor.ReadWriteOption.ReadWrite && getReturnType() == null)
             throw new ConfigurationException(JetRefactoringBundle.message("return.type.is.invalid"));
@@ -434,7 +431,7 @@ public class JetChangeSignatureDialog extends ChangeSignatureDialogBase<
             String parameterName = item.parameter.getName();
 
             if (item.parameter != myParametersTableModel.getReceiver()
-                && !JavaPsiFacade.getInstance(myProject).getNameHelper().isIdentifier(parameterName))
+                && !PsiNameHelper.getInstance(myProject).isIdentifier(parameterName))
                 throw new ConfigurationException(JetRefactoringBundle.message("parameter.name.is.invalid", parameterName));
             if (getType((JetTypeCodeFragment) item.typeCodeFragment) == null)
                 throw new ConfigurationException(JetRefactoringBundle.message("parameter.type.is.invalid", item.typeCodeFragment.getText()));

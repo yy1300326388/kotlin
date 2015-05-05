@@ -23,7 +23,6 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.containers.ConcurrentWeakValueHashMap;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.FilteringIterator;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +66,7 @@ public class DiagnosticsWithSuppression implements Diagnostics {
     private final Collection<Diagnostic> diagnostics;
 
     // The cache is weak: we're OK with losing it
-    private final Map<JetAnnotated, Suppressor> suppressors = new ConcurrentWeakValueHashMap<JetAnnotated, Suppressor>();
+    private final Map<JetAnnotated, Suppressor> suppressors = ContainerUtil.createConcurrentWeakValueMap();
 
     private final Condition<Diagnostic> filter = new Condition<Diagnostic>() {
         @Override

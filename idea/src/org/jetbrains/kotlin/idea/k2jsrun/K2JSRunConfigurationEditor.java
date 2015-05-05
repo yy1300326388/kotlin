@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.idea.k2jsrun;
 
-    import com.intellij.ide.browsers.BrowserFamily;
+import com.intellij.ide.browsers.BrowserFamily;
 import com.intellij.ide.browsers.WebBrowser;
 import com.intellij.ide.browsers.WebBrowserManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -30,6 +30,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.JetBundle;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -87,8 +88,9 @@ public final class K2JSRunConfigurationEditor extends SettingsEditor<K2JSRunConf
     }
 
     private void setUpChooseGenerateFilePath() {
-        FileChooserDescriptor fileChooserDescriptor =
-            FileChooserDescriptorFactory.getDirectoryChooserDescriptor("directory where generated files will be stored");
+        @SuppressWarnings("DialogTitleCapitalization")
+        FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle(
+                JetBundle.message("kotlin.run.configuration.js.generated.directory"));
         fileChooserDescriptor.setRoots(ProjectRootManager.getInstance(project).getContentRoots());
         generatedChooseFile.addBrowseFolderListener(null, null, project, fileChooserDescriptor);
         final JTextField textField = generatedChooseFile.getTextField();

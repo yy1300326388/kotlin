@@ -37,7 +37,7 @@ public class KotlinVfsUtil {
         String protocol = url.getProtocol();
         String path = url.getPath();
         if (JAR.equals(protocol)) {
-            if (StringUtil.startsWithConcatenationOf(path, FILE, PROTOCOL_DELIMITER)) {
+            if (StringUtil.startsWithConcatenation(path, FILE, PROTOCOL_DELIMITER)) {
                 URL subURL = new URL(path);
                 path = subURL.getPath();
             }

@@ -18,8 +18,6 @@ package org.jetbrains.kotlin.idea.resolve;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.intellij.ide.startup.impl.StartupManagerImpl;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiManagerEx;
@@ -28,8 +26,8 @@ import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.test.JetWithJdkAndRuntimeLightProjectDescriptor;
 import org.jetbrains.kotlin.idea.references.BuiltInsReferenceResolver;
+import org.jetbrains.kotlin.idea.test.JetWithJdkAndRuntimeLightProjectDescriptor;
 import org.jetbrains.kotlin.psi.JetFile;
 import org.jetbrains.kotlin.test.InTextDirectivesUtils;
 import org.jetbrains.kotlin.test.JetTestUtils;
@@ -65,7 +63,7 @@ public abstract class AbstractReferenceResolveTest extends LightPlatformCodeInsi
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        ((StartupManagerImpl) StartupManager.getInstance(getProject())).runPostStartupActivities();
+        //((StartupManagerImpl) StartupManager.getInstance(getProject())).runPostStartupActivities();
         VfsRootAccess.allowRootAccess(JetTestUtils.getHomeDirectory());
     }
 
@@ -73,7 +71,7 @@ public abstract class AbstractReferenceResolveTest extends LightPlatformCodeInsi
     protected void tearDown() throws Exception {
         VfsRootAccess.disallowRootAccess(JetTestUtils.getHomeDirectory());
 
-        Set<JetFile> builtInsSources = getProject().getComponent(BuiltInsReferenceResolver.class).getBuiltInsSources();
+        Set<JetFile> builtInsSources = getProject().getComponent(BuiltInsReferenceResolver.class).getBuiltInsSources(false);
         FileManager fileManager = ((PsiManagerEx) PsiManager.getInstance(getProject())).getFileManager();
 
         super.tearDown();

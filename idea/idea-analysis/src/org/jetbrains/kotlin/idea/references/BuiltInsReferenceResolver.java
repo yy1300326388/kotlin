@@ -34,7 +34,6 @@ import com.intellij.util.containers.ContainerUtil;
 import kotlin.KotlinPackage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.asJava.LightClassUtil;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.context.ContextPackage;
@@ -56,10 +55,7 @@ import org.jetbrains.kotlin.utils.UtilsPackage;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.jetbrains.kotlin.resolve.descriptorUtil.DescriptorUtilPackage.getClassId;
 import static org.jetbrains.kotlin.serialization.deserialization.DeserializationPackage.findClassAcrossModuleDependencies;
@@ -86,9 +82,37 @@ public class BuiltInsReferenceResolver extends AbstractProjectComponent {
         });
     }
 
-    @TestOnly
-    public Set<JetFile> getBuiltInsSources() {
-        return builtInsSources;
+    public Set<JetFile> getBuiltInsSources(boolean checkInit) {
+        testInitialize(checkInit);
+        if (builtInsSources != null) {
+            return builtInsSources;
+        }
+
+        if (!checkInit) {
+            return Collections.emptySet();
+        }
+
+        return null;
+    }
+
+    private ModuleDescriptor getModuleDescriptor(boolean checkInit) {
+        testInitialize(checkInit);
+        return moduleDescriptor;
+    }
+
+    private PackageFragmentDescriptor getBuiltinsPackageFragment(boolean checkInit) {
+        testInitialize(checkInit);
+        return builtinsPackageFragment;
+    }
+
+    private void testInitialize(boolean checkInit) {
+        if (moduleDescriptor == null && ApplicationManager.getApplication().isUnitTestMode()) {
+            initialize();
+        }
+
+        if (checkInit) {
+            assert moduleDescriptor != null : "Expected to be initialized";
+        }
     }
 
     private void initialize() {
@@ -125,9 +149,9 @@ public class BuiltInsReferenceResolver extends AbstractProjectComponent {
                 assert packageView != null : "Should contain " + KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME  + " package";
                 List<PackageFragmentDescriptor> fragments = packageView.getFragments();
 
-                BuiltInsReferenceResolver.this.moduleDescriptor = newModuleContext.getModule();
                 builtinsPackageFragment = KotlinPackage.single(fragments);
                 builtInsSources = Sets.newHashSet(jetBuiltInsFiles);
+                moduleDescriptor = newModuleContext.getModule();
             }
         };
 
@@ -213,13 +237,13 @@ public class BuiltInsReferenceResolver extends AbstractProjectComponent {
     private DeclarationDescriptor findCurrentDescriptor(@NotNull DeclarationDescriptor originalDescriptor) {
         if (originalDescriptor instanceof ClassDescriptor) {
             return isFromBuiltinModule(originalDescriptor)
-                   ? findClassAcrossModuleDependencies(moduleDescriptor, getClassId((ClassDescriptor) originalDescriptor))
+                   ? findClassAcrossModuleDependencies(getModuleDescriptor(true), getClassId((ClassDescriptor) originalDescriptor))
                    : null;
         }
         else if (originalDescriptor instanceof PackageFragmentDescriptor) {
             return isFromBuiltinModule(originalDescriptor)
                    && KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME.equals(((PackageFragmentDescriptor) originalDescriptor).getFqName())
-                   ? builtinsPackageFragment
+                   ? getBuiltinsPackageFragment(true)
                    : null;
         }
         else if (originalDescriptor instanceof MemberDescriptor) {
@@ -238,7 +262,7 @@ public class BuiltInsReferenceResolver extends AbstractProjectComponent {
 
     @Nullable
     public PsiElement resolveBuiltInSymbol(@NotNull DeclarationDescriptor declarationDescriptor) {
-        if (moduleDescriptor == null) {
+        if (getModuleDescriptor(false) == null) {
             return null;
         }
 
@@ -251,7 +275,8 @@ public class BuiltInsReferenceResolver extends AbstractProjectComponent {
 
     public static boolean isFromBuiltIns(@NotNull PsiElement element) {
         //noinspection SuspiciousMethodCalls
-        return element.getProject().getComponent(BuiltInsReferenceResolver.class).builtInsSources.contains(element.getContainingFile());
+        return element.getProject().getComponent(BuiltInsReferenceResolver.class)
+                .getBuiltInsSources(true).contains(element.getContainingFile());
     }
 
     @Nullable

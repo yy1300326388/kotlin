@@ -41,9 +41,7 @@ import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.ErrorsJvm
 import kotlin.properties.Delegates
 
-public class KotlinCleanupInspection(): LocalInspectionTool(), CleanupLocalInspectionTool {
-    // required to simplify the inspection registration in tests
-    override fun getDisplayName(): String = "Usage of redundant or deprecated syntax or deprecated symbols"
+public abstract class KotlinCleanupInspection(): LocalInspectionTool(), CleanupLocalInspectionTool {
 
     override fun checkFile(file: PsiFile, manager: InspectionManager, isOnTheFly: Boolean): Array<out ProblemDescriptor>? {
         if (isOnTheFly || !ProjectRootsUtil.isInProjectSource(file)) {
@@ -90,30 +88,7 @@ public class KotlinCleanupInspection(): LocalInspectionTool(), CleanupLocalInspe
         return ReplaceDeprecatedFunctionClassUsages().checkFile(file, manager)?.let { arrayOf(it) }
     }
 
-    private fun Diagnostic.isCleanup() = getFactory() in cleanupDiagnosticsFactories || isObsoleteLabel()
-
-    private val cleanupDiagnosticsFactories = setOf(
-            Errors.DEPRECATED_TRAIT_KEYWORD,
-            Errors.DEPRECATED_ANNOTATION_SYNTAX,
-            Errors.ENUM_ENTRY_USES_DEPRECATED_OR_NO_DELIMITER,
-            Errors.ENUM_ENTRY_USES_DEPRECATED_SUPER_CONSTRUCTOR,
-            Errors.DEPRECATED_LAMBDA_SYNTAX,
-            Errors.MISSING_CONSTRUCTOR_KEYWORD,
-            Errors.FUNCTION_EXPRESSION_WITH_NAME,
-            Errors.JAVA_LANG_CLASS_PARAMETER_IN_ANNOTATION,
-            ErrorsJvm.JAVA_LANG_CLASS_ARGUMENT_IN_ANNOTATION,
-            Errors.UNNECESSARY_NOT_NULL_ASSERTION,
-            Errors.UNNECESSARY_SAFE_CALL,
-            Errors.USELESS_CAST,
-            Errors.USELESS_ELVIS,
-            ErrorsJvm.POSITIONED_VALUE_ARGUMENT_FOR_JAVA_ANNOTATION,
-            Errors.DEPRECATED_SYMBOL_WITH_MESSAGE
-    )
-
-    private fun Diagnostic.isObsoleteLabel(): Boolean {
-        val annotationEntry = getPsiElement().getNonStrictParentOfType<JetAnnotationEntry>() ?: return false
-        return ReplaceObsoleteLabelSyntaxFix.looksLikeObsoleteLabel(annotationEntry)
-    }
+    protected abstract fun Diagnostic.isCleanup(): Boolean
 
     private fun Diagnostic.toCleanupFixes(): Collection<CleanupFix> {
         return JetPsiChecker.createQuickfixes(this).filterIsInstance<CleanupFix>()
@@ -134,4 +109,42 @@ public class KotlinCleanupInspection(): LocalInspectionTool(), CleanupLocalInspe
                                                 fixes.map { Wrapper(it, file) }.toTypedArray(),
                                                 ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
     }
+}
+
+
+public class KotlinSyntaxCleanupInspection(): KotlinCleanupInspection() {
+    // required to simplify the inspection registration in tests
+    override fun getDisplayName(): String = "Usage of redundant or deprecated syntax"
+
+    private val cleanupDiagnosticsFactories = setOf(
+            Errors.DEPRECATED_TRAIT_KEYWORD,
+            Errors.DEPRECATED_ANNOTATION_SYNTAX,
+            Errors.ENUM_ENTRY_USES_DEPRECATED_OR_NO_DELIMITER,
+            Errors.ENUM_ENTRY_USES_DEPRECATED_SUPER_CONSTRUCTOR,
+            Errors.DEPRECATED_LAMBDA_SYNTAX,
+            Errors.MISSING_CONSTRUCTOR_KEYWORD,
+            Errors.FUNCTION_EXPRESSION_WITH_NAME,
+            Errors.JAVA_LANG_CLASS_PARAMETER_IN_ANNOTATION,
+            ErrorsJvm.JAVA_LANG_CLASS_ARGUMENT_IN_ANNOTATION,
+            Errors.UNNECESSARY_NOT_NULL_ASSERTION,
+            Errors.UNNECESSARY_SAFE_CALL,
+            Errors.USELESS_CAST,
+            Errors.USELESS_ELVIS,
+            ErrorsJvm.POSITIONED_VALUE_ARGUMENT_FOR_JAVA_ANNOTATION
+    )
+
+    override fun Diagnostic.isCleanup() = getFactory() in cleanupDiagnosticsFactories || isObsoleteLabel()
+
+    private fun Diagnostic.isObsoleteLabel(): Boolean {
+        val annotationEntry = getPsiElement().getNonStrictParentOfType<JetAnnotationEntry>() ?: return false
+        return ReplaceObsoleteLabelSyntaxFix.looksLikeObsoleteLabel(annotationEntry)
+    }
+}
+
+
+public class KotlinSymbolCleanupInspection(): KotlinCleanupInspection() {
+    // required to simplify the inspection registration in tests
+    override fun getDisplayName(): String = "Usage of deprecated symbol"
+
+    override fun Diagnostic.isCleanup() = getFactory() == Errors.DEPRECATED_SYMBOL_WITH_MESSAGE
 }

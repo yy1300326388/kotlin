@@ -1022,9 +1022,17 @@
         level="WARNING"
         />
 
-    <localInspection implementationClass="org.jetbrains.kotlin.idea.inspections.KotlinCleanupInspection"
-        shortName="KotlinDeprecation"
-        displayName="Usage of redundant or deprecated syntax or deprecated symbols"
+    <localInspection implementationClass="org.jetbrains.kotlin.idea.inspections.KotlinSyntaxCleanupInspection"
+        shortName="KotlinSyntaxDeprecation"
+        displayName="Usage of redundant or deprecated syntax"
+        groupName="Kotlin"
+        enabledByDefault="true"
+        cleanupTool="true"
+        level="WARNING"/>
+
+    <localInspection implementationClass="org.jetbrains.kotlin.idea.inspections.KotlinSymbolCleanupInspection"
+        shortName="KotlinSymbolDeprecation"
+        displayName="Usage of deprecated symbols"
         groupName="Kotlin"
         enabledByDefault="true"
         cleanupTool="true"

@@ -16,15 +16,33 @@
 
 package org.jetbrains.kotlin.idea.decompiler
 
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.compiled.ClassFileDecompilers
+import com.intellij.util.containers.HashSet
 import org.jetbrains.kotlin.idea.decompiler.stubBuilder.KotlinClsStubBuilder
 
 public class JetClassFileDecompiler : ClassFileDecompilers.Full() {
+    // Sdk list can be outdated if some new jdks will be added
+    val allJDKRoots = ProjectJdkTable.getInstance().getAllJdks().flatMapTo(HashSet<VirtualFile>()) { jdk ->
+        jdk.rootProvider.getFiles(OrderRootType.CLASSES).toList()
+    }
+
     private val stubBuilder = KotlinClsStubBuilder()
 
-    override fun accepts(file: VirtualFile) = isKotlinJvmCompiledFile(file)
+    override fun accepts(file: VirtualFile): Boolean {
+        if (file.getUrl().startsWith("jar://")) {
+            var rootFile = file
+            while (rootFile.getParent() != null) rootFile = rootFile.getParent()
+
+            if (VfsUtilCore.isUnder(rootFile, allJDKRoots)) return false
+        }
+
+        return isKotlinJvmCompiledFile(file)
+    }
 
     override fun getStubBuilder() = stubBuilder
 

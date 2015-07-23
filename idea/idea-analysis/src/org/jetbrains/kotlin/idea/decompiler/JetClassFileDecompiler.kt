@@ -26,20 +26,20 @@ import com.intellij.util.containers.HashSet
 import org.jetbrains.kotlin.idea.decompiler.stubBuilder.KotlinClsStubBuilder
 
 public class JetClassFileDecompiler : ClassFileDecompilers.Full() {
-    // Sdk list can be outdated if some new jdks will be added
-    val allJDKRoots = ProjectJdkTable.getInstance().getAllJdks().flatMapTo(HashSet<VirtualFile>()) { jdk ->
-        jdk.rootProvider.getFiles(OrderRootType.CLASSES).toList()
-    }
+//    // Sdk list can be outdated if some new jdks are added
+//    val allJDKRoots = ProjectJdkTable.getInstance().getAllJdks().flatMapTo(HashSet<VirtualFile>()) { jdk ->
+//        jdk.rootProvider.getFiles(OrderRootType.CLASSES).toList()
+//    }
 
     private val stubBuilder = KotlinClsStubBuilder()
 
     override fun accepts(file: VirtualFile): Boolean {
-        if (file.getUrl().startsWith("jar://")) {
-            var rootFile = file
-            while (rootFile.getParent() != null) rootFile = rootFile.getParent()
-
-            if (VfsUtilCore.isUnder(rootFile, allJDKRoots)) return false
-        }
+//        if (file.getUrl().startsWith("jar://")) {
+//            var rootFile = file
+//            while (rootFile.getParent() != null) rootFile = rootFile.getParent()
+//
+//            if (VfsUtilCore.isUnder(rootFile, allJDKRoots)) return false
+//        }
 
         return isKotlinJvmCompiledFile(file)
     }

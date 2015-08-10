@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.resolve;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
+import org.jetbrains.kotlin.cfg.JetConstructorConsistencyChecker;
 import org.jetbrains.kotlin.cfg.JetFlowInformationProvider;
 import org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor;
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor;
@@ -45,9 +46,13 @@ public class ControlFlowAnalyzer {
         }
         for (JetClassOrObject aClass : c.getDeclaredClasses().keySet()) {
             checkDeclarationContainer(c, aClass);
+            if (aClass.getPrimaryConstructor() != null) {
+                JetConstructorConsistencyChecker.Companion.check(aClass.getPrimaryConstructor(), trace);
+            }
         }
         for (JetSecondaryConstructor constructor : c.getSecondaryConstructors().keySet()) {
             checkSecondaryConstructor(constructor);
+            JetConstructorConsistencyChecker.Companion.check(constructor, trace);
         }
         for (Map.Entry<JetNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
             JetNamedFunction function = entry.getKey();

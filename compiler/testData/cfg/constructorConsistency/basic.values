@@ -1,0 +1,48 @@
+== My ==
+class My {
+    val x: Int
+
+    constructor() {
+        val y = bar(this)
+        val z = foo()
+        x = y + z
+    }
+
+    fun foo() = x
+}
+---------------------
+=====================
+== My ==
+constructor() {
+        val y = bar(this)
+        val z = foo()
+        x = y + z
+    }
+---------------------
+                                                <v3>: My    NEW: magic[IMPLICIT_RECEIVER](foo()) -> <v3>
+                                                <v5>: My    NEW: magic[IMPLICIT_RECEIVER](x) -> <v5>
+                                                <v0>: *     NEW: call(, <init>) -> <v0>
+this                                            <v1>: My    COPY
+this                                            <v1>: My    NEW: r(this, <this>) -> <v1>
+bar(this)                                       <v2>: Int   NEW: call(bar(this), bar|<v1>) -> <v2>
+foo()                                           <v4>: Int   NEW: call(foo(), foo|<v3>) -> <v4>
+y                                               <v6>: Int   NEW: r(y) -> <v6>
+z                                               <v7>: Int   NEW: r(z) -> <v7>
+y + z                                           <v8>: Int   NEW: call(y + z, plus|<v6>, <v7>) -> <v8>
+x = y + z                                       !<v9>: *
+{ val y = bar(this) val z = foo() x = y + z }   !<v9>: *    COPY
+=====================
+== foo ==
+fun foo() = x
+---------------------
+    <v0>: My    NEW: magic[IMPLICIT_RECEIVER](x) -> <v0>
+x   <v1>: Int   NEW: r(x|<v0>) -> <v1>
+=====================
+== bar ==
+fun bar(arg: My): Int = arg.x
+---------------------
+        <v0>: My    NEW: magic[FAKE_INITIALIZER](arg: My) -> <v0>
+arg     <v1>: My    NEW: r(arg) -> <v1>
+x       <v2>: Int   NEW: r(x|<v1>) -> <v2>
+arg.x   <v2>: Int   COPY
+=====================

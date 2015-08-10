@@ -1,0 +1,92 @@
+== My ==
+class My {
+    val x: Int
+
+    constructor() {
+        val y = bar(this)
+        val z = foo()
+        x = y + z
+    }
+
+    fun foo() = x
+}
+---------------------
+L0:
+  1 <START>
+L1:
+    <END>      NEXT:[<SINK>]
+error:
+    <ERROR>    PREV:[]
+sink:
+    <SINK>     PREV:[<ERROR>, <END>]
+=====================
+== My ==
+constructor() {
+        val y = bar(this)
+        val z = foo()
+        x = y + z
+    }
+---------------------
+L0:
+  1 <START>
+    mark()
+    call(, <init>) -> <v0>
+    v(val x: Int)
+  2 mark({ val y = bar(this) val z = foo() x = y + z })
+    v(val y = bar(this))
+    r(this, <this>) -> <v1>
+    mark(bar(this))
+    call(bar(this), bar|<v1>) -> <v2>
+    w(y|<v2>)
+    v(val z = foo())
+    magic[IMPLICIT_RECEIVER](foo()) -> <v3>
+    mark(foo())
+    call(foo(), foo|<v3>) -> <v4>
+    w(z|<v4>)
+    magic[IMPLICIT_RECEIVER](x) -> <v5>
+    r(y) -> <v6>
+    r(z) -> <v7>
+    mark(y + z)
+    call(y + z, plus|<v6>, <v7>) -> <v8>
+    w(x|<v5>, <v8>)
+L1:
+  1 <END>                                                  NEXT:[<SINK>]
+error:
+    <ERROR>                                                PREV:[]
+sink:
+    <SINK>                                                 PREV:[<ERROR>, <END>]
+=====================
+== foo ==
+fun foo() = x
+---------------------
+L0:
+  1 <START>
+    magic[IMPLICIT_RECEIVER](x) -> <v0>
+    r(x|<v0>) -> <v1>
+    ret(*|<v1>) L1
+L1:
+    <END>                                  NEXT:[<SINK>]
+error:
+    <ERROR>                                PREV:[]
+sink:
+    <SINK>                                 PREV:[<ERROR>, <END>]
+=====================
+== bar ==
+fun bar(arg: My): Int = arg.x
+---------------------
+L0:
+  1 <START>
+    v(arg: My)
+    magic[FAKE_INITIALIZER](arg: My) -> <v0>
+    w(arg|<v0>)
+    mark(arg.x)
+    r(arg) -> <v1>
+    r(x|<v1>) -> <v2>
+    ret(*|<v2>) L1
+L1:
+    <END>                                       NEXT:[<SINK>]
+error:
+    <ERROR>                                     PREV:[]
+sink:
+    <SINK>                                      PREV:[<ERROR>, <END>]
+=====================

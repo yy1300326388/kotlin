@@ -154,6 +154,21 @@ public class PseudoValueTestGenerated extends AbstractPseudoValueTest {
             }
         }
 
+        @TestMetadata("compiler/testData/cfg/constructorConsistency")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class ConstructorConsistency extends AbstractPseudoValueTest {
+            public void testAllFilesPresentInConstructorConsistency() throws Exception {
+                JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/cfg/constructorConsistency"), Pattern.compile("^(.+)\\.kt$"), true);
+            }
+
+            @TestMetadata("basic.kt")
+            public void testBasic() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/cfg/constructorConsistency/basic.kt");
+                doTest(fileName);
+            }
+        }
+
         @TestMetadata("compiler/testData/cfg/controlStructures")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)

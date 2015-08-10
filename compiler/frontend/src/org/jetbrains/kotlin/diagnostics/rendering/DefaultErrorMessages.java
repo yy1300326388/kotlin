@@ -416,6 +416,9 @@ public class DefaultErrorMessages {
         MAP.put(EXPLICIT_DELEGATION_CALL_REQUIRED,
                 "Explicit 'this' or 'super' call is required. There is no constructor in superclass that can be called without arguments");
 
+        MAP.put(DANGEROUS_THIS_IN_CONSTRUCTOR, "Leaking 'this' is prohibited in the constructor until all fields are initialized");
+        MAP.put(DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR, "Calling methods is prohibited in the constructor until all fields are initialized");
+
         MAP.put(INSTANCE_ACCESS_BEFORE_SUPER_CALL, "Cannot access ''{0}'' before superclass constructor has been called", NAME);
 
         MAP.put(ILLEGAL_SELECTOR, "Expression ''{0}'' cannot be a selector (occur after a dot)", STRING);

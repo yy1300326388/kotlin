@@ -21,6 +21,9 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.MagicKind
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.ReadValueInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.traverse
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.psi.JetCallExpression
 import org.jetbrains.kotlin.psi.JetConstructor
 import org.jetbrains.kotlin.psi.JetThisExpression
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -34,24 +37,31 @@ public class JetConstructorConsistencyChecker private constructor(private val co
     public fun check() {
         val classOrObject = constructor.getContainingClassOrObject()
         val properties = classOrObject.getBody()?.properties.orEmpty()
+        val propertyDescriptors = variablesData.getDeclaredVariables(pseudocode, false).filterIsInstance<PropertyDescriptor>()
         pseudocode.traverse(
                 TraversalOrder.FORWARD, variablesData.variableInitializers, { instruction, enterData, exitData ->
 
             fun notNullPropertiesInitialized(): Boolean {
-                return false
+                for (descriptor in propertyDescriptors) {
+                    if (enterData[descriptor]?.isInitialized != true) {
+                        return false
+                    }
+                }
+                return true
             }
 
             when (instruction) {
                 is ReadValueInstruction ->
                         if (instruction.element is JetThisExpression) {
                             if (!notNullPropertiesInitialized()) {
+                                trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element))
 
                             }
                         }
                 is MagicInstruction ->
-                        if (instruction.kind == MagicKind.IMPLICIT_RECEIVER) {
+                        if (instruction.kind == MagicKind.IMPLICIT_RECEIVER && instruction.element is JetCallExpression) {
                             if (!notNullPropertiesInitialized()) {
-
+                                trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
                             }
                         }
             }

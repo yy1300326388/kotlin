@@ -179,6 +179,10 @@ public interface Errors {
 
     DiagnosticFactory1<PsiElement, DeclarationDescriptor> INSTANCE_ACCESS_BEFORE_SUPER_CALL = DiagnosticFactory1.create(ERROR);
 
+    // This in constructors
+    DiagnosticFactory0<JetThisExpression> DANGEROUS_THIS_IN_CONSTRUCTOR = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<JetCallExpression> DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR = DiagnosticFactory0.create(ERROR);
+
     // Trait-specific
 
     DiagnosticFactory0<JetModifierListOwner> ABSTRACT_MODIFIER_IN_TRAIT = DiagnosticFactory0

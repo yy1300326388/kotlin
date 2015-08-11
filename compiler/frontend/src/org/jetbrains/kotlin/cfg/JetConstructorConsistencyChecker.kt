@@ -44,6 +44,15 @@ public class JetConstructorConsistencyChecker private constructor(private val de
 
     private val variablesData = PseudocodeVariablesData(pseudocode, trace.bindingContext)
 
+    private fun checkOpenPropertyAccess(reference: JetReferenceExpression) {
+        if (overridableClass) {
+            val descriptor = trace.get(BindingContext.REFERENCE_TARGET, reference)
+            if (descriptor is PropertyDescriptor && descriptor.modality.isOverridable) {
+                trace.report(Errors.DANGEROUS_OPEN_PROPERTY_ACCESS_IN_CONSTRUCTOR.on(reference));
+            }
+        }
+    }
+
     private fun markedAsFragile(expression: JetExpression): Boolean {
         val annotationEntries = expression.getAnnotationEntries()
         for (entry in annotationEntries) {
@@ -61,7 +70,11 @@ public class JetConstructorConsistencyChecker private constructor(private val de
         if (referenceDescriptor != classDescriptor) return true
         val parent = expression.parent
         when (parent) {
-            is JetQualifiedExpression -> return parent.selectorExpression is JetSimpleNameExpression
+            is JetQualifiedExpression ->
+                if (parent.selectorExpression is JetSimpleNameExpression) {
+                    checkOpenPropertyAccess(parent.selectorExpression as JetSimpleNameExpression)
+                    return true
+               }
             is JetBinaryExpression -> return OperatorConventions.EQUALS_OPERATIONS.contains(parent.operationToken) ||
                                              OperatorConventions.IDENTITY_EQUALS_OPERATIONS.contains(parent.operationToken)
         }
@@ -108,14 +121,19 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                             }
                         }
                 is MagicInstruction ->
-                        if (instruction.kind == MagicKind.IMPLICIT_RECEIVER && instruction.element is JetCallExpression) {
-                            if (!safeCallUsage(instruction.element) && !markedAsFragile(instruction.element)) {
-                                if (!notNullPropertiesInitialized()) {
-                                    trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
+                        if (instruction.kind == MagicKind.IMPLICIT_RECEIVER) {
+                            if (instruction.element is JetCallExpression) {
+                                if (!safeCallUsage(instruction.element) && !markedAsFragile(instruction.element)) {
+                                    if (!notNullPropertiesInitialized()) {
+                                        trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
+                                    }
+                                    else if (overridableClass) {
+                                        trace.report(Errors.DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))
+                                    }
                                 }
-                                else if (overridableClass) {
-                                    trace.report(Errors.DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))
-                                }
+                            }
+                            else if (instruction.element is JetReferenceExpression && !markedAsFragile(instruction.element)) {
+                                checkOpenPropertyAccess(instruction.element)
                             }
                         }
             }

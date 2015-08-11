@@ -184,6 +184,8 @@ public interface Errors {
     DiagnosticFactory0<JetCallExpression> DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<JetThisExpression> DANGEROUS_THIS_IN_OPEN_CLASS_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<JetCallExpression> DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory0<JetReferenceExpression> DANGEROUS_OPEN_PROPERTY_ACCESS_IN_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
+
 
     // Trait-specific
 

@@ -2544,6 +2544,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("openProperty.kt")
+            public void testOpenProperty() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/openProperty.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("outer.kt")
             public void testOuter() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/outer.kt");

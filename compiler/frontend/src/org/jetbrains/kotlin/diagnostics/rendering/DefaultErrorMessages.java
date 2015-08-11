@@ -420,6 +420,7 @@ public class DefaultErrorMessages {
         MAP.put(DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR, "Calling own functions in the constructor is dangerous until all fields are initialized");
         MAP.put(DANGEROUS_THIS_IN_OPEN_CLASS_CONSTRUCTOR, "Leaking 'this' in the open class constructor is dangerous");
         MAP.put(DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR, "Calling own functions in the open class constructor is dangerous");
+        MAP.put(DANGEROUS_OPEN_PROPERTY_ACCESS_IN_CONSTRUCTOR, "Accessing own open properties in the constructor is dangerous");
 
         MAP.put(INSTANCE_ACCESS_BEFORE_SUPER_CALL, "Cannot access ''{0}'' before superclass constructor has been called", NAME);
 

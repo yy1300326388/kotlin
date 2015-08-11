@@ -38,6 +38,8 @@ public class JetConstructorConsistencyChecker private constructor(private val de
 
     private val classDescriptor = trace.get(BindingContext.CLASS, classOrObject)
 
+    private val overridableClass = classDescriptor?.modality?.isOverridable ?: false
+
     private val pseudocode = JetControlFlowProcessor(trace).generatePseudocode(declaration)
 
     private val variablesData = PseudocodeVariablesData(pseudocode, trace.bindingContext)
@@ -96,20 +98,24 @@ public class JetConstructorConsistencyChecker private constructor(private val de
             when (instruction) {
                 is ReadValueInstruction ->
                         if (instruction.element is JetThisExpression) {
-                            if (!safeThisUsage(instruction.element)
-                                && !notNullPropertiesInitialized()
-                                && !markedAsFragile(instruction.element)) {
-
-                                trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element))
+                            if (!safeThisUsage(instruction.element) && !markedAsFragile(instruction.element)) {
+                                if (!notNullPropertiesInitialized()) {
+                                    trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element))
+                                }
+                                else if (overridableClass) {
+                                    trace.report(Errors.DANGEROUS_THIS_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))
+                                }
                             }
                         }
                 is MagicInstruction ->
                         if (instruction.kind == MagicKind.IMPLICIT_RECEIVER && instruction.element is JetCallExpression) {
-                            if (!safeCallUsage(instruction.element)
-                                && !notNullPropertiesInitialized()
-                                && !markedAsFragile(instruction.element)) {
-
-                                trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
+                            if (!safeCallUsage(instruction.element) && !markedAsFragile(instruction.element)) {
+                                if (!notNullPropertiesInitialized()) {
+                                    trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
+                                }
+                                else if (overridableClass) {
+                                    trace.report(Errors.DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))
+                                }
                             }
                         }
             }

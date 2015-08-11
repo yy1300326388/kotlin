@@ -417,7 +417,9 @@ public class DefaultErrorMessages {
                 "Explicit 'this' or 'super' call is required. There is no constructor in superclass that can be called without arguments");
 
         MAP.put(DANGEROUS_THIS_IN_CONSTRUCTOR, "Leaking 'this' in the constructor is dangerous until all fields are initialized");
-        MAP.put(DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR, "Calling methods in the constructor is dangerous until all fields are initialized");
+        MAP.put(DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR, "Calling own functions in the constructor is dangerous until all fields are initialized");
+        MAP.put(DANGEROUS_THIS_IN_OPEN_CLASS_CONSTRUCTOR, "Leaking 'this' in the open class constructor is dangerous");
+        MAP.put(DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR, "Calling own functions in the open class constructor is dangerous");
 
         MAP.put(INSTANCE_ACCESS_BEFORE_SUPER_CALL, "Cannot access ''{0}'' before superclass constructor has been called", NAME);
 

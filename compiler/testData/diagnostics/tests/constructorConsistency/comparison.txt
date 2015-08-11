@@ -1,0 +1,13 @@
+package
+
+internal fun kotlin.Int?.wrapper(): kotlin.Any
+
+internal final class My {
+    public constructor My()
+    internal final val equalsInstance: kotlin.Boolean
+    internal final val instance: My
+    internal final val isInstance: kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

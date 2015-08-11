@@ -1,0 +1,23 @@
+== My ==
+class My {
+    val x: Int
+
+    constructor(x: Int) {
+        this.x = x
+    }
+}
+---------------------
+=====================
+== My ==
+constructor(x: Int) {
+        this.x = x
+    }
+---------------------
+                 <v0>: Int   NEW: magic[FAKE_INITIALIZER](x: Int) -> <v0>
+                 <v1>: *     NEW: call(, <init>) -> <v1>
+this             <v2>: My    COPY
+this             <v2>: My    NEW: r(this, <this>) -> <v2>
+x                <v3>: Int   NEW: r(x) -> <v3>
+this.x = x       !<v4>: *
+{ this.x = x }   !<v4>: *    COPY
+=====================

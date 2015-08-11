@@ -1,0 +1,46 @@
+== My ==
+class My(x: Int) {
+    val y: Int = foo(x)
+
+    fun foo(x: Int): Int = x + y
+}
+---------------------
+L0:
+  1 <START>
+    v(x: Int)
+    magic[FAKE_INITIALIZER](x: Int) -> <v0>
+    w(x|<v0>)
+    v(val y: Int = foo(x))
+    magic[IMPLICIT_RECEIVER](foo(x)) -> <v1>
+    r(x) -> <v2>
+    mark(foo(x))
+    call(foo(x), foo|<v1>, <v2>) -> <v3>
+    w(y|<v3>)
+L1:
+    <END>                                       NEXT:[<SINK>]
+error:
+    <ERROR>                                     PREV:[]
+sink:
+    <SINK>                                      PREV:[<ERROR>, <END>]
+=====================
+== foo ==
+fun foo(x: Int): Int = x + y
+---------------------
+L0:
+  1 <START>
+    v(x: Int)
+    magic[FAKE_INITIALIZER](x: Int) -> <v0>
+    w(x|<v0>)
+    r(x) -> <v1>
+    magic[IMPLICIT_RECEIVER](y) -> <v2>
+    r(y|<v2>) -> <v3>
+    mark(x + y)
+    call(x + y, plus|<v1>, <v3>) -> <v4>
+    ret(*|<v4>) L1
+L1:
+    <END>                                      NEXT:[<SINK>]
+error:
+    <ERROR>                                    PREV:[]
+sink:
+    <SINK>                                     PREV:[<ERROR>, <END>]
+=====================

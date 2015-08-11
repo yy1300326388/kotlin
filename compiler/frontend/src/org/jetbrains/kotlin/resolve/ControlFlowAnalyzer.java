@@ -46,6 +46,7 @@ public class ControlFlowAnalyzer {
         }
         for (JetClassOrObject aClass : c.getDeclaredClasses().keySet()) {
             checkDeclarationContainer(c, aClass);
+            JetConstructorConsistencyChecker.Companion.check(aClass, trace);
             if (aClass.getPrimaryConstructor() != null) {
                 JetConstructorConsistencyChecker.Companion.check(aClass.getPrimaryConstructor(), trace);
             }

@@ -167,6 +167,24 @@ public class PseudoValueTestGenerated extends AbstractPseudoValueTest {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/cfg/constructorConsistency/basic.kt");
                 doTest(fileName);
             }
+
+            @TestMetadata("companion.kt")
+            public void testCompanion() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/cfg/constructorConsistency/companion.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("property.kt")
+            public void testProperty() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/cfg/constructorConsistency/property.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("propertyAccess.kt")
+            public void testPropertyAccess() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/cfg/constructorConsistency/propertyAccess.kt");
+                doTest(fileName);
+            }
         }
 
         @TestMetadata("compiler/testData/cfg/controlStructures")

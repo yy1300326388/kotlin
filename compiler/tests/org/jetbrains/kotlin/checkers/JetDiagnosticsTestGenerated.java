@@ -2486,8 +2486,20 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
         public static class ConstructorConsistency extends AbstractJetDiagnosticsTest {
+            @TestMetadata("afterInitialization.kt")
+            public void testAfterInitialization() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/afterInitialization.kt");
+                doTest(fileName);
+            }
+
             public void testAllFilesPresentInConstructorConsistency() throws Exception {
                 JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/constructorConsistency"), Pattern.compile("^(.+)\\.kt$"), true);
+            }
+
+            @TestMetadata("assignment.kt")
+            public void testAssignment() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/assignment.kt");
+                doTest(fileName);
             }
 
             @TestMetadata("basic.kt")
@@ -2496,9 +2508,51 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("companion.kt")
+            public void testCompanion() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/companion.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("comparison.kt")
+            public void testComparison() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/comparison.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("derived.kt")
+            public void testDerived() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/derived.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("fragile.kt")
             public void testFragile() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/fragile.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("init.kt")
+            public void testInit() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/init.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("outer.kt")
+            public void testOuter() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/outer.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("property.kt")
+            public void testProperty() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/property.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("propertyAccess.kt")
+            public void testPropertyAccess() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/propertyAccess.kt");
                 doTest(fileName);
             }
         }

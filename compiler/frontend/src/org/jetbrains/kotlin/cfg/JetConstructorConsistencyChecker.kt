@@ -21,21 +21,24 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.MagicKind
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.ReadValueInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.traverse
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
-import org.jetbrains.kotlin.psi.JetCallExpression
-import org.jetbrains.kotlin.psi.JetConstructor
-import org.jetbrains.kotlin.psi.JetExpression
-import org.jetbrains.kotlin.psi.JetThisExpression
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.types.expressions.OperatorConventions
 
-public class JetConstructorConsistencyChecker private constructor(private val constructor: JetConstructor<*>, private val trace: BindingTrace) {
+public class JetConstructorConsistencyChecker private constructor(private val declaration: JetDeclaration, private val trace: BindingTrace) {
 
-    private val pseudocode = JetControlFlowProcessor(trace).generatePseudocode(constructor)
+    private val classOrObject = declaration as? JetClassOrObject ?: (declaration as JetConstructor<*>).getContainingClassOrObject()
+
+    private val classDescriptor = trace.get(BindingContext.CLASS, classOrObject)
+
+    private val pseudocode = JetControlFlowProcessor(trace).generatePseudocode(declaration)
 
     private val variablesData = PseudocodeVariablesData(pseudocode, trace.bindingContext)
 
@@ -50,6 +53,32 @@ public class JetConstructorConsistencyChecker private constructor(private val co
         return false
     }
 
+    private fun safeThisUsage(expression: JetThisExpression): Boolean {
+        val reference = expression.instanceReference
+        val referenceDescriptor = trace.get(BindingContext.REFERENCE_TARGET, reference)
+        if (referenceDescriptor != classDescriptor) return true
+        val parent = expression.parent
+        when (parent) {
+            is JetQualifiedExpression -> return parent.selectorExpression is JetSimpleNameExpression
+            is JetBinaryExpression -> return OperatorConventions.EQUALS_OPERATIONS.contains(parent.operationToken) ||
+                                             OperatorConventions.IDENTITY_EQUALS_OPERATIONS.contains(parent.operationToken)
+        }
+        return false
+    }
+
+    private fun safeCallUsage(expression: JetCallExpression): Boolean {
+        val callee = expression.calleeExpression
+        if (callee is JetReferenceExpression) {
+            val descriptor = trace.get(BindingContext.REFERENCE_TARGET, callee)
+            if (descriptor is FunctionDescriptor) {
+                val containingDescriptor = descriptor.containingDeclaration
+                // ~~~
+                if (containingDescriptor != classDescriptor) return true
+            }
+        }
+        return false
+    }
+
     public fun check() {
         val propertyDescriptors = variablesData.getDeclaredVariables(pseudocode, false).filterIsInstance<PropertyDescriptor>()
         pseudocode.traverse(
@@ -57,7 +86,7 @@ public class JetConstructorConsistencyChecker private constructor(private val co
 
             fun notNullPropertiesInitialized(): Boolean {
                 for (descriptor in propertyDescriptors) {
-                    if (enterData[descriptor]?.isInitialized != true) {
+                    if (!descriptor.type.isMarkedNullable && enterData[descriptor]?.isInitialized != true) {
                         return false
                     }
                 }
@@ -67,14 +96,19 @@ public class JetConstructorConsistencyChecker private constructor(private val co
             when (instruction) {
                 is ReadValueInstruction ->
                         if (instruction.element is JetThisExpression) {
-                            if (!notNullPropertiesInitialized() && !markedAsFragile(instruction.element)) {
-                                trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element))
+                            if (!safeThisUsage(instruction.element)
+                                && !notNullPropertiesInitialized()
+                                && !markedAsFragile(instruction.element)) {
 
+                                trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element))
                             }
                         }
                 is MagicInstruction ->
                         if (instruction.kind == MagicKind.IMPLICIT_RECEIVER && instruction.element is JetCallExpression) {
-                            if (!notNullPropertiesInitialized() && !markedAsFragile(instruction.element)) {
+                            if (!safeCallUsage(instruction.element)
+                                && !notNullPropertiesInitialized()
+                                && !markedAsFragile(instruction.element)) {
+
                                 trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
                             }
                         }
@@ -85,6 +119,10 @@ public class JetConstructorConsistencyChecker private constructor(private val co
     companion object {
         public fun check(constructor: JetConstructor<*>, trace: BindingTrace) {
             JetConstructorConsistencyChecker(constructor, trace).check()
+        }
+
+        public fun check(classOrObject: JetClassOrObject, trace: BindingTrace) {
+            JetConstructorConsistencyChecker(classOrObject, trace).check()
         }
     }
 }

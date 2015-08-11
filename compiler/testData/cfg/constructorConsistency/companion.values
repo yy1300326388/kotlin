@@ -1,0 +1,29 @@
+== My ==
+class My {
+
+    val x = foo()
+
+    val w = bar()
+
+    fun foo() = 0
+
+    companion object {
+
+        val y = foo()
+
+        val z: Int? = bar()
+
+        fun bar() = 1
+    }
+}
+---------------------
+        <v0>: My             NEW: magic[IMPLICIT_RECEIVER](foo()) -> <v0>
+        <v2>: My.Companion   NEW: magic[IMPLICIT_RECEIVER](bar()) -> <v2>
+foo()   <v1>: Int            NEW: call(foo(), foo|<v0>) -> <v1>
+bar()   <v3>: Int            NEW: call(bar(), bar|<v2>) -> <v3>
+=====================
+== foo ==
+fun foo() = 0
+---------------------
+0   <v0>: Int   NEW: r(0) -> <v0>
+=====================

@@ -180,8 +180,8 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, DeclarationDescriptor> INSTANCE_ACCESS_BEFORE_SUPER_CALL = DiagnosticFactory1.create(ERROR);
 
     // This in constructors
-    DiagnosticFactory0<JetThisExpression> DANGEROUS_THIS_IN_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
-    DiagnosticFactory0<JetCallExpression> DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory1<JetThisExpression, PropertyDescriptor> DANGEROUS_THIS_IN_CONSTRUCTOR = DiagnosticFactory1.create(WARNING);
+    DiagnosticFactory1<JetCallExpression, PropertyDescriptor> DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory0<JetThisExpression> DANGEROUS_THIS_IN_OPEN_CLASS_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<JetCallExpression> DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<JetReferenceExpression> DANGEROUS_OPEN_PROPERTY_ACCESS_IN_CONSTRUCTOR = DiagnosticFactory0.create(WARNING);

@@ -99,21 +99,24 @@ public class JetConstructorConsistencyChecker private constructor(private val de
         pseudocode.traverse(
                 TraversalOrder.FORWARD, variablesData.variableInitializers, { instruction, enterData, exitData ->
 
-            fun notNullPropertiesInitialized(): Boolean {
+            fun findNotNullUninitializedProperty(): PropertyDescriptor? {
                 for (descriptor in propertyDescriptors) {
                     if (!descriptor.type.isMarkedNullable && enterData[descriptor]?.isInitialized != true) {
-                        return false
+                        return descriptor
                     }
                 }
-                return true
+                return null
             }
 
             when (instruction) {
                 is ReadValueInstruction ->
                         if (instruction.element is JetThisExpression) {
                             if (!safeThisUsage(instruction.element) && !markedAsFragile(instruction.element)) {
-                                if (!notNullPropertiesInitialized()) {
-                                    trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element))
+                                val uninitialized = findNotNullUninitializedProperty()
+                                if (uninitialized != null) {
+                                    trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(
+                                            instruction.element, uninitialized
+                                    ))
                                 }
                                 else if (overridableClass) {
                                     trace.report(Errors.DANGEROUS_THIS_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))
@@ -124,8 +127,11 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                         if (instruction.kind == MagicKind.IMPLICIT_RECEIVER) {
                             if (instruction.element is JetCallExpression) {
                                 if (!safeCallUsage(instruction.element) && !markedAsFragile(instruction.element)) {
-                                    if (!notNullPropertiesInitialized()) {
-                                        trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
+                                    val uninitialized = findNotNullUninitializedProperty()
+                                    if (uninitialized != null) {
+                                        trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(
+                                                instruction.element, uninitialized
+                                        ))
                                     }
                                     else if (overridableClass) {
                                         trace.report(Errors.DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))

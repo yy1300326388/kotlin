@@ -27,7 +27,7 @@ open class KProperty0Impl<out R> : DescriptorBasedProperty<R>, KProperty0<R>, KP
 
     constructor(container: KCallableContainerImpl, name: String, signature: String) : super(container, name, signature)
 
-    override val getter by ReflectProperties.lazy { Getter(this) }
+    override val getter by ReflectProperties.lazy { Getter(@fragile this) }
 
     override fun get(): R = getter.call()
 
@@ -41,7 +41,7 @@ open class KMutableProperty0Impl<R> : KProperty0Impl<R>, KMutableProperty0<R>, K
 
     constructor(container: KCallableContainerImpl, name: String, signature: String) : super(container, name, signature)
 
-    override val setter by ReflectProperties.lazy { Setter(this) }
+    override val setter by ReflectProperties.lazy { Setter(@fragile this) }
 
     override fun set(value: R) = setter.call(value)
 

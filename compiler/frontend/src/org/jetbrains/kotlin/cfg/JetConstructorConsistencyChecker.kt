@@ -25,8 +25,13 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.JetCallExpression
 import org.jetbrains.kotlin.psi.JetConstructor
+import org.jetbrains.kotlin.psi.JetExpression
 import org.jetbrains.kotlin.psi.JetThisExpression
+import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.types.TypeUtils
 
 public class JetConstructorConsistencyChecker private constructor(private val constructor: JetConstructor<*>, private val trace: BindingTrace) {
 
@@ -34,9 +39,18 @@ public class JetConstructorConsistencyChecker private constructor(private val co
 
     private val variablesData = PseudocodeVariablesData(pseudocode, trace.bindingContext)
 
+    private fun markedAsFragile(expression: JetExpression): Boolean {
+        val annotationEntries = expression.getAnnotationEntries()
+        for (entry in annotationEntries) {
+            val descriptor = trace.get(BindingContext.ANNOTATION, entry) ?: continue
+            if (descriptor.type.isError) continue
+            val classDescriptor = TypeUtils.getClassDescriptor(descriptor.type) ?: continue
+            if (classDescriptor == classDescriptor.builtIns.fragileAnnotation) return true
+        }
+        return false
+    }
+
     public fun check() {
-        val classOrObject = constructor.getContainingClassOrObject()
-        val properties = classOrObject.getBody()?.properties.orEmpty()
         val propertyDescriptors = variablesData.getDeclaredVariables(pseudocode, false).filterIsInstance<PropertyDescriptor>()
         pseudocode.traverse(
                 TraversalOrder.FORWARD, variablesData.variableInitializers, { instruction, enterData, exitData ->
@@ -53,14 +67,14 @@ public class JetConstructorConsistencyChecker private constructor(private val co
             when (instruction) {
                 is ReadValueInstruction ->
                         if (instruction.element is JetThisExpression) {
-                            if (!notNullPropertiesInitialized()) {
+                            if (!notNullPropertiesInitialized() && !markedAsFragile(instruction.element)) {
                                 trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element))
 
                             }
                         }
                 is MagicInstruction ->
                         if (instruction.kind == MagicKind.IMPLICIT_RECEIVER && instruction.element is JetCallExpression) {
-                            if (!notNullPropertiesInitialized()) {
+                            if (!notNullPropertiesInitialized() && !markedAsFragile(instruction.element)) {
                                 trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(instruction.element))
                             }
                         }

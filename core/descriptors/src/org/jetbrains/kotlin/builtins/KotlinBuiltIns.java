@@ -176,6 +176,7 @@ public class KotlinBuiltIns {
         public final FqName noinline = fqName("noinline");
         public final FqName inlineOptions = fqName("inlineOptions");
         public final FqName extension = fqName("extension");
+        public final FqName fragile = fqName("fragile");
         public final FqName target = annotationName("target");
         public final FqName annotation = annotationName("annotation");
         public final FqName annotationTarget = annotationName("AnnotationTarget");
@@ -384,6 +385,11 @@ public class KotlinBuiltIns {
     @NotNull
     public ClassDescriptor getDeprecatedAnnotation() {
         return getBuiltInClassByName("deprecated");
+    }
+
+    @NotNull
+    public ClassDescriptor getFragileAnnotation() {
+        return getBuiltInClassByName(FQ_NAMES.fragile.shortName());
     }
 
     @NotNull

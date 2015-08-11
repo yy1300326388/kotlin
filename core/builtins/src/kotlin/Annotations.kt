@@ -77,3 +77,10 @@ public annotation(retention = SOURCE) class suppress(vararg val names: String)
  */
 target(FUNCTION)
 public annotation(retention = SOURCE) class tailRecursive
+
+/**
+ * Should be used in front of this leaking or own function calling in constructor.
+ * Fragile expressions can lead to NullPointerException during evaluation, so be careful.
+ */
+target(EXPRESSION)
+public annotation(retention = SOURCE) class fragile

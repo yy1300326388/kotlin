@@ -1,0 +1,21 @@
+package
+
+internal fun Wise(/*0*/ f: () -> kotlin.Int): Wise
+
+internal final class My {
+    public constructor My()
+    internal final val x: Wise
+    internal final val y: kotlin.Int = 42
+    internal final fun bar(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    internal final fun foo(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+internal interface Wise {
+    internal abstract fun doIt(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

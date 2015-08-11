@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.cfg
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.MagicInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.MagicKind
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.ReadValueInstruction
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.traverse
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -108,8 +109,13 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                 return null
             }
 
-            when (instruction) {
-                is ReadValueInstruction ->
+            fun checkInstruction(instruction: Instruction) {
+                if (instruction.owner != pseudocode) {
+                    // We should miss *some* of this local declarations, but not all
+                    return
+                }
+                when (instruction) {
+                    is ReadValueInstruction ->
                         if (instruction.element is JetThisExpression) {
                             if (!safeThisUsage(instruction.element) && !markedAsFragile(instruction.element)) {
                                 val uninitialized = findNotNullUninitializedProperty()
@@ -123,7 +129,7 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                                 }
                             }
                         }
-                is MagicInstruction ->
+                    is MagicInstruction ->
                         if (instruction.kind == MagicKind.IMPLICIT_RECEIVER) {
                             if (instruction.element is JetCallExpression) {
                                 if (!safeCallUsage(instruction.element) && !markedAsFragile(instruction.element)) {
@@ -142,7 +148,11 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                                 checkOpenPropertyAccess(instruction.element)
                             }
                         }
+                }
             }
+
+            checkInstruction(instruction)
+
         })
     }
 

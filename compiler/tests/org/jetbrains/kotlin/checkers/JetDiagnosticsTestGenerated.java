@@ -2538,6 +2538,18 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("lambdaInObject.kt")
+            public void testLambdaInObject() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/lambdaInObject.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("localObject.kt")
+            public void testLocalObject() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/localObject.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("open.kt")
             public void testOpen() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/open.kt");

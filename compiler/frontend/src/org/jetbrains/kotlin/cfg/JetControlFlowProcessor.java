@@ -1388,6 +1388,7 @@ public class JetControlFlowProcessor {
                         declaration instanceof JetClassInitializer) {
                         continue;
                     }
+                    // I'm not sure about this place... some local functions *probably* should not be here
                     generateInstructions(declaration);
                 }
             }

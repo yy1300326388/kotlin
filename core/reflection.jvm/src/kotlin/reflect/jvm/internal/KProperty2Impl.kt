@@ -25,7 +25,7 @@ open class KProperty2Impl<D, E, out R> : DescriptorBasedProperty<R>, KProperty2<
 
     constructor(container: KCallableContainerImpl, descriptor: PropertyDescriptor) : super(container, descriptor)
 
-    override val getter by ReflectProperties.lazy { Getter(@fragile this) }
+    override val getter by ReflectProperties.lazy { Getter(this) }
 
     override fun get(receiver1: D, receiver2: E): R = getter.call(receiver1, receiver2)
 
@@ -39,7 +39,7 @@ class KMutableProperty2Impl<D, E, R> : KProperty2Impl<D, E, R>, KMutableProperty
 
     constructor(container: KCallableContainerImpl, descriptor: PropertyDescriptor) : super(container, descriptor)
 
-    override val setter by ReflectProperties.lazy { Setter(@fragile this) }
+    override val setter by ReflectProperties.lazy { Setter(this) }
 
     override fun set(receiver1: D, receiver2: E, value: R) = setter.call(receiver1, receiver2, value)
 

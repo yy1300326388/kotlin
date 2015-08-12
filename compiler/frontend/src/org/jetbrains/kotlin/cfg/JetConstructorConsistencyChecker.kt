@@ -45,13 +45,18 @@ public class JetConstructorConsistencyChecker private constructor(private val de
 
     private val variablesData = PseudocodeVariablesData(pseudocode, trace.bindingContext)
 
-    private fun checkOpenPropertyAccess(reference: JetReferenceExpression) {
-        if (overridableClass) {
-            val descriptor = trace.get(BindingContext.REFERENCE_TARGET, reference)
-            if (descriptor is PropertyDescriptor && descriptor.modality.isOverridable) {
-                trace.report(Errors.DANGEROUS_OPEN_PROPERTY_ACCESS_IN_CONSTRUCTOR.on(reference));
+    private fun checkReferenceSafety(reference: JetReferenceExpression): Boolean {
+        if (JetPsiUtil.isBackingFieldReference(reference)) return true
+        val descriptor = trace.get(BindingContext.REFERENCE_TARGET, reference)
+        if (descriptor is PropertyDescriptor) {
+            if (overridableClass && descriptor.modality.isOverridable) {
+                trace.report(Errors.DANGEROUS_OPEN_PROPERTY_ACCESS_IN_CONSTRUCTOR.on(reference))
+                return true
             }
+            if (descriptor.containingDeclaration != classDescriptor) return true
+            return descriptor.getter?.isDefault != false && descriptor.setter?.isDefault != false
         }
+        return true
     }
 
     private fun markedAsFragile(expression: JetExpression): Boolean {
@@ -73,8 +78,7 @@ public class JetConstructorConsistencyChecker private constructor(private val de
         when (parent) {
             is JetQualifiedExpression ->
                 if (parent.selectorExpression is JetSimpleNameExpression) {
-                    checkOpenPropertyAccess(parent.selectorExpression as JetSimpleNameExpression)
-                    return true
+                    return checkReferenceSafety(parent.selectorExpression as JetSimpleNameExpression)
                }
             is JetBinaryExpression -> return OperatorConventions.EQUALS_OPERATIONS.contains(parent.operationToken) ||
                                              OperatorConventions.IDENTITY_EQUALS_OPERATIONS.contains(parent.operationToken)
@@ -88,7 +92,6 @@ public class JetConstructorConsistencyChecker private constructor(private val de
             val descriptor = trace.get(BindingContext.REFERENCE_TARGET, callee)
             if (descriptor is FunctionDescriptor) {
                 val containingDescriptor = descriptor.containingDeclaration
-                // ~~~
                 if (containingDescriptor != classDescriptor) return true
             }
         }
@@ -112,6 +115,17 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                 return null
             }
 
+            fun reportDangerousMethodCall(expression: JetExpression) {
+                val uninitialized = findNotNullUninitializedProperty()
+                if (uninitialized != null) {
+                    trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(expression, uninitialized))
+                }
+                else if (overridableClass) {
+                    trace.report(Errors.DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR.on(expression))
+                }
+
+            }
+
             fun checkInstruction(instruction: Instruction) {
                 if (instruction.owner != pseudocode) {
                     // We should miss *some* of this local declarations, but not all
@@ -123,9 +137,7 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                             if (!safeThisUsage(instruction.element) && !markedAsFragile(instruction.element)) {
                                 val uninitialized = findNotNullUninitializedProperty()
                                 if (uninitialized != null) {
-                                    trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(
-                                            instruction.element, uninitialized
-                                    ))
+                                    trace.report(Errors.DANGEROUS_THIS_IN_CONSTRUCTOR.on(instruction.element, uninitialized))
                                 }
                                 else if (overridableClass) {
                                     trace.report(Errors.DANGEROUS_THIS_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))
@@ -136,19 +148,13 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                         if (instruction.kind == MagicKind.IMPLICIT_RECEIVER) {
                             if (instruction.element is JetCallExpression) {
                                 if (!safeCallUsage(instruction.element) && !markedAsFragile(instruction.element)) {
-                                    val uninitialized = findNotNullUninitializedProperty()
-                                    if (uninitialized != null) {
-                                        trace.report(Errors.DANGEROUS_METHOD_CALL_IN_CONSTRUCTOR.on(
-                                                instruction.element, uninitialized
-                                        ))
-                                    }
-                                    else if (overridableClass) {
-                                        trace.report(Errors.DANGEROUS_METHOD_CALL_IN_OPEN_CLASS_CONSTRUCTOR.on(instruction.element))
-                                    }
+                                    reportDangerousMethodCall(instruction.element)
                                 }
                             }
                             else if (instruction.element is JetReferenceExpression && !markedAsFragile(instruction.element)) {
-                                checkOpenPropertyAccess(instruction.element)
+                                if (!checkReferenceSafety(instruction.element)) {
+                                    reportDangerousMethodCall(instruction.element)
+                                }
                             }
                         }
                 }

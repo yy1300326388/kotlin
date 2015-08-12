@@ -2508,6 +2508,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("backing.kt")
+            public void testBacking() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/backing.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("basic.kt")
             public void testBasic() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/basic.kt");
@@ -2541,6 +2547,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
             @TestMetadata("fragile.kt")
             public void testFragile() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/fragile.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("getset.kt")
+            public void testGetset() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/getset.kt");
                 doTest(fileName);
             }
 

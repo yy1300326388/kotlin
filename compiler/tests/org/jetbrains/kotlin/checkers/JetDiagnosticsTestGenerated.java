@@ -2492,6 +2492,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("aliencall.kt")
+            public void testAliencall() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/aliencall.kt");
+                doTest(fileName);
+            }
+
             public void testAllFilesPresentInConstructorConsistency() throws Exception {
                 JetTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/constructorConsistency"), Pattern.compile("^(.+)\\.kt$"), true);
             }
@@ -2553,6 +2559,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
             @TestMetadata("localObject.kt")
             public void testLocalObject() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/localObject.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("nobacking.kt")
+            public void testNobacking() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/nobacking.kt");
                 doTest(fileName);
             }
 

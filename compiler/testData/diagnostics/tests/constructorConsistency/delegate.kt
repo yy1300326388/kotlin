@@ -3,7 +3,8 @@ class Delegate(val x: Int) {
 }
 
 class My {
-    val x: Int by Delegate(<!DANGEROUS_THIS_IN_CONSTRUCTOR!>this<!>.foo())
+    // x has no backing field, so this is safe here
+    val x: Int by Delegate(this.foo())
 
     fun foo(): Int = x
 }

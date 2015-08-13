@@ -1385,6 +1385,7 @@ public class JetControlFlowProcessor {
                 for (JetDeclaration declaration : classOrObject.getDeclarations()) {
                     if (declaration instanceof JetSecondaryConstructor ||
                         declaration instanceof JetProperty ||
+                        declaration instanceof JetClassOrObject ||
                         declaration instanceof JetClassInitializer) {
                         continue;
                     }

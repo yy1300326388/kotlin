@@ -2562,6 +2562,12 @@ public class JetDiagnosticsTestGenerated extends AbstractJetDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("initwithgetter.kt")
+            public void testInitwithgetter() throws Exception {
+                String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/initwithgetter.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("lambdaInObject.kt")
             public void testLambdaInObject() throws Exception {
                 String fileName = JetTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/constructorConsistency/lambdaInObject.kt");

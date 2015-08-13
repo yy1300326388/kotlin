@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.cfg
 
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.MagicInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.MagicKind
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.ReadValueInstruction
@@ -25,8 +26,10 @@ import org.jetbrains.kotlin.cfg.pseudocodeTraverser.traverse
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.lexer.JetTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
+import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
@@ -45,6 +48,19 @@ public class JetConstructorConsistencyChecker private constructor(private val de
 
     private val variablesData = PseudocodeVariablesData(pseudocode, trace.bindingContext)
 
+    private fun insideLValue(reference: JetReferenceExpression): Boolean {
+        val binary = reference.getStrictParentOfType<JetBinaryExpression>() ?: return false
+        if (binary.operationToken in JetTokens.ALL_ASSIGNMENTS) {
+            val binaryLeft = binary.left
+            var current: PsiElement = reference
+            while (current !== binaryLeft && current !== binary) {
+                current = current.parent ?: return false
+            }
+            return current === binaryLeft
+        }
+        return false
+    }
+
     private fun checkReferenceSafety(reference: JetReferenceExpression): Boolean {
         if (JetPsiUtil.isBackingFieldReference(reference)) return true
         val descriptor = trace.get(BindingContext.REFERENCE_TARGET, reference)
@@ -54,7 +70,7 @@ public class JetConstructorConsistencyChecker private constructor(private val de
                 return true
             }
             if (descriptor.containingDeclaration != classDescriptor) return true
-            return descriptor.getter?.isDefault != false && descriptor.setter?.isDefault != false
+            if (insideLValue(reference)) return descriptor.setter?.isDefault != false else return descriptor.getter?.isDefault != false
         }
         return true
     }

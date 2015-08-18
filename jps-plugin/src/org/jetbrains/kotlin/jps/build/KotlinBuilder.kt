@@ -520,7 +520,8 @@ public class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR
             }
         }
 
-        val moduleFile = KotlinBuilderModuleScriptGenerator.generateModuleDescription(context, chunk, filesToCompile, totalRemovedFiles != 0)
+        val moduleFile = KotlinBuilderModuleScriptGenerator.generateModuleDescription(
+                context, chunk, filesToCompile, totalRemovedFiles != 0, messageCollector)
         if (moduleFile == null) {
             KotlinBuilder.LOG.debug("Not compiling, because no files affected: " + filesToCompile.keySet().map { it.getPresentableName() }.join())
             // No Kotlin sources found

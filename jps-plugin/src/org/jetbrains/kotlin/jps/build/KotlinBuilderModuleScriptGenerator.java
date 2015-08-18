@@ -38,6 +38,9 @@ import org.jetbrains.jps.model.library.sdk.JpsSdkType;
 import org.jetbrains.jps.model.module.JpsDependencyElement;
 import org.jetbrains.jps.model.module.JpsModule;
 import org.jetbrains.jps.model.module.JpsSdkDependency;
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation;
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity;
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector;
 import org.jetbrains.kotlin.config.IncrementalCompilation;
 import org.jetbrains.kotlin.modules.KotlinModuleXmlBuilder;
 
@@ -54,7 +57,8 @@ public class KotlinBuilderModuleScriptGenerator {
             CompileContext context,
             ModuleChunk chunk,
             MultiMap<ModuleBuildTarget, File> sourceFiles, // ignored for non-incremental compilation
-            boolean hasRemovedFiles
+            boolean hasRemovedFiles,
+            @NotNull MessageCollector messageCollector
     ) throws IOException, ProjectBuildException {
         KotlinModuleXmlBuilder builder = new KotlinModuleXmlBuilder();
 
@@ -86,7 +90,7 @@ public class KotlinBuilderModuleScriptGenerator {
                     outputDir.getAbsolutePath(),
                     moduleSources,
                     findSourceRoots(context, target),
-                    findClassPathRoots(target),
+                    findClassPathRoots(target, messageCollector),
                     findAnnotationRoots(target),
                     target.isTests(),
                     // this excludes the output directories from the class path, to be removed for true incremental compilation
@@ -113,10 +117,17 @@ public class KotlinBuilderModuleScriptGenerator {
     }
 
     @NotNull
-    private static Collection<File> findClassPathRoots(@NotNull ModuleBuildTarget target) {
+    private static Collection<File> findClassPathRoots(@NotNull ModuleBuildTarget target, @NotNull final MessageCollector messageCollector) {
         return ContainerUtil.filter(getAllDependencies(target).classes().getRoots(), new Condition<File>() {
             @Override
             public boolean value(File file) {
+                if (file.isFile() && !file.exists()) {
+                    messageCollector.report(CompilerMessageSeverity.WARNING,
+                                            "No file from classpath found: " + file,
+                                            CompilerMessageLocation.NO_LOCATION);
+                    return false;
+                }
+
                 return file.exists();
             }
         });

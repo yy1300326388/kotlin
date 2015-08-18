@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.idea.caches
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Key
@@ -25,39 +26,18 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.HashSet
 import com.intellij.util.indexing.*
 import com.intellij.util.io.ExternalIntegerKeyDescriptor
+import org.jetbrains.kotlin.idea.quickfix.QuickFixes
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import java.util.ArrayList
 
-public object JarUserDataManager : ScalarIndexExtension<Int>() {
-    override fun dependsOnFileContent(): Boolean = false
-    override fun getKeyDescriptor() = ExternalIntegerKeyDescriptor()
-    override fun getName(): ID<Int, Void> = ID.create<Int, Void>(JarUserDataManager::class.qualifiedName)
-    override fun getVersion(): Int = 0
-
-    override fun getInputFilter() = FileBasedIndex.InputFilter() {
-        file: VirtualFile -> file.getUrl().startsWith("jar://") && file.getUrl().endsWith("!/")
-    }
-
-    override fun indexDirectories(): Boolean = true
-
+public object JarUserDataManager {
     private val collectors: MutableList<JarUserDataCollector<*>> = ArrayList()
+
+    val fileAttributeService: FileAttributeService? = ServiceManager.getService(javaClass<FileAttributeService>())
 
     public fun register(collector: JarUserDataCollector<*>) {
         collectors.add(collector)
-    }
-
-    override fun getIndexer() = INDEXER
-
-    private val INDEXER = DataIndexer<Int, Void, FileContent>() { inputData: FileContent ->
-        val jarFile = findJarFile(inputData.getFile())
-        if (jarFile != null) {
-            collectors.forEach { collector ->
-                jarFile.putUserData(collector.key, null)
-            }
-        }
-
-        // Do not store anything
-        mapOf()
+        fileAttributeService?.register(collector.key.toString(), collector.version)
     }
 
     // Sdk list can be outdated if some new jdks are added
@@ -69,13 +49,21 @@ public object JarUserDataManager : ScalarIndexExtension<Int>() {
     public fun <T: Any> getValue(collector: JarUserDataCollector<T>, file: VirtualFile): T? {
         val jarFile = findJarFile(file) ?: return null
 
-        val kotlinState = jarFile.getUserData(collector.key)
-        if (kotlinState != null) {
-            return kotlinState
+        val stored = jarFile.getUserData(collector.key)
+        if (stored != null && jarFile.timeStamp == stored.second) {
+            return stored.first
+        }
+
+        if (stored == null && fileAttributeService != null) {
+            val savedData = fileAttributeService.readAttribute(collector.key.toString(), jarFile)
+            if (savedData != null && savedData.value != null) {
+                val state = collector.fromInt(savedData.value)
+                jarFile.putUserData(collector.key, state to savedData.timeStamp)
+            }
         }
 
         if (VfsUtilCore.isUnder(jarFile, allJDKRoots)) {
-            jarFile.putUserData(collector.key, collector.sdk)
+            jarFile.putUserData(collector.key, collector.sdk to jarFile.timeStamp)
             return collector.sdk
         }
 
@@ -96,7 +84,7 @@ public object JarUserDataManager : ScalarIndexExtension<Int>() {
     private fun <T: Any> scheduleJarProcessing(collector: JarUserDataCollector<T>, jarFile: VirtualFile) {
         if (jarFile.getUserData(collector.key) != null) return
 
-        jarFile.putUserData(collector.key, collector.init)
+        jarFile.putUserData(collector.key, collector.init to jarFile.timeStamp)
 
         ApplicationManager.getApplication().executeOnPooledThread {
             runReadAction {
@@ -115,13 +103,15 @@ public object JarUserDataManager : ScalarIndexExtension<Int>() {
                     }
                 }
 
-                jarFile.putUserData(collector.key, result)
+                val savedData = fileAttributeService?.writeAttribute(collector.key.toString(), jarFile, collector.toInt(result))
+                jarFile.putUserData(collector.key, result to (savedData?.timeStamp ?: jarFile.timeStamp))
             }
         }
     }
 
     interface JarUserDataCollector<State> {
-        val key: Key<State>
+        val key: Key<Pair<State, Long>>
+        val version: Int get() = 1
 
         val init: State
         val stopState: State
@@ -130,5 +120,7 @@ public object JarUserDataManager : ScalarIndexExtension<Int>() {
         val sdk: State
 
         fun count(file: VirtualFile): State
+        fun fromInt(value: Int): State
+        fun toInt(state: State): Int
     }
 }

@@ -17,9 +17,14 @@
 package org.jetbrains.kotlin.idea.decompiler
 
 import com.intellij.ide.highlighter.JavaClassFileType
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.impl.FilePropertyPusher
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.ClassFileViewProvider
+import com.intellij.util.messages.MessageBus
 import org.jetbrains.kotlin.idea.caches.JarUserDataManager
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames.KotlinClass
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames.KotlinSyntheticClass
@@ -83,7 +88,7 @@ public object HasCompiledKotlinInJar : JarUserDataManager.JarUserDataCollector<H
         COUNTING
     }
 
-    override val key = Key.create<HasCompiledKotlinInJar.JarKotlinState>(HasCompiledKotlinInJar::class.simpleName!!)
+    override val key = Key.create<Pair<HasCompiledKotlinInJar.JarKotlinState, Long>>(HasCompiledKotlinInJar::class.simpleName!!)
 
     override val init = JarKotlinState.COUNTING
     override val stopState = JarKotlinState.HAS_KOTLIN
@@ -92,4 +97,7 @@ public object HasCompiledKotlinInJar : JarUserDataManager.JarUserDataCollector<H
     override val sdk = JarKotlinState.NO_KOTLIN
 
     override fun count(file: VirtualFile) = if (isKotlinJvmCompiledFile(file)) JarKotlinState.HAS_KOTLIN else JarKotlinState.NO_KOTLIN
+
+    override fun fromInt(value: Int): JarKotlinState = JarKotlinState.values()[value]
+    override fun toInt(state: JarKotlinState) = state.ordinal()
 }

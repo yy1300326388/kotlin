@@ -66,7 +66,7 @@ public object KotlinJavaScriptLibraryDetectionUtil {
             COUNTING
         }
 
-        override val key = Key.create<HasKotlinJSMetadataInJar.JsMetadataState>(HasKotlinJSMetadataInJar::class.simpleName!!)
+        override val key = Key.create<Pair<HasKotlinJSMetadataInJar.JsMetadataState, Long>>(HasKotlinJSMetadataInJar::class.simpleName!!)
 
         override val init = JsMetadataState.COUNTING
         override val stopState = JsMetadataState.HAS_JS_METADATA
@@ -81,5 +81,8 @@ public object KotlinJavaScriptLibraryDetectionUtil {
                 JsMetadataState.NO_JS_METADATA
             }
         }
+
+        override fun fromInt(value: Int) = JsMetadataState.values()[value]
+        override fun toInt(state: JsMetadataState) = state.ordinal()
     }
 }

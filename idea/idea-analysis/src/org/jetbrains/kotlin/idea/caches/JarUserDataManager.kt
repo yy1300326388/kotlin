@@ -40,12 +40,6 @@ public object JarUserDataManager {
         fileAttributeService?.register(collector.key.toString(), collector.version)
     }
 
-    // Sdk list can be outdated if some new jdks are added
-    // TODO: Subscribe to sdk table change
-    val allJDKRoots = ProjectJdkTable.getInstance().getAllJdks().flatMapTo(HashSet<VirtualFile>()) { jdk ->
-        jdk.rootProvider.getFiles(OrderRootType.CLASSES).toList()
-    }
-
     public fun <T: Any> getValue(collector: JarUserDataCollector<T>, file: VirtualFile): T? {
         val jarFile = findJarFile(file) ?: return null
 
@@ -60,11 +54,6 @@ public object JarUserDataManager {
                 val state = collector.fromInt(savedData.value)
                 jarFile.putUserData(collector.key, state to savedData.timeStamp)
             }
-        }
-
-        if (VfsUtilCore.isUnder(jarFile, allJDKRoots)) {
-            jarFile.putUserData(collector.key, collector.sdk to jarFile.timeStamp)
-            return collector.sdk
         }
 
         scheduleJarProcessing(collector, jarFile)
@@ -116,8 +105,6 @@ public object JarUserDataManager {
         val init: State
         val stopState: State
         val notFoundState: State
-
-        val sdk: State
 
         fun count(file: VirtualFile): State
         fun fromInt(value: Int): State

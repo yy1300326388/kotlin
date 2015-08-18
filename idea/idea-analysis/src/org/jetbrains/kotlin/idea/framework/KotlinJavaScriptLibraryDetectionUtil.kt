@@ -72,8 +72,6 @@ public object KotlinJavaScriptLibraryDetectionUtil {
         override val stopState = JsMetadataState.HAS_JS_METADATA
         override val notFoundState = JsMetadataState.NO_JS_METADATA
 
-        override val sdk = JsMetadataState.NO_JS_METADATA
-
         override fun count(file: VirtualFile): JsMetadataState {
             return if (KotlinJavaScriptLibraryDetectionUtil.isJsFileWithMetadata(file)) {
                 JsMetadataState.HAS_JS_METADATA

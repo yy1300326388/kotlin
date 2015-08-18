@@ -94,8 +94,6 @@ public object HasCompiledKotlinInJar : JarUserDataManager.JarUserDataCollector<H
     override val stopState = JarKotlinState.HAS_KOTLIN
     override val notFoundState = JarKotlinState.NO_KOTLIN
 
-    override val sdk = JarKotlinState.NO_KOTLIN
-
     override fun count(file: VirtualFile) = if (isKotlinJvmCompiledFile(file)) JarKotlinState.HAS_KOTLIN else JarKotlinState.NO_KOTLIN
 
     override fun fromInt(value: Int): JarKotlinState = JarKotlinState.values()[value]

@@ -18,29 +18,19 @@ package org.jetbrains.kotlin.idea.caches
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.containers.HashSet
-import com.intellij.util.indexing.*
-import com.intellij.util.io.ExternalIntegerKeyDescriptor
-import org.jetbrains.kotlin.idea.quickfix.QuickFixes
 import org.jetbrains.kotlin.idea.util.application.runReadAction
-import java.util.ArrayList
 
 public object JarUserDataManager {
-    private val collectors: MutableList<JarUserDataCollector<*>> = ArrayList()
-
     val fileAttributeService: FileAttributeService? = ServiceManager.getService(javaClass<FileAttributeService>())
 
     public fun register(collector: JarUserDataCollector<*>) {
-        collectors.add(collector)
         fileAttributeService?.register(collector.key.toString(), collector.version)
     }
 
-    public fun <T: Any> getValue(collector: JarUserDataCollector<T>, file: VirtualFile): T? {
+    public fun <T: Enum<T>> getValue(collector: JarUserDataCollector<T>, file: VirtualFile): T? {
         val jarFile = findJarFile(file) ?: return null
 
         val stored = jarFile.getUserData(collector.key)
@@ -49,10 +39,9 @@ public object JarUserDataManager {
         }
 
         if (stored == null && fileAttributeService != null) {
-            val savedData = fileAttributeService.readAttribute(collector.key.toString(), jarFile)
+            val savedData = fileAttributeService.readAttribute(collector.key.toString(), jarFile, collector.stateClass)
             if (savedData != null && savedData.value != null) {
-                val state = collector.fromInt(savedData.value)
-                jarFile.putUserData(collector.key, state to savedData.timeStamp)
+                jarFile.putUserData(collector.key, savedData.value to savedData.timeStamp)
             }
         }
 
@@ -70,7 +59,7 @@ public object JarUserDataManager {
         return jarFile
     }
 
-    private fun <T: Any> scheduleJarProcessing(collector: JarUserDataCollector<T>, jarFile: VirtualFile) {
+    private fun <T: Enum<T>> scheduleJarProcessing(collector: JarUserDataCollector<T>, jarFile: VirtualFile) {
         if (jarFile.getUserData(collector.key) != null) return
 
         jarFile.putUserData(collector.key, collector.init to jarFile.timeStamp)
@@ -92,14 +81,16 @@ public object JarUserDataManager {
                     }
                 }
 
-                val savedData = fileAttributeService?.writeAttribute(collector.key.toString(), jarFile, collector.toInt(result))
+                val savedData = fileAttributeService?.writeAttribute(collector.key.toString(), jarFile, result)
                 jarFile.putUserData(collector.key, result to (savedData?.timeStamp ?: jarFile.timeStamp))
             }
         }
     }
 
-    interface JarUserDataCollector<State> {
+    interface JarUserDataCollector<State: Enum<State>> {
         val key: Key<Pair<State, Long>>
+        val stateClass: Class<State>
+
         val version: Int get() = 1
 
         val init: State
@@ -107,7 +98,5 @@ public object JarUserDataManager {
         val notFoundState: State
 
         fun count(file: VirtualFile): State
-        fun fromInt(value: Int): State
-        fun toInt(state: State): Int
     }
 }

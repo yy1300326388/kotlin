@@ -89,13 +89,11 @@ public object HasCompiledKotlinInJar : JarUserDataManager.JarUserDataCollector<H
     }
 
     override val key = Key.create<Pair<HasCompiledKotlinInJar.JarKotlinState, Long>>(HasCompiledKotlinInJar::class.simpleName!!)
+    override val stateClass = javaClass<JarKotlinState>()
 
     override val init = JarKotlinState.COUNTING
     override val stopState = JarKotlinState.HAS_KOTLIN
     override val notFoundState = JarKotlinState.NO_KOTLIN
 
     override fun count(file: VirtualFile) = if (isKotlinJvmCompiledFile(file)) JarKotlinState.HAS_KOTLIN else JarKotlinState.NO_KOTLIN
-
-    override fun fromInt(value: Int): JarKotlinState = JarKotlinState.values()[value]
-    override fun toInt(state: JarKotlinState) = state.ordinal()
 }

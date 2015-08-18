@@ -18,43 +18,50 @@ package org.jetbrains.kotlin.idea.caches
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.FileAttribute
+import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.DataInputOutputUtil
 
 public class FileAttributeServiceImpl : FileAttributeService {
-    val attributes: MutableMap<String, FileAttribute> = hashMapOf()
+    val attributes: MutableMap<String, FileAttribute> = ContainerUtil.newConcurrentMap()
 
     override fun register(id: String, version: Int) {
         attributes[id] = FileAttribute(id, version, true)
     }
 
-    override fun writeAttribute(id: String, file: VirtualFile, value: Int?): SavedData {
+    override fun <T: Enum<T>> writeAttribute(id: String, file: VirtualFile, value: T): CachedAttributeData<T> {
         val attribute = attributes[id] ?: throw IllegalArgumentException("Attribute with $id wasn't registered")
 
-        val data = SavedData(value, timeStamp = file.timeStamp)
+        val data = CachedAttributeData(value, timeStamp = file.timeStamp)
 
         attribute.writeAttribute(file).use {
             DataInputOutputUtil.writeTIME(it, data.timeStamp)
-            DataInputOutputUtil.writeINT(it, data.value ?: -1)
+            DataInputOutputUtil.writeINT(it, data.value?.ordinal() ?: -1)
         }
 
         return data
     }
 
-    override fun readAttribute(id: String, file: VirtualFile): SavedData? {
+    override fun <T: Enum<T>> readAttribute(id: String, file: VirtualFile, klass: Class<T>): CachedAttributeData<T>? {
         val attribute = attributes[id] ?: throw IllegalArgumentException("Attribute with $id wasn't registered")
 
         val stream = attribute.readAttribute(file) ?: return null
         return stream.use {
             val timeStamp = DataInputOutputUtil.readTIME(it)
-            val value = DataInputOutputUtil.readINT(it)
+            val intValue = DataInputOutputUtil.readINT(it)
 
             if (file.timeStamp == timeStamp) {
-                SavedData(value, timeStamp)
+                CachedAttributeData(deserializeEnumValue(intValue, klass), timeStamp)
             }
             else {
                 null
             }
         }
+    }
+
+    private fun <T: Enum<T>> deserializeEnumValue(i: Int, klass: Class<T>): T {
+        val method = klass.getMethod("values")
+        val values = method.invoke(null) as Array<T>
+        return values[i]
     }
 }
 

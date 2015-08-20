@@ -428,6 +428,8 @@
     <usageTypeProvider implementation="org.jetbrains.kotlin.idea.findUsages.JetUsageTypeProvider"/>
     <useScopeEnlarger implementation="org.jetbrains.kotlin.idea.findUsages.BuiltInsUseScopeEnlarger"/>
 
+    <smartPointer.anchorProvider implementation="org.jetbrains.kotlin.idea.KotlinSmartPointerAnchorProvider"/>
+
     <refactoring.safeDeleteProcessor
         id="kotlinProcessor"
         implementation="org.jetbrains.kotlin.idea.refactoring.safeDelete.KotlinSafeDeleteProcessor"

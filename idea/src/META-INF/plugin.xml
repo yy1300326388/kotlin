@@ -441,6 +441,8 @@
     <extendWordSelectionHandler implementation="org.jetbrains.kotlin.idea.editor.wordSelection.KotlinStringLiteralSelectioner"/>
     <basicWordSelectionFilter implementation="org.jetbrains.kotlin.idea.editor.wordSelection.KotlinWordSelectionFilter"/>
 
+    <editorFileSwapper implementation="org.jetbrains.kotlin.idea.editor.KotlinEditorFileSwapper"/>
+
     <typedHandler implementation="org.jetbrains.kotlin.idea.editor.KotlinTypedHandler"/>
     <typedHandler implementation="org.jetbrains.kotlin.idea.kdoc.KDocTypedHandler"/>
     <enterHandlerDelegate implementation="org.jetbrains.kotlin.idea.editor.KotlinEnterHandler"

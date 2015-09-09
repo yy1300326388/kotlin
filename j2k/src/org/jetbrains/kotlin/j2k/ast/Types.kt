@@ -101,7 +101,7 @@ class ClassType(val referenceElement: ReferenceElement, nullability: Nullability
     override fun toNullableType(): Type = ClassType(referenceElement, Nullability.Nullable, settings).assignPrototypesFrom(this)
 }
 
-class ArrayType(val elementType: Type, nullability: Nullability, settings: ConverterSettings)
+class ArrayType(val elementType: Type, val nullability: Nullability, settings: ConverterSettings)
   : MayBeNullableType(nullability, settings) {
 
     override fun generateCode(builder: CodeBuilder) {
@@ -115,6 +115,8 @@ class ArrayType(val elementType: Type, nullability: Nullability, settings: Conve
 
     override fun toNotNullType(): Type = ArrayType(elementType, Nullability.NotNull, settings).assignPrototypesFrom(this)
     override fun toNullableType(): Type = ArrayType(elementType, Nullability.Nullable, settings).assignPrototypesFrom(this)
+
+    fun toNullableElementType(): Type = ArrayType(elementType.toNullableType(), nullability, settings).assignPrototypesFrom(this)
 }
 
 class InProjectionType(val bound: Type) : NotNullType() {

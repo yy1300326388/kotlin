@@ -355,8 +355,10 @@ class DefaultExpressionConverter : JavaElementVisitor(), ExpressionConverter {
             result = codeConverter.convertExpression(expression.getArrayInitializer())
         }
         else if (expression.getArrayDimensions().size() > 0 && expression.getType() is PsiArrayType) {
+            val arrayType = typeConverter.convertType(expression.getType(), Nullability.NotNull) as ArrayType
+
             result = ArrayWithoutInitializationExpression(
-                    typeConverter.convertType(expression.type, Nullability.NotNull) as ArrayType,
+                    arrayType,
                     codeConverter.convertExpressions(expression.getArrayDimensions()))
         }
         else {

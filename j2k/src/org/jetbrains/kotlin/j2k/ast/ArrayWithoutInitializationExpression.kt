@@ -25,9 +25,11 @@ class ArrayWithoutInitializationExpression(val type: ArrayType, val expressions:
 
             is ArrayType ->
                 if (hasInit) {
+//                    val newArrayType = ArrayType(type.elementType.toNullableType(), Nullability.NotNull).assignPrototype(expression)
                     builder.append(type.toNotNullType())
                 }
                 else {
+                    assert(type.isNullable)
                     builder.append("arrayOfNulls<").append(type.elementType).append(">")
                 }
 

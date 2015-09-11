@@ -1,0 +1,9 @@
+LineBreakpoint created at multiLineVariableKt6458.kt:5
+!JDK_HOME!\bin\java -agentlib:jdwp=transport=dt_socket,address=!HOST_NAME!:!HOST_PORT!,suspend=y,server=n -Dfile.encoding=!FILE_ENCODING! -classpath !OUTPUT_PATH!;!KOTLIN_RUNTIME!;!CUSTOM_LIBRARY!;!RT_JAR! multiLineVariableKt6458.MultiLineVariableKt6458Package
+Connected to the target VM, address: '!HOST_NAME!:PORT_NAME!', transport: 'socket'
+multiLineVariableKt6458.kt:5
+multiLineVariableKt6458.kt:7
+multiLineVariableKt6458.kt:6
+Disconnected from the target VM, address: '!HOST_NAME!:PORT_NAME!', transport: 'socket'
+
+Process finished with exit code 0

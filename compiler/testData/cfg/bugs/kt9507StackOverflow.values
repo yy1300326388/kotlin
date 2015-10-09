@@ -1,0 +1,24 @@
+== f ==
+fun f() {
+        assertEquals(""""""<!DOCTYPE html>
+        <html>
+        <p>p2</p>)
+    }
+---------------------
+                                                           <v5>: *                           NEW: magic[VALUE_CONSUMER](> <html> <p>|<v4>) -> <v5>
+                                                           <v9>: *                           NEW: magic[VALUE_CONSUMER](</p|<v8>) -> <v9>
+assertEquals                                               !<v13>: *
+""""""                                                     <v0>: {<: Comparable<String>}     NEW: r("""""") -> <v0>
+DOCTYPE                                                    <v1>: *                           NEW: magic[UNRESOLVED_CALL](DOCTYPE) -> <v1>
+!DOCTYPE                                                   <v2>: *                           NEW: call(!DOCTYPE, <ERROR FUNCTION>|<v1>) -> <v2>
+> <html>                                                   <v3>: *                           NEW: magic[UNRESOLVED_CALL](> <html>) -> <v3>
+> <html> <p>                                               <v4>: *                           NEW: call(> <html> <p>, <ERROR FUNCTION>|<v3>) -> <v4>
+!DOCTYPE html> <html> <p>                                  <v6>: *                           NEW: call(!DOCTYPE html> <html> <p>, <ERROR FUNCTION>|<v2>) -> <v6>
+p                                                          <v7>: *                           NEW: magic[UNRESOLVED_CALL](p) -> <v7>
+</p                                                        <v8>: *                           NEW: magic[UNRESOLVED_CALL](</p|<v7>) -> <v8>
+!DOCTYPE html> <html> <p>p2</p                             <v10>: String                     NEW: call(!DOCTYPE html> <html> <p>p2</p, <ERROR FUNCTION>|<v6>) -> <v10>
+""""""<!DOCTYPE html> <html> <p>p2</p                      <v11>: {<: Comparable<Boolean>}   NEW: call(""""""<!DOCTYPE html> <html> <p>p2</p, compareTo|<v0>, <v10>) -> <v11>
+""""""<!DOCTYPE html> <html> <p>p2</p>                     <v12>: *                          NEW: call(""""""<!DOCTYPE html> <html> <p>p2</p>, compareTo|<v11>) -> <v12>
+assertEquals(""""""<!DOCTYPE html> <html> <p>p2</p>)       <v14>: *                          NEW: magic[UNRESOLVED_CALL](assertEquals(""""""<!DOCTYPE html> <html> <p>p2</p>)|<v12>, !<v13>) -> <v14>
+{ assertEquals(""""""<!DOCTYPE html> <html> <p>p2</p>) }   <v14>: *                          COPY
+=====================

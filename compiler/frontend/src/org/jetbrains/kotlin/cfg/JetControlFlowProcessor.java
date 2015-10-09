@@ -1472,6 +1472,9 @@ public class JetControlFlowProcessor {
 
         private boolean generateCall(@Nullable JetElement callElement) {
             if (callElement == null) return false;
+            if (callElement instanceof JetCallElement) {
+                return checkAndGenerateCall(getResolvedCall(((JetCallElement) callElement).getCalleeExpression(), trace.getBindingContext()));
+            }
             return checkAndGenerateCall(getResolvedCall(callElement, trace.getBindingContext()));
         }
 

@@ -1,0 +1,41 @@
+== f ==
+fun f() {
+        assertEquals(""""""<!DOCTYPE html>
+        <html>
+        <p>p2</p>)
+    }
+---------------------
+L0:
+  1 <START>
+  2 mark({ assertEquals(""""""<!DOCTYPE html> <html> <p>p2</p>) })
+    mark("""""")
+    r("""""") -> <v0>
+    magic[UNRESOLVED_CALL](DOCTYPE) -> <v1>
+    mark(!DOCTYPE)
+    call(!DOCTYPE, <ERROR FUNCTION>|<v1>) -> <v2>
+    mark(> <html>)
+    magic[UNRESOLVED_CALL](> <html>) -> <v3>
+    mark(> <html> <p>)
+    call(> <html> <p>, <ERROR FUNCTION>|<v3>) -> <v4>
+    magic[VALUE_CONSUMER](> <html> <p>|<v4>) -> <v5>
+    mark(!DOCTYPE html> <html> <p>)
+    call(!DOCTYPE html> <html> <p>, <ERROR FUNCTION>|<v2>) -> <v6>
+    magic[UNRESOLVED_CALL](p) -> <v7>
+    mark(</p)
+    magic[UNRESOLVED_CALL](</p|<v7>) -> <v8>
+    magic[VALUE_CONSUMER](</p|<v8>) -> <v9>
+    mark(!DOCTYPE html> <html> <p>p2</p)
+    call(!DOCTYPE html> <html> <p>p2</p, <ERROR FUNCTION>|<v6>) -> <v10>
+    mark(""""""<!DOCTYPE html> <html> <p>p2</p)
+    call(""""""<!DOCTYPE html> <html> <p>p2</p, compareTo|<v0>, <v10>) -> <v11>
+    mark(""""""<!DOCTYPE html> <html> <p>p2</p>)
+    call(""""""<!DOCTYPE html> <html> <p>p2</p>, compareTo|<v11>) -> <v12>
+    mark(assertEquals(""""""<!DOCTYPE html> <html> <p>p2</p>))
+    magic[UNRESOLVED_CALL](assertEquals(""""""<!DOCTYPE html> <html> <p>p2</p>)|<v12>, !<v13>) -> <v14>
+L1:
+  1 <END>                                                                                                  NEXT:[<SINK>]
+error:
+    <ERROR>                                                                                                PREV:[]
+sink:
+    <SINK>                                                                                                 PREV:[<ERROR>, <END>]
+=====================

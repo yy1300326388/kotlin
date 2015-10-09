@@ -150,6 +150,12 @@ public class ControlFlowTestGenerated extends AbstractControlFlowTest {
             String fileName = JetTestUtils.navigationMetadata("compiler/testData/cfg/bugs/kt7761.kt");
             doTest(fileName);
         }
+
+        @TestMetadata("kt9507StackOverflow.kt")
+        public void testKt9507StackOverflow() throws Exception {
+            String fileName = JetTestUtils.navigationMetadata("compiler/testData/cfg/bugs/kt9507StackOverflow.kt");
+            doTest(fileName);
+        }
     }
 
     @TestMetadata("compiler/testData/cfg/controlStructures")

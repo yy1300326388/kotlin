@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.JetExpression
 import org.jetbrains.kotlin.psi.JetFile
 import org.jetbrains.kotlin.psi.JetSimpleNameExpression
 
@@ -54,7 +55,7 @@ import org.jetbrains.kotlin.psi.JetSimpleNameExpression
 public class KotlinAddImportAction(
         private val project: Project,
         private val editor: Editor,
-        private val element: JetSimpleNameExpression,
+        private val element: JetExpression,
         candidates: Collection<DeclarationDescriptor>
 ) : QuestionAction {
 
@@ -156,9 +157,10 @@ public class KotlinAddImportAction(
             val descriptor = selectedVariant.descriptorToImport
             // for class or package we use ShortenReferences because we not necessary insert an import but may want to insert partly qualified name
             if (descriptor is ClassDescriptor || descriptor is PackageViewDescriptor) {
-                element.mainReference.bindToFqName(descriptor.importableFqName!!, JetSimpleNameReference.ShorteningMode.FORCED_SHORTENING)
-            }
-            else {
+                if (element is JetSimpleNameExpression) {
+                    element.mainReference.bindToFqName(descriptor.importableFqName!!, JetSimpleNameReference.ShorteningMode.FORCED_SHORTENING)
+                }
+            } else {
                 ImportInsertHelper.getInstance(project).importDescriptor(file, descriptor)
             }
         }

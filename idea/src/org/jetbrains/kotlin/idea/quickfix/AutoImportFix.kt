@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.idea.quickfix
 import com.intellij.codeInsight.daemon.impl.ShowAutoImportPass
 import com.intellij.codeInsight.hint.HintManager
 import com.intellij.codeInsight.intention.HighPriorityAction
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.editor.Editor
@@ -306,6 +307,18 @@ class MissingDelegateAccessorsAutoImportFix(element: JetExpression, diagnostics:
             return MissingDelegateAccessorsAutoImportFix(diagnostic.psiElement as JetExpression, listOf(diagnostic))
         }
 
+        override fun canFixSeveralSameProblems(): Boolean = true
+        override fun doCreateActions(sameTypeDiagnostics: List<Diagnostic>): List<IntentionAction> {
+            val first = sameTypeDiagnostics.first()
+            val element = first.psiElement
+
+            if (element !is JetExpression || sameTypeDiagnostics.any { it.factory != Errors.DELEGATE_SPECIAL_FUNCTION_MISSING }) {
+                return emptyList()
+            }
+
+            return listOf(MissingDelegateAccessorsAutoImportFix(element, sameTypeDiagnostics))
+        }
+
         private val ERRORS by lazy(LazyThreadSafetyMode.PUBLICATION) { QuickFixes.getInstance().getDiagnostics(this) }
     }
 }
@@ -330,6 +343,18 @@ class MissingComponentsAutoImportFix(element: JetExpression, diagnostics: Collec
         override fun createAction(diagnostic: Diagnostic): JetIntentionAction<JetExpression>? {
             assert(diagnostic.factory == Errors.COMPONENT_FUNCTION_MISSING)
             return MissingComponentsAutoImportFix(diagnostic.psiElement as JetExpression, listOf(diagnostic))
+        }
+
+        override fun canFixSeveralSameProblems(): Boolean = true
+        override fun doCreateActions(sameTypeDiagnostics: List<Diagnostic>): List<IntentionAction> {
+            val first = sameTypeDiagnostics.first()
+            val element = first.psiElement
+
+            if (element !is JetExpression || sameTypeDiagnostics.any { it.factory != Errors.COMPONENT_FUNCTION_MISSING }) {
+                return emptyList()
+            }
+
+            return listOf(MissingComponentsAutoImportFix(element, sameTypeDiagnostics))
         }
 
         private val ERRORS by lazy(LazyThreadSafetyMode.PUBLICATION) { QuickFixes.getInstance().getDiagnostics(this) }

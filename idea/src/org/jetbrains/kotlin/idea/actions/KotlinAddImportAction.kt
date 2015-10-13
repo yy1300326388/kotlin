@@ -27,6 +27,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.statistics.StatisticsManager
 import com.intellij.psi.util.ProximityLocation
 import com.intellij.psi.util.proximity.PsiProximityComparator
@@ -44,7 +45,7 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.JetExpression
+import org.jetbrains.kotlin.psi.JetElement
 import org.jetbrains.kotlin.psi.JetFile
 import org.jetbrains.kotlin.psi.JetSimpleNameExpression
 
@@ -55,8 +56,11 @@ import org.jetbrains.kotlin.psi.JetSimpleNameExpression
 public class KotlinAddImportAction(
         private val project: Project,
         private val editor: Editor,
-        private val element: JetExpression,
-        candidates: Collection<DeclarationDescriptor>
+        private val element: JetElement,
+
+        candidates: Collection<DeclarationDescriptor>,
+
+        private val all: Boolean = false
 ) : QuestionAction {
 
     private val file = element.getContainingJetFile()
@@ -76,10 +80,10 @@ public class KotlinAddImportAction(
                        ?: descriptors.sortedBy { if (it is ClassDescriptor) 0 else 1 }.first()
             }
 
-        val declarationToImport = DescriptorToSourceUtilsIde.getAnyDeclaration(project, descriptorToImport)
+        val declarationToImport: PsiElement? = DescriptorToSourceUtilsIde.getAnyDeclaration(project, descriptorToImport)
     }
 
-    private val variants = candidates
+    private val variants: List<Variant> = candidates
             .groupBy { it.importableFqName!! }
             .map { Variant(it.key, it.value) }
             .sortedBy { it.priority }
@@ -89,11 +93,17 @@ public class KotlinAddImportAction(
 
     override fun execute(): Boolean {
         PsiDocumentManager.getInstance(project).commitAllDocuments()
-        if (!element.isValid()) return false
+        if (!element.isValid) return false
 
-        // TODO: Validate resolution variants. See AddImportAction.execute()
+        if (all) {
+            variants.forEach {
+                addImport(it)
+            }
 
-        if (variants.size() == 1 || ApplicationManager.getApplication().isUnitTestMode()) {
+            return true
+        }
+
+        if (variants.size() == 1 || ApplicationManager.getApplication().isUnitTestMode) {
             addImport(variants.first())
         }
         else {
@@ -147,7 +157,7 @@ public class KotlinAddImportAction(
         PsiDocumentManager.getInstance(project).commitAllDocuments()
 
         project.executeWriteCommand(QuickFixBundle.message("add.import")) {
-            if (!element.isValid()) return@executeWriteCommand
+            if (!element.isValid) return@executeWriteCommand
 
             selectedVariant.declarationToImport?.let {
                 val location = ProximityLocation(file, ModuleUtilCore.findModuleForPsiElement(file))
@@ -155,7 +165,8 @@ public class KotlinAddImportAction(
             }
 
             val descriptor = selectedVariant.descriptorToImport
-            // for class or package we use ShortenReferences because we not necessary insert an import but may want to insert partly qualified name
+            // for class or package we use ShortenReferences because we not necessary insert an import but may want to
+            // insert partly qualified name
             if (descriptor is ClassDescriptor || descriptor is PackageViewDescriptor) {
                 if (element is JetSimpleNameExpression) {
                     element.mainReference.bindToFqName(descriptor.importableFqName!!, JetSimpleNameReference.ShorteningMode.FORCED_SHORTENING)

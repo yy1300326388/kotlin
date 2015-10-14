@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.psi.psiUtil.isImportDirectiveExpression
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.utils.CachedValueProperty
+import org.jetbrains.kotlin.utils.addToStdlib.singletonOrEmptyList
 import java.util.*
 
 /**
@@ -62,7 +63,7 @@ abstract class AutoImportFixBase public constructor(
 
     protected constructor(
             expression: JetExpression,
-            diagnostic: Diagnostic? = null) : this(expression, if (diagnostic == null) emptyList() else listOf(diagnostic))
+            diagnostic: Diagnostic? = null) : this(expression, diagnostic.singletonOrEmptyList())
 
     private val modificationCountOnCreate = PsiModificationTracker.SERVICE.getInstance(element.getProject()).getModificationCount()
 
@@ -114,7 +115,7 @@ abstract class AutoImportFixBase public constructor(
 
         val file = element.getContainingFile() as? JetFile ?: return emptyList()
 
-        val callTypeAndReceiver = getTypeAndReceiver()
+        val callTypeAndReceiver = getCallTypeAndReceiver()
 
         if (callTypeAndReceiver is CallTypeAndReceiver.UNKNOWN) return emptyList()
 
@@ -127,7 +128,7 @@ abstract class AutoImportFixBase public constructor(
     }
 
     protected abstract fun getSupportedErrors(): Collection<DiagnosticFactory<*>>
-    protected abstract fun getTypeAndReceiver(): CallTypeAndReceiver<*, *>
+    protected abstract fun getCallTypeAndReceiver(): CallTypeAndReceiver<*, *>
     protected abstract fun getImportNames(diagnostics: Collection<Diagnostic>, element: JetExpression): Collection<String>
 
     private object Helper {
@@ -195,7 +196,8 @@ abstract class AutoImportFixBase public constructor(
 }
 
 class AutoImportFix(expression: JetSimpleNameExpression, diagnostic: Diagnostic? = null) : AutoImportFixBase(expression, diagnostic) {
-    override fun getTypeAndReceiver(): CallTypeAndReceiver<*, *> = CallTypeAndReceiver.detect(element as JetSimpleNameExpression)
+    override fun getCallTypeAndReceiver() = CallTypeAndReceiver.detect(element as JetSimpleNameExpression)
+
     override fun getImportNames(diagnostics: Collection<Diagnostic>, element: JetExpression): Collection<String> {
         element as JetSimpleNameExpression
 
@@ -227,13 +229,7 @@ class AutoImportFix(expression: JetSimpleNameExpression, diagnostic: Diagnostic?
 
     companion object : JetSingleIntentionActionFactory() {
         override fun createAction(diagnostic: Diagnostic): JetIntentionAction<JetExpression>? {
-            // There could be different psi elements (i.e. JetArrayAccessExpression), but we can fix only JetSimpleNameExpression case
-            val psiElement = diagnostic.getPsiElement()
-            if (psiElement is JetSimpleNameExpression) {
-                return AutoImportFix(psiElement, diagnostic)
-            }
-
-            return null
+            return (diagnostic.getPsiElement() as? JetSimpleNameExpression)?.let { AutoImportFix(it, diagnostic) }
         }
 
         override fun isApplicableForCodeFragment() = true
@@ -245,7 +241,7 @@ class AutoImportFix(expression: JetSimpleNameExpression, diagnostic: Diagnostic?
 class MissingInvokeAutoImportFix(expression: JetExpression, diagnostic: Diagnostic) : AutoImportFixBase(expression, diagnostic) {
     override fun getImportNames(diagnostics: Collection<Diagnostic>, element: JetExpression) = setOf("invoke")
 
-    override fun getTypeAndReceiver() = CallTypeAndReceiver.OPERATOR(element as JetExpression)
+    override fun getCallTypeAndReceiver() = CallTypeAndReceiver.OPERATOR(element)
 
     override fun getSupportedErrors() = ERRORS
 
@@ -269,7 +265,7 @@ class MissingArrayAccessorAutoImportFix(element: JetArrayAccessExpression, diagn
         return setOf(s)
     }
 
-    override fun getTypeAndReceiver() =
+    override fun getCallTypeAndReceiver() =
             CallTypeAndReceiver.OPERATOR((element as JetArrayAccessExpression).arrayExpression!!)
 
     override fun getSupportedErrors() = ERRORS
@@ -297,7 +293,7 @@ class MissingDelegateAccessorsAutoImportFix(element: JetExpression, diagnostics:
         return diagnostics.mapTo(LinkedHashSet()) { if (it.toString().contains("setValue")) "setValue" else "getValue" }
     }
 
-    override fun getTypeAndReceiver() = CallTypeAndReceiver.DELEGATE(element as JetExpression)
+    override fun getCallTypeAndReceiver() = CallTypeAndReceiver.DELEGATE(element as JetExpression)
 
     override fun getSupportedErrors() = ERRORS
 
@@ -329,13 +325,10 @@ class MissingComponentsAutoImportFix(element: JetExpression, diagnostics: Collec
     }
 
     override fun getImportNames(diagnostics: Collection<Diagnostic>, element: JetExpression): List<String> {
-        return diagnostics.map {
-            @Suppress("UNCHECKED_CAST")
-            (it as DiagnosticWithParameters2<*, Name, *>).a.identifier
-        }
+        return diagnostics.map { Errors.COMPONENT_FUNCTION_MISSING.cast(it).a.identifier }
     }
 
-    override fun getTypeAndReceiver() = CallTypeAndReceiver.OPERATOR(element as JetExpression)
+    override fun getCallTypeAndReceiver() = CallTypeAndReceiver.OPERATOR(element as JetExpression)
 
     override fun getSupportedErrors() = ERRORS
 

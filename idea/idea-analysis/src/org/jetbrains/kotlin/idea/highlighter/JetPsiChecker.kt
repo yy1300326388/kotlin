@@ -82,7 +82,7 @@ public open class JetPsiChecker : Annotator, HighlightRangeExtension {
 
     private inner class ElementAnnotator(private val element: PsiElement, private val holder: AnnotationHolder) {
         fun registerDiagnosticsAnnotations(diagnostics: Collection<Diagnostic>) {
-            diagnostics.groupBy { diagnostic -> diagnostic.factory }.forEach { group -> registerDiagnosticAnnotations(group.getValue()) }
+            diagnostics.groupBy { it.factory }.forEach { group -> registerDiagnosticAnnotations(group.getValue()) }
         }
 
         private fun registerDiagnosticAnnotations(diagnostics: List<Diagnostic>) {
@@ -224,7 +224,7 @@ public open class JetPsiChecker : Annotator, HighlightRangeExtension {
             return message
         }
 
-        class AnnotationPresentationInfo(
+        private class AnnotationPresentationInfo(
                 diagnostic: Diagnostic,
                 val severity: Severity = diagnostic.severity,
                 val ranges: List<TextRange> = diagnostic.textRanges,

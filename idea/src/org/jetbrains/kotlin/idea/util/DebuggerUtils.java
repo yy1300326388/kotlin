@@ -23,11 +23,15 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.asJava.JavaElementFinder;
+import org.jetbrains.kotlin.asJava.KotlinLightClassForFacade;
 import org.jetbrains.kotlin.descriptors.CallableDescriptor;
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor;
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor;
@@ -65,7 +69,23 @@ public class DebuggerUtils {
         if (!KOTLIN_EXTENSIONS.contains(extension)) return null;
         if (DumbService.getInstance(project).isDumb()) return null;
 
-        Collection<KtFile> filesInPackage = findFilesWithExactPackage(className.getPackageFqName(), searchScope, project);
+        PsiClass classByName = JavaElementFinder.getInstance(project).findClass(
+                className.getFqNameForClassNameWithoutDollars().asString(), searchScope);
+        if (classByName != null) {
+            if (classByName instanceof KotlinLightClassForFacade) {
+                Collection<KtFile> files = ((KotlinLightClassForFacade) classByName).getFiles();
+                if (files.size() == 1) return files.iterator().next();
+            }
+            else {
+                PsiFile containingFile = classByName.getNavigationElement().getContainingFile();
+                if (containingFile instanceof KtFile) {
+                    return (KtFile) containingFile;
+                }
+            }
+        }
+
+        // TODO searchScope doesn't include source files for library files
+        Collection<KtFile> filesInPackage = findFilesWithExactPackage(className.getPackageFqName(), GlobalSearchScope.allScope(project), project);
         Collection<KtFile> filesWithExactName = Collections2.filter(filesInPackage, new Predicate<KtFile>() {
             @Override
             public boolean apply(@Nullable KtFile file) {

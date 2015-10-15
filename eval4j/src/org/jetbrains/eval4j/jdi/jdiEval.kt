@@ -318,7 +318,13 @@ public class JDIEval(
     private fun mapArguments(arguments: List<Value>, expecetedTypes: List<jdi_Type>): List<jdi_Value?> {
         return arguments.zip(expecetedTypes).map {
             val (arg, expectedType) = it
-            arg.asJdiValue(vm, expectedType.asType())
+            val type = expectedType.asType()
+            if (type.sort == Type.ARRAY && type.descriptor == "Ljava/lang/Object;") {
+                arg.asJdiValue(vm, arg.asmType)
+            }
+            else {
+                arg.asJdiValue(vm, type)
+            }
         }
     }
 

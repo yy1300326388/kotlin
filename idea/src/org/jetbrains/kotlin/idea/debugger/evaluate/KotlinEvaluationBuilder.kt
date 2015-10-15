@@ -187,6 +187,8 @@ class KotlinEvaluator(val codeFragment: KtCodeFragment, val sourcePosition: Sour
             val additionalFiles = if (outputFiles.size < 2) emptyList()
                                   else outputFiles.subList(1, outputFiles.size).map { getClassName(it.relativePath) to it.asByteArray() }
 
+            println(outputFiles.first().asText())
+
             return CompiledDataDescriptor(
                     outputFiles.first().asByteArray(),
                     additionalFiles,
@@ -351,7 +353,7 @@ class KotlinEvaluator(val codeFragment: KtCodeFragment, val sourcePosition: Sour
 
                 val state = GenerationState(
                         jetFile.project,
-                        ClassBuilderFactories.BINARIES,
+                        ClassBuilderFactories.TEST,
                         moduleDescriptor,
                         bindingContext,
                         files,

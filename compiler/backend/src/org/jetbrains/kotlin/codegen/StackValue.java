@@ -372,7 +372,9 @@ public abstract class StackValue {
                 wrapJavaClassesIntoKClasses(v);
             }
             else {
-                v.checkcast(toType);
+                //if (toType.getInternalName() != "Ljava/lang/Object;") {
+                    v.checkcast(toType);
+                //}
             }
         }
         else if (toType.getSort() == Type.OBJECT) {

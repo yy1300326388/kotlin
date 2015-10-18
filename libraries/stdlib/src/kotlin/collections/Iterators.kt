@@ -5,6 +5,9 @@ package kotlin
 
 import java.util.Enumeration
 
+
+public fun <T> Iterable<T>.asIterable(): Iterable<T> = this
+
 /**
  * Creates an [Iterator] for an [Enumeration], allowing to use it in `for` loops.
  */

@@ -47,7 +47,7 @@ public class ModuleMapping private constructor(val packageFqName2Parts: Map<Stri
                         BinaryVersion.create(0, inputStream.readInt(), 0)
                     }
                     else {
-                        BinaryVersion.create((0..size - 1).map { inputStream.readInt() }.toIntArray())
+                        BinaryVersion.create((0..size - 1).map { inputStream.readInt() }.toList().toIntArray())
                     }
 
             if (AbiVersionUtil.isAbiVersionCompatible(abiVersion)) {

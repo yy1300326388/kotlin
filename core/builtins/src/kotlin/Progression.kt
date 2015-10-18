@@ -17,13 +17,26 @@
 package kotlin
 
 /**
+ * A sequence that returns values through its iterator. The values are evaluated lazily, and the sequence
+ * is potentially infinite.
+ *
+ * @param T the type of elements in the sequence.
+ */
+public interface Sequence<out T> {
+    /**
+     * Returns an iterator that returns the values from the sequence.
+     */
+    public operator fun iterator(): Iterator<T>
+}
+
+/**
  * Represents a sequence of numbers or characters with a given start value, end value and step.
  * This class is intended to be used in 'for' loops, and the JVM backend suggests efficient
  * bytecode generation for it. Progressions with a step of -1 can be created through the
  * `downTo` method on classes representing primitive types.
  */
 @Deprecated("This progression has unclear inclusiveness of end value. Use InclusiveProgression instead.", ReplaceWith("InclusiveProgression<N>"))
-public interface Progression<out N : Any> : Iterable<N> {
+public interface Progression<out N : Any> : Sequence<N> {
     /**
      * The start value of the progression.
      */

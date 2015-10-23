@@ -27,12 +27,18 @@ import kotlin.reflect.KClass
  */
 @Intrinsic("kotlin.KClass.java.property")
 public val <T : Any> KClass<T>.java: Class<T>
-    @JvmName("getJavaClass")
+    @JvmName("toJavaClass")
     get() = (this as ClassBasedDeclarationContainer).jClass as Class<T>
+
+@Deprecated("Use 'toJavaClass' method.'", level = DeprecationLevel.HIDDEN)
+public fun <T : Any> KClass<T>.getJava(): Class<T> = java
 
 /**
  * Returns a [KClass] instance corresponding to the given Java [Class] instance.
  */
 public val <T : Any> Class<T>.kotlin: KClass<T>
-    @JvmName("getKoltinClass")
+    @JvmName("toKotlinClass")
     get() = Reflection.createKotlinClass(this) as KClass<T>
+
+@Deprecated("Use 'toKotlinClass' method.'", level = DeprecationLevel.HIDDEN)
+public fun <T : Any> Class<T>.getKotlin(): KClass<T> = kotlin

@@ -32,9 +32,11 @@ import java.util.*;
 public class MemoryBasedClassLoader extends ClassLoader {
     private final ClassCondition classesToLoadByParent;
     private final ClassLoader parent;
-    private final Map<String, Object> preloadedResources;
     private final ClassHandler handler;
     private final ClassLoader fallbackResourceLoader;
+
+    private Map<String, Object> preloadedResources;
+    private int previousSize;
 
     public MemoryBasedClassLoader(
             ClassCondition classesToLoadByParent,
@@ -49,6 +51,7 @@ public class MemoryBasedClassLoader extends ClassLoader {
         this.preloadedResources = preloadedResources;
         this.handler = handler;
         this.fallbackResourceLoader = fallbackResourceLoader;
+        this.previousSize = preloadedResources.size();
     }
 
     @Override
@@ -88,8 +91,12 @@ public class MemoryBasedClassLoader extends ClassLoader {
         Object resources = preloadedResources.get(internalName);
         if (resources == null) return null;
 
-        // Clear the resource, we won't need it anymore
+        // Clear the resource, we won't need it anymore. Rescale the map so that it won't take much space
         preloadedResources.remove(internalName);
+        if (preloadedResources.size() > 10 && preloadedResources.size() < previousSize / 2) {
+            preloadedResources = new HashMap<String, Object>(preloadedResources);
+            previousSize = preloadedResources.size();
+        }
 
         ResourceData resourceData = resources instanceof ResourceData
                                     ? ((ResourceData) resources)

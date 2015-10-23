@@ -22,21 +22,25 @@ package kotlin
 /**
  * Returns `true` if this character (Unicode code point) is defined in Unicode.
  */
+@kotlin.jvm.JvmName("~isDefined")
 public fun Char.isDefined(): Boolean = Character.isDefined(this)
 
 /**
  * Returns `true` if this character is a letter.
  */
+@kotlin.jvm.JvmName("~isLetter")
 public fun Char.isLetter(): Boolean = Character.isLetter(this)
 
 /**
  * Returns `true` if this character is a letter or digit.
  */
+@kotlin.jvm.JvmName("~isLetterOrDigit")
 public fun Char.isLetterOrDigit(): Boolean = Character.isLetterOrDigit(this)
 
 /**
  * Returns `true` if this character (Unicode code point) is a digit.
  */
+@kotlin.jvm.JvmName("~isDigit")
 public fun Char.isDigit(): Boolean = Character.isDigit(this)
 
 
@@ -44,21 +48,25 @@ public fun Char.isDigit(): Boolean = Character.isDigit(this)
  * Returns `true` if this character (Unicode code point) should be regarded as an ignorable
  * character in a Java identifier or a Unicode identifier.
  */
+@kotlin.jvm.JvmName("~isIdentifierIgnorable")
 public fun Char.isIdentifierIgnorable(): Boolean = Character.isIdentifierIgnorable(this)
 
 /**
  * Returns `true` if this character is an ISO control character.
  */
+@kotlin.jvm.JvmName("~isISOControl")
 public fun Char.isISOControl(): Boolean = Character.isISOControl(this)
 
 /**
  * Returns `true` if this  character (Unicode code point) may be part of a Java identifier as other than the first character.
  */
+@kotlin.jvm.JvmName("~isJavaIdentifierPart")
 public fun Char.isJavaIdentifierPart(): Boolean = Character.isJavaIdentifierPart(this)
 
 /**
  * Returns `true` if this character is permissible as the first character in a Java identifier.
  */
+@kotlin.jvm.JvmName("~isJavaIdentifierStart")
 public fun Char.isJavaIdentifierStart(): Boolean = Character.isJavaIdentifierStart(this)
 
 /**
@@ -70,26 +78,31 @@ public fun Char.isWhitespace(): Boolean = Character.isWhitespace(this) || Charac
 /**
  * Returns `true` if this character is upper case.
  */
+@kotlin.jvm.JvmName("~isUpperCase")
 public fun Char.isUpperCase(): Boolean = Character.isUpperCase(this)
 
 /**
  * Returns `true` if this character is lower case.
  */
+@kotlin.jvm.JvmName("~isLowerCase")
 public fun Char.isLowerCase(): Boolean = Character.isLowerCase(this)
 
 /**
  * Converts this character to uppercase.
  */
+@kotlin.jvm.JvmName("~toUpperCase")
 public fun Char.toUpperCase(): Char = Character.toUpperCase(this)
 
 /**
  * Converts this character to lowercase.
  */
+@kotlin.jvm.JvmName("~toLowerCase")
 public fun Char.toLowerCase(): Char = Character.toLowerCase(this)
 
 /**
  * Returns `true` if this character is a titlecase character.
  */
+@kotlin.jvm.JvmName("~isTitleCase")
 public fun Char.isTitleCase(): Boolean = Character.isTitleCase(this)
 
 /**
@@ -97,6 +110,7 @@ public fun Char.isTitleCase(): Boolean = Character.isTitleCase(this)
  *
  * @see Character.toTitleCase
  */
+@kotlin.jvm.JvmName("~toTitleCase")
 public fun Char.toTitleCase(): Char = Character.toTitleCase(this)
 
 /**

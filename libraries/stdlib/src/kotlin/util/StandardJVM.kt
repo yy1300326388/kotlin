@@ -9,6 +9,7 @@ import java.io.PrintWriter
 /**
  * Allows a stack trace to be printed from Kotlin's [Throwable].
  */
+@JvmName("~printStackTrace")
 public fun Throwable.printStackTrace(writer: PrintWriter): Unit {
     val jlt = this as java.lang.Throwable
     jlt.printStackTrace(writer)
@@ -17,6 +18,7 @@ public fun Throwable.printStackTrace(writer: PrintWriter): Unit {
 /**
  * Allows a stack trace to be printed from Kotlin's [Throwable].
  */
+@JvmName("~printStackTrace")
 public fun Throwable.printStackTrace(stream: PrintStream): Unit {
     val jlt = this as java.lang.Throwable
     jlt.printStackTrace(stream)
@@ -34,4 +36,5 @@ public inline fun Throwable.getStackTrace(): Array<StackTraceElement> = stackTra
  * pertaining to this throwable.
  */
 public val Throwable.stackTrace: Array<StackTraceElement>
+    @JvmName("~getStackTrace")
     get() = (this as java.lang.Throwable).stackTrace!!

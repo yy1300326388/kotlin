@@ -74,6 +74,7 @@ public fun lazy<T>(lock: Any?, initializer: () -> T): Lazy<T> = SynchronizedLazy
  * This extension allows to use instances of Lazy for property delegation:
  * `val property: String by lazy { initializer }`
  */
+@kotlin.jvm.JvmName("~getValue")
 public operator fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T = value
 
 /**

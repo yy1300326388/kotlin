@@ -6,32 +6,38 @@ package kotlin
  * Returns `true` if the specified number is a
  * Not-a-Number (NaN) value, `false` otherwise.
  */
+@kotlin.jvm.JvmName("~isNaN")
 public fun Double.isNaN(): Boolean = this != this
 
 /**
  * Returns `true` if the specified number is a
  * Not-a-Number (NaN) value, `false` otherwise.
  */
+@kotlin.jvm.JvmName("~isNaN")
 public fun Float.isNaN(): Boolean = this != this
 
 /**
  * Returns `true` if this value is infinitely large in magnitude.
  */
+@kotlin.jvm.JvmName("~isInfinite")
 public fun Double.isInfinite(): Boolean = this == Double.POSITIVE_INFINITY || this == Double.NEGATIVE_INFINITY
 
 /**
  * Returns `true` if this value is infinitely large in magnitude.
  */
+@kotlin.jvm.JvmName("~isInfinite")
 public fun Float.isInfinite(): Boolean = this == Float.POSITIVE_INFINITY || this == Float.NEGATIVE_INFINITY
 
 /**
  * Returns `true` if the argument is a finite floating-point value; returns `false` otherwise (for `NaN` and infinity arguments).
  */
+@kotlin.jvm.JvmName("~isFinite")
 public fun Double.isFinite(): Boolean = !isInfinite() && !isNaN()
 
 /**
  * Returns `true` if the argument is a finite floating-point value; returns `false` otherwise (for `NaN` and infinity arguments).
  */
+@kotlin.jvm.JvmName("~isFinite")
 public fun Float.isFinite(): Boolean = !isInfinite() && !isNaN()
 
 

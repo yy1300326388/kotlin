@@ -10,5 +10,5 @@ fun foo() {
 
 // 2 LDC LKlass;.class
 // 1 GETSTATIC java/lang/Integer.TYPE : Ljava/lang/Class;
-// 1 INVOKESTATIC kotlin/jvm.*\.getJava
+// 1 INVOKESTATIC kotlin/jvm/ClassMapping\.toJavaClass
 // 1 LDC Ljava/lang/Integer;.class

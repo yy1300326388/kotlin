@@ -1,0 +1,24 @@
+// FILE: first.before.kt
+// "Import" "false"
+// ERROR: Unresolved reference: RootClass
+// ACTION: Create local variable 'RootClass'
+// ACTION: Create object 'RootClass'
+// ACTION: Create parameter 'RootClass'
+// ACTION: Create property 'RootClass'
+
+package test
+
+fun test() {
+    RootClass<caret>
+}
+
+
+// FILE: second.kt
+class RootClass
+fun rootFun() {}
+
+
+// FILE: first.after.kt
+// Not applicable
+
+

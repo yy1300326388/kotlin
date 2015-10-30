@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.ResolutionTask;
 import org.jetbrains.kotlin.resolve.calls.tasks.TracingStrategyForInvoke;
 import org.jetbrains.kotlin.resolve.calls.util.DelegatingCall;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver;
+import org.jetbrains.kotlin.resolve.scopes.receivers.Receiver;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
 import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.util.OperatorNameConventions;
@@ -111,13 +112,13 @@ public class CallTransformer<D extends CallableDescriptor, F extends D> {
 
             assert candidate.getDescriptor() instanceof VariableDescriptor;
 
-            boolean hasReceiver = candidate.getExtensionReceiver().exists();
+            boolean hasReceiver = candidate.getReceiverArgument().exists();
             Call variableCall = stripCallArguments(task.call);
             ResolutionCandidate<CallableDescriptor> variableCandidate = ResolutionCandidate.create(
                     variableCall,
                     candidate.getDescriptor(),
                     candidate.getDispatchReceiver(),
-                    candidate.getExtensionReceiver(),
+                    candidate.getReceiverArgument(),
                     candidate.getExplicitReceiverKind(),
                     null);
             if (!hasReceiver) {
@@ -146,7 +147,7 @@ public class CallTransformer<D extends CallableDescriptor, F extends D> {
 
         private CallCandidateResolutionContext<CallableDescriptor> createContextWithChainedTrace(
                 @NotNull ResolutionCandidate<CallableDescriptor> candidate, @NotNull Call call, @NotNull TemporaryBindingTrace temporaryTrace,
-                @NotNull ResolutionTask<CallableDescriptor, FunctionDescriptor> task, @NotNull ReceiverValue receiverValue,
+                @NotNull ResolutionTask<CallableDescriptor, FunctionDescriptor> task, @NotNull Receiver receiverValue,
                 @NotNull CandidateResolveMode candidateResolveMode
         ) {
             ChainedTemporaryBindingTrace chainedTrace = ChainedTemporaryBindingTrace.create(temporaryTrace, "chained trace to resolve candidate", candidate);
@@ -261,12 +262,12 @@ public class CallTransformer<D extends CallableDescriptor, F extends D> {
 
     public static class CallForImplicitInvoke extends DelegatingCall {
         private final Call outerCall;
-        private final ReceiverValue explicitExtensionReceiver;
+        private final Receiver explicitExtensionReceiver;
         private final ExpressionReceiver calleeExpressionAsDispatchReceiver;
         private final KtSimpleNameExpression fakeInvokeExpression;
 
         public CallForImplicitInvoke(
-                @NotNull ReceiverValue explicitExtensionReceiver,
+                @NotNull Receiver explicitExtensionReceiver,
                 @NotNull ExpressionReceiver calleeExpressionAsDispatchReceiver,
                 @NotNull Call call
         ) {
@@ -290,7 +291,7 @@ public class CallTransformer<D extends CallableDescriptor, F extends D> {
 
         @NotNull
         @Override
-        public ReceiverValue getExplicitReceiver() {
+        public Receiver getExplicitReceiver() {
             return explicitExtensionReceiver;
         }
 

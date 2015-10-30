@@ -1203,7 +1203,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
                     ResolvedCall<? extends CallableDescriptor> call = CallUtilKt.getResolvedCall(expr, bindingContext);
                     if (call != null) {
                         lookupReceiver(call.getDispatchReceiver());
-                        lookupReceiver(call.getExtensionReceiver());
+                        lookupReceiver((ReceiverValue) call.getExtensionReceiver());
                     }
                 }
                 else if (descriptor instanceof VariableDescriptor) {

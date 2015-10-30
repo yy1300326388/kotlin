@@ -246,7 +246,7 @@ public class JetFunctionCallUsage extends JetUsageInfo<KtCallElement> {
             }
             else {
                 addReceiver = !(descriptor instanceof ReceiverParameterDescriptor);
-                argumentExpression = getReceiverExpressionIfMatched(resolvedCall.getExtensionReceiver(), descriptor, psiFactory);
+                argumentExpression = getReceiverExpressionIfMatched((ReceiverValue) resolvedCall.getExtensionReceiver(), descriptor, psiFactory);
                 if (argumentExpression == null) {
                     argumentExpression = getReceiverExpressionIfMatched(resolvedCall.getDispatchReceiver(), descriptor, psiFactory);
                 }
@@ -375,8 +375,10 @@ public class JetFunctionCallUsage extends JetUsageInfo<KtCallElement> {
         JetParameterInfo newReceiverInfo = changeInfo.getReceiverParameterInfo();
         JetParameterInfo originalReceiverInfo = changeInfo.getMethodDescriptor().getReceiver();
 
-        ReceiverValue extensionReceiver = resolvedCall != null ? resolvedCall.getExtensionReceiver() : ReceiverValue.NO_RECEIVER;
-        ReceiverValue dispatchReceiver = resolvedCall != null ? resolvedCall.getDispatchReceiver() : ReceiverValue.NO_RECEIVER;
+        ReceiverValue extensionReceiver = resolvedCall != null ? (ReceiverValue) resolvedCall.getExtensionReceiver()
+                                                               : ReceiverValue.NO_RECEIVER;
+        ReceiverValue dispatchReceiver = resolvedCall != null ? resolvedCall.getDispatchReceiver()
+                                                              : ReceiverValue.NO_RECEIVER;
 
         PsiElement elementToReplace = element;
         PsiElement parent = element.getParent();

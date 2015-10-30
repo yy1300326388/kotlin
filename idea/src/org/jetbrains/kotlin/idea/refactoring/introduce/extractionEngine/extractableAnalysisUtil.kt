@@ -652,7 +652,7 @@ private fun ExtractionData.inferParametersInfo(
             return info
         }
 
-        val extensionReceiver = resolvedCall?.getExtensionReceiver()
+        val extensionReceiver = resolvedCall?.getExtensionReceiver() as ReceiverValue
         val receiverToExtract = when {
                            extensionReceiver == ReceiverValue.NO_RECEIVER,
                            isSynthesizedInvoke(originalDescriptor) -> resolvedCall?.getDispatchReceiver()

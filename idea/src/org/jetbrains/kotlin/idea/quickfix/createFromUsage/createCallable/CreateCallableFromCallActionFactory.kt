@@ -89,7 +89,7 @@ sealed class CreateCallableFromCallActionFactory<E : KtExpression>(
 
         val context = calleeExpr.analyze()
         val receiver = element.getCall(context)?.explicitReceiver ?: ReceiverValue.NO_RECEIVER
-        val receiverType = getReceiverTypeInfo(context, project, receiver) ?: return null
+        val receiverType = getReceiverTypeInfo(context, project, receiver as ReceiverValue) ?: return null
 
         val possibleContainers =
                 if (receiverType is TypeInfo.Empty) {

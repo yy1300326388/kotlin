@@ -46,11 +46,13 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.SmartCastManager
 import org.jetbrains.kotlin.resolve.calls.tasks.ResolutionTask
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.Receiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.TypeUtils.noExpectedType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils
+import org.jetbrains.kotlin.utils.sure
 import java.util.*
 
 public class CandidateResolver(
@@ -281,7 +283,7 @@ public class CandidateResolver(
         SUCCESS
     }
 
-    private fun getReceiverSuper(receiver: ReceiverValue): KtSuperExpression? {
+    private fun getReceiverSuper(receiver: Receiver): KtSuperExpression? {
         if (receiver is ExpressionReceiver) {
             val expression = receiver.getExpression()
             if (expression is KtSuperExpression) {
@@ -379,7 +381,9 @@ public class CandidateResolver(
         // For the expressions like '42.(f)()' where f: String.() -> Unit we'd like to generate a type mismatch error on '1',
         // not to throw away the candidate, so the following check is skipped.
         if (!isInvokeCallOnExpressionWithBothReceivers(call)) {
-            checkReceiverTypeError(extensionReceiver, candidateCall.getExtensionReceiver())
+            val callExtensionReceiver = candidateCall.extensionReceiver
+            assert(callExtensionReceiver is ReceiverValue) { "Expected ReceiverValue, got $callExtensionReceiver" }
+            checkReceiverTypeError(extensionReceiver, callExtensionReceiver as ReceiverValue)
         }
         checkReceiverTypeError(dispatchReceiver, candidateCall.getDispatchReceiver())
     }
@@ -411,7 +415,8 @@ public class CandidateResolver(
         resultStatus = resultStatus.combine(context.checkReceiver(
                 candidateCall,
                 candidateCall.getResultingDescriptor().getExtensionReceiverParameter(),
-                candidateCall.getExtensionReceiver(), candidateCall.getExplicitReceiverKind().isExtensionReceiver(), false))
+                candidateCall.extensionReceiver as ReceiverValue,
+                candidateCall.getExplicitReceiverKind().isExtensionReceiver(), false))
 
         resultStatus = resultStatus.combine(context.checkReceiver(candidateCall,
                                                                   candidateCall.getResultingDescriptor().getDispatchReceiverParameter(), candidateCall.getDispatchReceiver(),

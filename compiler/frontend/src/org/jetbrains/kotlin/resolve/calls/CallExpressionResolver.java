@@ -105,7 +105,7 @@ public class CallExpressionResolver {
 
     @Nullable
     private KotlinType getVariableType(
-            @NotNull KtSimpleNameExpression nameExpression, @NotNull ReceiverValue receiver,
+            @NotNull KtSimpleNameExpression nameExpression, @NotNull Receiver receiver,
             @Nullable ASTNode callOperationNode, @NotNull ExpressionTypingContext context, @NotNull boolean[] result
     ) {
         TemporaryTraceAndCache temporaryForVariable = TemporaryTraceAndCache.create(
@@ -143,15 +143,15 @@ public class CallExpressionResolver {
 
     @NotNull
     public KotlinTypeInfo getSimpleNameExpressionTypeInfo(
-            @NotNull KtSimpleNameExpression nameExpression, @NotNull ReceiverValue receiver,
+            @NotNull KtSimpleNameExpression nameExpression, @NotNull Receiver receiver,
             @Nullable ASTNode callOperationNode, @NotNull ExpressionTypingContext context
     ) {
         boolean[] result = new boolean[1];
 
         TemporaryTraceAndCache temporaryForVariable = TemporaryTraceAndCache.create(
                 context, "trace to resolve as variable", nameExpression);
-        KotlinType type =
-                getVariableType(nameExpression, receiver, callOperationNode, context.replaceTraceAndCache(temporaryForVariable), result);
+        KotlinType type = getVariableType(nameExpression, receiver,
+                                          callOperationNode, context.replaceTraceAndCache(temporaryForVariable), result);
         // TODO: for a safe call, it's necessary to set receiver != null here, as inside ArgumentTypeResolver.analyzeArgumentsAndRecordTypes
         // Unfortunately it provokes problems with x?.y!!.foo() with the following x!!.bar():
         // x != null proceeds to successive statements
@@ -198,7 +198,7 @@ public class CallExpressionResolver {
      */
     @NotNull
     public KotlinTypeInfo getCallExpressionTypeInfoWithoutFinalTypeCheck(
-            @NotNull KtCallExpression callExpression, @NotNull ReceiverValue receiver,
+            @NotNull KtCallExpression callExpression, @NotNull Receiver receiver,
             @Nullable ASTNode callOperationNode, @NotNull ExpressionTypingContext context
     ) {
         boolean[] result = new boolean[1];
@@ -290,7 +290,7 @@ public class CallExpressionResolver {
 
     @NotNull
     private KotlinTypeInfo getSelectorReturnTypeInfo(
-            @NotNull ReceiverValue receiver,
+            @NotNull Receiver receiver,
             @Nullable ASTNode callOperationNode,
             @Nullable KtExpression selectorExpression,
             @NotNull ExpressionTypingContext context
@@ -334,7 +334,7 @@ public class CallExpressionResolver {
             }
             QualifierReceiver qualifierReceiver = (QualifierReceiver) context.trace.get(BindingContext.QUALIFIER, element.getReceiver());
 
-            ReceiverValue receiver = qualifierReceiver == null ? new ExpressionReceiver(element.getReceiver(), receiverType) : qualifierReceiver;
+            Receiver receiver = qualifierReceiver == null ? new ExpressionReceiver(element.getReceiver(), receiverType) : qualifierReceiver;
 
             boolean lastStage = element.getQualified() == expression;
             assert lastStage == (element == elementChain.getLast());
@@ -344,8 +344,8 @@ public class CallExpressionResolver {
             currentContext = baseContext.replaceDataFlowInfo(receiverDataFlowInfo);
 
             KtExpression selectorExpression = element.getSelector();
-            KotlinTypeInfo selectorReturnTypeInfo =
-                    getSelectorReturnTypeInfo(receiver, element.getNode(), selectorExpression, currentContext);
+            KotlinTypeInfo selectorReturnTypeInfo = getSelectorReturnTypeInfo(
+                    receiver, element.getNode(), selectorExpression, currentContext);
             KotlinType selectorReturnType = selectorReturnTypeInfo.getType();
 
             resolveDeferredReceiverInQualifiedExpression(qualifierReceiver, element.getQualified(), currentContext);

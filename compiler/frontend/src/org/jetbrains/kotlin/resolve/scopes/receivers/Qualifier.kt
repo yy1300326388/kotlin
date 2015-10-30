@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.diagnostics.Errors.EXPRESSION_EXPECTED_PACKAGE_FOUND
 import org.jetbrains.kotlin.diagnostics.Errors.NO_COMPANION_OBJECT
 import org.jetbrains.kotlin.diagnostics.Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION
 import org.jetbrains.kotlin.diagnostics.Errors.TYPE_PARAMETER_ON_LHS_OF_DOT
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -44,7 +45,7 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 import java.util.*
 import kotlin.properties.Delegates
 
-public interface Qualifier: ReceiverValue {
+public interface Qualifier: Receiver {
 
     public val expression: KtExpression
 
@@ -77,8 +78,6 @@ abstract class QualifierReceiver(
             ?: ReceiverValue.NO_RECEIVER
 
     abstract fun getNestedClassesAndPackageMembersScope(): KtScope
-
-    override fun getType(): KotlinType = throw IllegalStateException("No type corresponds to QualifierReceiver '$this'")
 
     override fun exists() = true
 }
@@ -147,18 +146,19 @@ class ClassifierQualifier(
 
 fun createQualifier(
         expression: KtSimpleNameExpression,
-        receiver: ReceiverValue,
+        receiver: Receiver,
         context: ExpressionTypingContext
 ): QualifierReceiver? {
     val receiverScope = when {
         !receiver.exists() -> context.scope.asKtScope()
         receiver is QualifierReceiver -> receiver.scope
-        else -> receiver.getType().getMemberScope()
+        receiver is ReceiverValue -> receiver.type.memberScope
+        else -> throw AssertionError("Unexpected receiver: $receiver")
     }
 
     val name = expression.getReferencedNameAsName()
     val packageViewDescriptor = receiverScope.getPackage(name)
-    val classifierDescriptor = receiverScope.getClassifier(name)
+    val classifierDescriptor = receiverScope.getClassifier(name, NoLookupLocation.WHEN_RESOLVE_DECLARATION)
 
     if (packageViewDescriptor == null && classifierDescriptor == null) return null
 

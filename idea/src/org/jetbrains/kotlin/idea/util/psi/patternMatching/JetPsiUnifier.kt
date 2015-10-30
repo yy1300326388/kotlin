@@ -89,6 +89,7 @@ import org.jetbrains.kotlin.psi.KtDelegationSpecifier
 import org.jetbrains.kotlin.idea.core.refactoring.getContextForContainingDeclarationBody
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
+import org.jetbrains.kotlin.resolve.scopes.receivers.Receiver
 
 public interface UnificationResult {
     public enum class Status {
@@ -169,7 +170,7 @@ public class JetPsiUnifier(
             return false
         }
 
-        private fun matchReceivers(rv1: ReceiverValue, rv2: ReceiverValue): Boolean {
+        private fun matchReceivers(rv1: Receiver, rv2: Receiver): Boolean {
             return when {
                 rv1 is ExpressionReceiver && rv2 is ExpressionReceiver ->
                     doUnify(rv1.getExpression(), rv2.getExpression()) == MATCHED

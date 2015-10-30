@@ -79,6 +79,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind;
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode;
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope;
+import org.jetbrains.kotlin.resolve.scopes.receivers.Receiver;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ThisReceiver;
 import org.jetbrains.kotlin.resolve.scopes.utils.ScopeUtilsKt;
@@ -231,7 +232,7 @@ public class JetChangeSignatureUsageProcessor implements ChangeSignatureUsagePro
 
                             KtElement callElement = resolvedCall.getCall().getCallElement();
 
-                            ReceiverValue receiver = resolvedCall.getExtensionReceiver();
+                            Receiver receiver = resolvedCall.getExtensionReceiver();
                             if (!(receiver instanceof ThisReceiver)) {
                                 receiver = resolvedCall.getDispatchReceiver();
                             }
@@ -440,7 +441,7 @@ public class JetChangeSignatureUsageProcessor implements ChangeSignatureUsagePro
                             return null;
                         }
 
-                        ReceiverValue receiverValue = resolvedCall.getExtensionReceiver();
+                        Receiver receiverValue = resolvedCall.getExtensionReceiver();
                         if (!receiverValue.exists()) {
                             receiverValue = resolvedCall.getDispatchReceiver();
                         }

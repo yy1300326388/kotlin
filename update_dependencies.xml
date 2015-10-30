@@ -884,4 +884,8 @@
             <echo message="##teamcity[buildNumber '${updated.version.number}']"/>
         </sequential>
     </target>
+
+    <target name="repack" description="Repack plugin with other version">
+
+    </target>
 </project>

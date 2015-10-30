@@ -499,7 +499,7 @@ public abstract class StackValue {
             callDispatchReceiver = ((SyntheticFieldDescriptor) descriptor).getDispatchReceiverForBackend();
         }
 
-        ReceiverValue callExtensionReceiver = resolvedCall.getExtensionReceiver();
+        ReceiverValue callExtensionReceiver = (ReceiverValue) resolvedCall.getExtensionReceiver();
         if (callDispatchReceiver.exists() || callExtensionReceiver.exists()
             || isLocalFunCall(callableMethod) || isCallToMemberObjectImportedByName(resolvedCall)) {
             ReceiverParameterDescriptor dispatchReceiverParameter = descriptor.getDispatchReceiverParameter();
@@ -829,7 +829,7 @@ public abstract class StackValue {
                 v.store(firstParamIndex, type);
             }
 
-            ReceiverValue receiverParameter = resolvedGetCall.getExtensionReceiver();
+            ReceiverValue receiverParameter = (ReceiverValue) resolvedGetCall.getExtensionReceiver();
             int receiverIndex = -1;
             if (receiverParameter.exists()) {
                 Type type = codegen.typeMapper.mapType(receiverParameter.getType());

@@ -2146,7 +2146,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         PropertyGetterDescriptor getter = descriptor.getGetter();
         if (getter != null) {
             Call call = bindingContext.get(DELEGATED_PROPERTY_CALL, getter);
-            return call != null ? call.getExplicitReceiver().getType() : null;
+            return call != null ? ((ReceiverValue) call.getExplicitReceiver()).getType() : null;
         }
         return null;
     }

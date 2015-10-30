@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.hasLowPriorityInOverloadResol
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.QualifierReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.Receiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue.NO_RECEIVER
 import org.jetbrains.kotlin.resolve.scopes.utils.getImplicitReceiversHierarchy
@@ -63,7 +64,7 @@ public class TaskPrioritizer(
             tracing: TracingStrategy,
             callableDescriptorCollectors: CallableDescriptorCollectors<D>
     ): List<ResolutionTask<D, F>> {
-        val explicitReceiver = context.call.getExplicitReceiver()
+        val explicitReceiver = context.call.explicitReceiver
         val result = ResolutionTaskHolder<D, F>(storageManager, context, PriorityProviderImpl<D>(context), tracing)
         val taskPrioritizerContext = TaskPrioritizerContext(name, result, context, context.scope, callableDescriptorCollectors)
 
@@ -85,8 +86,9 @@ public class TaskPrioritizer(
                 else
                     OperatorNameConventions.MINUS
 
-                val additionalContext = TaskPrioritizerContext(deprecatedName, result, context, context.scope, callableDescriptorCollectors)
-                doComputeTasks(explicitReceiver, additionalContext)
+                    val additionalContext = TaskPrioritizerContext(deprecatedName, result, context, context.scope, callableDescriptorCollectors)
+                    doComputeTasks(explicitReceiver, additionalContext)
+                }
             }
         }
 
@@ -404,7 +406,7 @@ public class TaskPrioritizer(
         for (descriptor in descriptors) {
             val candidate = ResolutionCandidate.create<D>(call, descriptor)
             candidate.setDispatchReceiver(dispatchReceiver)
-            candidate.setExtensionReceiver(extensionReceiver)
+            candidate.setReceiverArgument(extensionReceiver)
             candidate.setExplicitReceiverKind(explicitReceiverKind)
             result.add(candidate)
         }
@@ -428,7 +430,7 @@ public class TaskPrioritizer(
         val result = Lists.newArrayList<ResolutionCandidate<D>>()
         for (descriptor in descriptors) {
             val candidate = ResolutionCandidate.create<D>(call, descriptor)
-            candidate.setExtensionReceiver(receiverParameter)
+            candidate.setReceiverArgument(receiverParameter)
             candidate.setExplicitReceiverKind(receiverKind)
             if (setImpliedThis(scope, candidate)) {
                 result.add(candidate)

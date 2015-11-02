@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.psi.*;
 import org.jetbrains.kotlin.resolve.BindingContext;
 import org.jetbrains.kotlin.resolve.BindingTrace;
 import org.jetbrains.kotlin.resolve.DescriptorUtils;
+import org.jetbrains.kotlin.resolve.QualifiedExpressionResolver;
 import org.jetbrains.kotlin.resolve.bindingContextUtil.BindingContextUtilsKt;
 import org.jetbrains.kotlin.resolve.calls.callUtil.CallUtilKt;
 import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext;
@@ -66,24 +67,27 @@ import static org.jetbrains.kotlin.types.TypeUtils.NO_EXPECTED_TYPE;
 
 public class CallExpressionResolver {
 
-    private final CallResolver callResolver;
-    private final ConstantExpressionEvaluator constantExpressionEvaluator;
-    private final SymbolUsageValidator symbolUsageValidator;
-    private final DataFlowAnalyzer dataFlowAnalyzer;
+    @NotNull private final CallResolver callResolver;
+    @NotNull private final ConstantExpressionEvaluator constantExpressionEvaluator;
+    @NotNull private final SymbolUsageValidator symbolUsageValidator;
+    @NotNull private final DataFlowAnalyzer dataFlowAnalyzer;
     @NotNull private final KotlinBuiltIns builtIns;
+    @NotNull private final QualifiedExpressionResolver qualifiedExpressionResolver;
 
     public CallExpressionResolver(
             @NotNull CallResolver callResolver,
             @NotNull ConstantExpressionEvaluator constantExpressionEvaluator,
             @NotNull SymbolUsageValidator symbolUsageValidator,
             @NotNull DataFlowAnalyzer dataFlowAnalyzer,
-            @NotNull KotlinBuiltIns builtIns
+            @NotNull KotlinBuiltIns builtIns,
+            @NotNull QualifiedExpressionResolver qualifiedExpressionResolver
     ) {
         this.callResolver = callResolver;
         this.constantExpressionEvaluator = constantExpressionEvaluator;
         this.symbolUsageValidator = symbolUsageValidator;
         this.dataFlowAnalyzer = dataFlowAnalyzer;
         this.builtIns = builtIns;
+        this.qualifiedExpressionResolver = qualifiedExpressionResolver;
     }
 
     private ExpressionTypingServices expressionTypingServices;
@@ -139,7 +143,7 @@ public class CallExpressionResolver {
         if (qualifier != null) {
             result[0] = true;
             if (!isLHSOfDot) {
-                QualifierKt.resolveAsStandaloneExpression(qualifier, context, symbolUsageValidator);
+                qualifiedExpressionResolver.resolveAsStandaloneExpression(qualifier, context);
             }
             return null;
         }
@@ -275,7 +279,7 @@ public class CallExpressionResolver {
             KotlinType type = getVariableType((KtSimpleNameExpression) calleeExpression, receiver, callOperationNode,
                                               context.replaceTraceAndCache(temporaryForVariable), result);
             Qualifier qualifier = temporaryForVariable.trace.get(BindingContext.QUALIFIER, calleeExpression);
-            if (result[0] && (qualifier == null || qualifier.getPackageView() == null)) {
+            if (result[0] && (qualifier == null || !(qualifier instanceof PackageQualifier))) {
                 temporaryForVariable.commit();
                 context.trace.report(FUNCTION_EXPECTED.on(calleeExpression, calleeExpression,
                                                           type != null ? type : ErrorUtils.createErrorType("")));
@@ -421,7 +425,8 @@ public class CallExpressionResolver {
         DeclarationDescriptor selectorDescriptor =
                 calleeExpression instanceof KtReferenceExpression
                 ? context.trace.get(BindingContext.REFERENCE_TARGET, (KtReferenceExpression) calleeExpression) : null;
-        QualifierKt.resolveAsReceiverInQualifiedExpression(qualifierReceiver, context, symbolUsageValidator, selectorDescriptor);
+
+        qualifiedExpressionResolver.resolveAsReceiverInQualifiedExpression(qualifierReceiver, context, selectorDescriptor);
     }
 
     private static void checkNestedClassAccess(
@@ -438,10 +443,12 @@ public class CallExpressionResolver {
         Qualifier receiverQualifier = context.trace.get(BindingContext.QUALIFIER, expression.getReceiverExpression());
 
         if (receiverQualifier == null && expressionQualifier != null) {
-            assert expressionQualifier.getClassifier() instanceof ClassDescriptor :
+            assert expressionQualifier instanceof ClassQualifier &&
+                   ((ClassQualifier) expressionQualifier).getClassifier() instanceof ClassDescriptor :
                     "Only class can (package cannot) be accessed by instance reference: " + expressionQualifier;
-            context.trace.report(NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE
-                                         .on(selectorExpression, (ClassDescriptor) expressionQualifier.getClassifier()));
+            context.trace.report(NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE.on(
+                    selectorExpression,
+                    (ClassDescriptor) ((ClassQualifier) expressionQualifier).getClassifier()));
         }
     }
 }

@@ -37,8 +37,8 @@ import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.hasLowPriorityInOverloadResolution
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
-import org.jetbrains.kotlin.resolve.scopes.receivers.QualifierReceiver
-import org.jetbrains.kotlin.resolve.scopes.receivers.Receiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.ClassQualifier
+import org.jetbrains.kotlin.resolve.scopes.receivers.Qualifier
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue.NO_RECEIVER
 import org.jetbrains.kotlin.resolve.scopes.utils.asKtScope
@@ -70,11 +70,11 @@ public class TaskPrioritizer(
         val taskPrioritizerContext = TaskPrioritizerContext(name, result, context, context.scope, callableDescriptorCollectors)
 
         when (explicitReceiver) {
-            is QualifierReceiver -> {
-                val qualifierReceiver: QualifierReceiver = explicitReceiver
-                val receiverScope = qualifierReceiver.getNestedClassesAndPackageMembersScope().memberScopeAsImportingScope()
+            is Qualifier -> {
+                val qualifier = explicitReceiver
+                val receiverScope = qualifier.getQualifiedScope().memberScopeAsImportingScope()
                 doComputeTasks(NO_RECEIVER, taskPrioritizerContext.replaceScope(receiverScope))
-                computeTasksForClassObjectReceiver(qualifierReceiver, taskPrioritizerContext)
+                computeTasksForClassObjectReceiver(qualifier, taskPrioritizerContext)
             }
             is ReceiverValue -> {
                 doComputeTasks(explicitReceiver, taskPrioritizerContext)
@@ -96,27 +96,29 @@ public class TaskPrioritizer(
     }
 
     private fun <D : CallableDescriptor, F : D> computeTasksForClassObjectReceiver(
-            qualifierReceiver: QualifierReceiver,
+            qualifier: Qualifier,
             taskPrioritizerContext: TaskPrioritizerContext<D, F>
     ) {
-        val classObjectReceiver = qualifierReceiver.getClassObjectReceiver()
-        if (!classObjectReceiver.exists()) {
-            return
-        }
-        val classifierDescriptor = qualifierReceiver.classifier
-        doComputeTasks(classObjectReceiver, taskPrioritizerContext.filterCollectors {
-            when {
-                classifierDescriptor is ClassDescriptor && classifierDescriptor.getCompanionObjectDescriptor() != null -> {
-                    // nested classes and objects should not be accessible via short reference to companion object
-                    it !is ConstructorDescriptor && it !is FakeCallableDescriptorForObject
-                }
-                classifierDescriptor != null && DescriptorUtils.isEnumEntry(classifierDescriptor) -> {
-                    // objects nested in enum should not be accessible via enum entries reference
-                    it !is FakeCallableDescriptorForObject
-                }
-                else -> true
+        if (qualifier is ClassQualifier) {
+            val classObjectReceiver = qualifier.getClassObjectReceiver()
+            if (!classObjectReceiver.exists()) {
+                return
             }
-        })
+            val classifierDescriptor = qualifier.classifier
+            doComputeTasks(classObjectReceiver, taskPrioritizerContext.filterCollectors {
+                when {
+                    classifierDescriptor is ClassDescriptor && classifierDescriptor.getCompanionObjectDescriptor() != null -> {
+                        // nested classes and objects should not be accessible via short reference to companion object
+                        it !is ConstructorDescriptor && it !is FakeCallableDescriptorForObject
+                    }
+                    DescriptorUtils.isEnumEntry(classifierDescriptor) -> {
+                        // objects nested in enum should not be accessible via enum entries reference
+                        it !is FakeCallableDescriptorForObject
+                    }
+                    else -> true
+                }
+            })
+        }
     }
 
     private fun <D : CallableDescriptor, F : D> doComputeTasks(receiver: ReceiverValue, c: TaskPrioritizerContext<D, F>) {

@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.resolve.BindingContext.*
 import org.jetbrains.kotlin.resolve.DescriptorUtils.getFqName
 import org.jetbrains.kotlin.resolve.bindingContextUtil.recordScope
 import org.jetbrains.kotlin.resolve.descriptorUtil.classObjectType
-import org.jetbrains.kotlin.resolve.descriptorUtil.hasClassObjectType
 import org.jetbrains.kotlin.resolve.scopes.ChainedScope
 import org.jetbrains.kotlin.resolve.scopes.FilteringScope
 import org.jetbrains.kotlin.resolve.scopes.JetScopeUtils
@@ -46,12 +45,10 @@ public interface Qualifier: Receiver {
 
     public val expression: KtExpression
 
-    public val packageView: PackageViewDescriptor?
-
-    public val classifier: ClassifierDescriptor?
-
     public val name: Name
-        get() = classifier?.getName() ?: packageView!!.getName()
+        get() = descriptor.name
+
+    public val descriptor: DeclarationDescriptor
 
     // package, classifier or companion object descriptor
     public val resultingDescriptor: DeclarationDescriptor
@@ -63,16 +60,10 @@ abstract class QualifierReceiver(
         val referenceExpression: KtSimpleNameExpression
 ) : Qualifier {
 
-    override val expression: KtExpression = referenceExpression.getTopmostParentQualifiedExpressionForSelector() ?: referenceExpression
-
-    val descriptor: DeclarationDescriptor
-        get() = classifier ?: packageView ?: throw AssertionError("PackageView and classifier both are null")
+    override val expression: KtExpression
+        get() = referenceExpression.getTopmostParentQualifiedExpressionForSelector() ?: referenceExpression
 
     override var resultingDescriptor: DeclarationDescriptor by Delegates.notNull()
-
-    fun getClassObjectReceiver(): ReceiverValue =
-            (classifier as? ClassDescriptor)?.classObjectType?.let { ExpressionReceiver(referenceExpression, it) }
-            ?: ReceiverValue.NO_RECEIVER
 
     abstract fun getNestedClassesAndPackageMembersScope(): MemberScope
 
@@ -81,10 +72,11 @@ abstract class QualifierReceiver(
 
 class PackageQualifier(
         referenceExpression: KtSimpleNameExpression,
-        override val packageView: PackageViewDescriptor
+        public val packageView: PackageViewDescriptor
 ) : QualifierReceiver(referenceExpression) {
 
-    override val classifier: ClassifierDescriptor? get() = null
+    override val descriptor: DeclarationDescriptor
+        get() = packageView
 
     override val scope: MemberScope get() = packageView.memberScope
 
@@ -93,12 +85,27 @@ class PackageQualifier(
     override fun toString() = "Package{$packageView}"
 }
 
-class ClassifierQualifier(
+abstract class ClassifierQualifier(referenceExpression: KtSimpleNameExpression) : QualifierReceiver(referenceExpression) {
+    abstract val classifier: ClassifierDescriptor
+
+    override val descriptor: DeclarationDescriptor
+        get() = classifier
+}
+
+class ClassifierQualifierWithEmptyScope(
         referenceExpression: KtSimpleNameExpression,
         override val classifier: ClassifierDescriptor
-) : QualifierReceiver(referenceExpression) {
+) : ClassifierQualifier(referenceExpression) {
 
-    override val packageView: PackageViewDescriptor? get() = null
+    override fun getNestedClassesAndPackageMembersScope(): MemberScope = scope
+
+    override val scope: MemberScope = MemberScope.empty(classifier)
+}
+
+class ClassQualifier(
+        referenceExpression: KtSimpleNameExpression,
+        override val classifier: ClassDescriptor
+) : ClassifierQualifier(referenceExpression) {
 
     override val scope: MemberScope get() {
         if (classifier !is ClassDescriptor) {
@@ -137,9 +144,11 @@ class ClassifierQualifier(
         return ChainedScope("Static scope for $name as class or object", *scopes.toTypedArray())
     }
 
-    override fun toString() = "Classifier{$classifier}"
-}
+    fun getClassObjectReceiver(): ReceiverValue =
+            classifier.classObjectType?.let { ExpressionReceiver(referenceExpression, it) } ?: ReceiverValue.NO_RECEIVER
 
+    override fun toString() = "Class{$classifier}"
+}
 
 fun createQualifier(
         expression: KtSimpleNameExpression,
@@ -149,7 +158,8 @@ fun createQualifier(
     val receiverScope = when {
         !receiver.exists() -> context.scope
         receiver is QualifierReceiver -> receiver.scope.memberScopeAsImportingScope()
-        else -> receiver.getType().getMemberScope().memberScopeAsImportingScope()
+        receiver is ReceiverValue -> receiver.type.memberScope.memberScopeAsImportingScope()
+        else -> throw IllegalArgumentException("Unexpected receiver kind: $receiver")
     }
 
     val name = expression.getReferencedNameAsName()
@@ -161,102 +171,25 @@ fun createQualifier(
     context.trace.recordScope(context.scope, expression)
 
     val qualifier =
-            if (receiver is PackageQualifier)
+            if (receiver is PackageQualifier) {
                 if (packageViewDescriptor != null)
                     PackageQualifier(expression, packageViewDescriptor)
                 else
-                    ClassifierQualifier(expression, classifierDescriptor!!)
-            else
+                    createClassifierQualifier(expression, classifierDescriptor!!)
+            }
+            else {
                 if (classifierDescriptor != null)
-                    ClassifierQualifier(expression, classifierDescriptor)
+                    createClassifierQualifier(expression, classifierDescriptor)
                 else
                     PackageQualifier(expression, packageViewDescriptor!!)
+            }
 
     context.trace.record(QUALIFIER, qualifier.expression, qualifier)
     return qualifier
 }
 
-fun QualifierReceiver.resolveAsStandaloneExpression(
-        context: ExpressionTypingContext,
-        symbolUsageValidator: SymbolUsageValidator
-): KotlinType? {
-    val classifier = this.classifier
-
-    resolveAndRecordReferenceTarget(context, symbolUsageValidator, selector = null)
-    if (classifier is TypeParameterDescriptor) {
-        context.trace.report(TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(referenceExpression, classifier))
-    }
-    else if (classifier is ClassDescriptor && !classifier.hasClassObjectType) {
-        context.trace.report(NO_COMPANION_OBJECT.on(referenceExpression, classifier))
-    }
-    else if (packageView != null) {
-        context.trace.report(EXPRESSION_EXPECTED_PACKAGE_FOUND.on(referenceExpression))
-    }
-    return null
-}
-
-fun QualifierReceiver.resolveAsReceiverInQualifiedExpression(
-        context: ExpressionTypingContext,
-        symbolUsageValidator: SymbolUsageValidator,
-        selector: DeclarationDescriptor?
-) {
-    val classifier = this.classifier
-
-    resolveAndRecordReferenceTarget(context, symbolUsageValidator, selector)
-    if (classifier is TypeParameterDescriptor) {
-        context.trace.report(TYPE_PARAMETER_ON_LHS_OF_DOT.on(referenceExpression, classifier))
-    }
-    else if (classifier is ClassDescriptor && classifier.hasClassObjectType) {
-        context.trace.recordType(expression, classifier.classObjectType)
-    }
-}
-
-private fun QualifierReceiver.resolveAndRecordReferenceTarget(
-        context: ExpressionTypingContext,
-        symbolUsageValidator: SymbolUsageValidator,
-        selector: DeclarationDescriptor?
-) {
-    resultingDescriptor = resolveReferenceTarget(context, symbolUsageValidator, selector)
-    context.trace.record(REFERENCE_TARGET, referenceExpression, resultingDescriptor)
-}
-
-private fun QualifierReceiver.resolveReferenceTarget(
-        context: ExpressionTypingContext,
-        symbolUsageValidator: SymbolUsageValidator,
-        selector: DeclarationDescriptor?
-): DeclarationDescriptor {
-    val classifier = this.classifier
-    val packageView = this.packageView
-
-    if (classifier is TypeParameterDescriptor) {
-        return classifier
-    }
-
-    val selectorContainer = when {
-        selector is ConstructorDescriptor -> selector.getContainingDeclaration().getContainingDeclaration()
-        else -> selector?.getContainingDeclaration()
-    }
-
-    if (packageView != null && (selectorContainer is PackageFragmentDescriptor || selectorContainer is PackageViewDescriptor)
-            && getFqName(packageView) == getFqName(selectorContainer)) {
-        return packageView
-    }
-
-    val isCallableWithReceiver = selector is CallableDescriptor &&
-                                 (selector.getDispatchReceiverParameter() != null || selector.getExtensionReceiverParameter() != null)
-
-    val declarationDescriptor = descriptor
-    if (declarationDescriptor is ClassifierDescriptor)
-        symbolUsageValidator.validateTypeUsage(declarationDescriptor, context.trace, referenceExpression)
-
-    if (isCallableWithReceiver && classifier is ClassDescriptor && classifier.hasClassObjectType) {
-        val companionObjectDescriptor = classifier.getCompanionObjectDescriptor()
-        if (companionObjectDescriptor != null) {
-            context.trace.record(SHORT_REFERENCE_TO_COMPANION_OBJECT, referenceExpression, classifier)
-            symbolUsageValidator.validateTypeUsage(companionObjectDescriptor, context.trace, referenceExpression)
-            return companionObjectDescriptor
-        }
-    }
-
-    return declarationDescriptor
-}
+fun createClassifierQualifier(expression: KtSimpleNameExpression, classifier: ClassifierDescriptor): ClassifierQualifier =
+        if (classifier is ClassDescriptor)
+            ClassQualifier(expression, classifier)
+        else
+            ClassifierQualifierWithEmptyScope(expression, classifier)

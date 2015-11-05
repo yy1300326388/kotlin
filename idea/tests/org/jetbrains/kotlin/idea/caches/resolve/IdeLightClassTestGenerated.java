@@ -154,9 +154,9 @@ public class IdeLightClassTestGenerated extends AbstractIdeLightClassTest {
             doTest(fileName);
         }
 
-        @TestMetadata("PrivateInTrait.kt")
-        public void testPrivateInTrait() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/nullabilityAnnotations/PrivateInTrait.kt");
+        @TestMetadata("PrivateInTrait.NoCompile.kt")
+        public void testPrivateInTrait_NoCompile() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/nullabilityAnnotations/PrivateInTrait.NoCompile.kt");
             doTest(fileName);
         }
 
@@ -172,9 +172,9 @@ public class IdeLightClassTestGenerated extends AbstractIdeLightClassTest {
             doTest(fileName);
         }
 
-        @TestMetadata("TraitClassObjectField.kt")
-        public void testTraitClassObjectField() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/nullabilityAnnotations/TraitClassObjectField.kt");
+        @TestMetadata("TraitClassObjectField.NoCompile.kt")
+        public void testTraitClassObjectField_NoCompile() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/asJava/lightClasses/nullabilityAnnotations/TraitClassObjectField.NoCompile.kt");
             doTest(fileName);
         }
 

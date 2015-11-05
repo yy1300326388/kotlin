@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.generators.tests.reservedWords.generateTestDataForRe
 import org.jetbrains.kotlin.idea.AbstractExpressionSelectionTest
 import org.jetbrains.kotlin.idea.AbstractSmartSelectionTest
 import org.jetbrains.kotlin.idea.actions.AbstractGotoTestOrCodeActionTest
+import org.jetbrains.kotlin.idea.caches.resolve.AbstractIdeCompiledLightClassTest
 import org.jetbrains.kotlin.idea.caches.resolve.AbstractIdeLightClassTest
 import org.jetbrains.kotlin.idea.codeInsight.*
 import org.jetbrains.kotlin.idea.codeInsight.generate.AbstractCodeInsightActionTest
@@ -771,6 +772,10 @@ fun main(args: Array<String>) {
         testClass<AbstractIdeLightClassTest>() {
             model("asJava/lightClasses", excludeDirs = listOf("delegation"))
         }
+
+        testClass<AbstractIdeCompiledLightClassTest> {
+            model("asJava/lightClasses", excludeDirs = listOf("delegation"), pattern = """^([^\.]+)\.kt$""", withTestRootMethod = true)
+        }
     }
 
     testGroup("idea/idea-completion/tests", "idea/idea-completion/testData") {
@@ -1076,7 +1081,8 @@ private class TestGroup(val testsRoot: String, val testDataRoot: String) {
                 testClassName: String? = null,
                 targetBackend: TargetBackend = TargetBackend.ANY,
                 excludeDirs: List<String> = listOf(),
-                filenameStartsLowerCase: Boolean? = null
+                filenameStartsLowerCase: Boolean? = null,
+                withTestRootMethod: Boolean = false
         ) {
             val rootFile = File(testDataRoot + "/" + relativeRootPath)
             val compiledPattern = Pattern.compile(pattern)
@@ -1088,7 +1094,8 @@ private class TestGroup(val testsRoot: String, val testDataRoot: String) {
                     }
                     else {
                         SimpleTestClassModel(rootFile, recursive, excludeParentDirs,
-                                             compiledPattern, filenameStartsLowerCase, testMethod, className, targetBackend, excludeDirs, false)
+                                             compiledPattern, filenameStartsLowerCase, testMethod, className, 
+                                             targetBackend, excludeDirs, withTestRootMethod)
                     }
             )
         }

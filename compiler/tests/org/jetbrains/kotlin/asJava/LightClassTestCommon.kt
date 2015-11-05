@@ -25,7 +25,7 @@ import java.io.File
 import java.util.regex.Pattern
 
 object LightClassTestCommon {
-    private val SUBJECT_FQ_NAME_PATTERN = Pattern.compile("^//\\s*(.*)$", Pattern.MULTILINE)
+    public val SUBJECT_FQ_NAME_PATTERN = Pattern.compile("^//\\s*(.*)$", Pattern.MULTILINE)
 
     @JvmOverloads
     fun testLightClass(

@@ -12,7 +12,7 @@ import kotlin.internal.Exact
  *
  * @throws NoSuchElementException when the map doesn't contain value for the property name and doesn't provide an implicit default (see [withDefault]).
  */
-@kotlin.jvm.JvmName("~getValue")
+@kotlin.jvm.JvmName("\$getValue")
 public operator fun <V, V1: V> Map<in String, @Exact V>.getValue(thisRef: Any?, property: KProperty<*>): V1 = getOrImplicitDefault(property.name) as V1
 
 /**
@@ -23,7 +23,7 @@ public operator fun <V, V1: V> Map<in String, @Exact V>.getValue(thisRef: Any?, 
  *
  * @throws NoSuchElementException when the map doesn't contain value for the property name and doesn't provide an implicit default (see [withDefault]).
  */
-@kotlin.jvm.JvmName("~getVarValue")
+@kotlin.jvm.JvmName("\$getVarValue")
 public operator fun <V> MutableMap<in String, in V>.getValue(thisRef: Any?, property: KProperty<*>): V = getOrImplicitDefault(property.name) as V
 
 /**
@@ -32,7 +32,7 @@ public operator fun <V> MutableMap<in String, in V>.getValue(thisRef: Any?, prop
  * @param property the metadata for the property, used to get the name of property and store the value associated with that name in the map.
  * @param value the value to set.
  */
-@kotlin.jvm.JvmName("~setVarValue")
+@kotlin.jvm.JvmName("\$setVarValue")
 public operator fun <V> MutableMap<in String, in V>.setValue(thisRef: Any?, property: KProperty<*>, value: V) {
     this.put(property.name, value)
 }

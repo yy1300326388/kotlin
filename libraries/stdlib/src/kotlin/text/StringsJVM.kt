@@ -81,33 +81,33 @@ public fun String.replaceFirst(oldValue: String, newValue: String, ignoreCase: B
 /**
  * Returns a copy of this string converted to upper case using the rules of the default locale.
  */
-@kotlin.jvm.JvmName("~toUpperCase")
+@kotlin.jvm.JvmName("\$toUpperCase")
 public fun String.toUpperCase(): String = (this as java.lang.String).toUpperCase()
 
 /**
  * Returns a copy of this string converted to lower case using the rules of the default locale.
  */
-@kotlin.jvm.JvmName("~toLowerCase")
+@kotlin.jvm.JvmName("\$toLowerCase")
 public fun String.toLowerCase(): String = (this as java.lang.String).toLowerCase()
 
 /**
  * Returns a new character array containing the characters from this string.
  */
-@kotlin.jvm.JvmName("~toCharArray")
+@kotlin.jvm.JvmName("\$toCharArray")
 public fun String.toCharArray(): CharArray = (this as java.lang.String).toCharArray()
 
 /**
  * Uses this string as a format string and returns a string obtained by substituting the specified arguments,
  * using the default locale.
  */
-@kotlin.jvm.JvmName("~format")
+@kotlin.jvm.JvmName("\$format")
 public fun String.format(vararg args: Any?): String = java.lang.String.format(this, *args)
 
 /**
  * Uses this string as a format string and returns a string obtained by substituting the specified arguments, using
  * the specified locale.
  */
-@kotlin.jvm.JvmName("~format")
+@kotlin.jvm.JvmName("\$format")
 public fun String.format(locale: Locale, vararg args : Any?) : String = java.lang.String.format(locale, this, *args)
 
 /**
@@ -125,18 +125,18 @@ public fun CharSequence.split(regex: Pattern, limit: Int = 0): List<String>
 /**
  * Returns a substring of this string starting with the specified index.
  */
-@kotlin.jvm.JvmName("~substring")
+@kotlin.jvm.JvmName("\$substring")
 public fun String.substring(beginIndex: Int): String = (this as java.lang.String).substring(beginIndex)
 
 /**
  * Returns the substring of this string starting and ending at the specified indices.
  */
-@kotlin.jvm.JvmName("~substring")
+@kotlin.jvm.JvmName("\$substring")
 public fun String.substring(beginIndex: Int, endIndex: Int): String = (this as java.lang.String).substring(beginIndex, endIndex)
 
-@Deprecated("Mangled name", level = DeprecationLevel.HIDDEN)
+@Deprecated("Provided for binary compatibility", level = DeprecationLevel.HIDDEN)
 @kotlin.jvm.JvmName("substring")
-public fun String.`~substring`(beginIndex: Int, endIndex: Int): String = (this as java.lang.String).substring(beginIndex, endIndex)
+public fun String.`-substring`(beginIndex: Int, endIndex: Int): String = (this as java.lang.String).substring(beginIndex, endIndex)
 
 /**
  * Returns `true` if this string starts with the specified prefix.
@@ -248,19 +248,19 @@ public fun String(stringBuilder: java.lang.StringBuilder): String = java.lang.St
 /**
  * Returns the character (Unicode code point) at the specified index.
  */
-@kotlin.jvm.JvmName("~codePointAt")
+@kotlin.jvm.JvmName("\$codePointAt")
 public fun String.codePointAt(index: Int): Int = (this as java.lang.String).codePointAt(index)
 
 /**
  * Returns the character (Unicode code point) before the specified index.
  */
-@kotlin.jvm.JvmName("~codePointBefore")
+@kotlin.jvm.JvmName("\$codePointBefore")
 public fun String.codePointBefore(index: Int): Int = (this as java.lang.String).codePointBefore(index)
 
 /**
  * Returns the number of Unicode code points in the specified text range of this String.
  */
-@kotlin.jvm.JvmName("~codePointCount")
+@kotlin.jvm.JvmName("\$codePointCount")
 public fun String.codePointCount(beginIndex: Int, endIndex: Int): Int = (this as java.lang.String).codePointCount(beginIndex, endIndex)
 
 /**
@@ -276,19 +276,19 @@ public fun String.compareTo(other: String, ignoreCase: Boolean = false): Int {
 /**
  * Returns a new string obtained by concatenating this string and the specified string.
  */
-@kotlin.jvm.JvmName("~concat")
+@kotlin.jvm.JvmName("\$concat")
 public fun String.concat(str: String): String = (this as java.lang.String).concat(str)
 
 /**
  * Returns `true` if this string is equal to the contents of the specified CharSequence.
  */
-@kotlin.jvm.JvmName("~contentEquals")
+@kotlin.jvm.JvmName("\$contentEquals")
 public fun String.contentEquals(cs: CharSequence): Boolean = (this as java.lang.String).contentEquals(cs)
 
 /**
  * Returns `true` if this string is equal to the contents of the specified StringBuffer.
  */
-@kotlin.jvm.JvmName("~contentEquals")
+@kotlin.jvm.JvmName("\$contentEquals")
 public fun String.contentEquals(sb: StringBuffer): Boolean = (this as java.lang.String).contentEquals(sb)
 
 /**
@@ -298,14 +298,14 @@ public fun String.contentEquals(sb: StringBuffer): Boolean = (this as java.lang.
  * @param dst the array to copy to.
  * @param dstBegin the position in the array to copy to.
  */
-@kotlin.jvm.JvmName("~getChars")
+@kotlin.jvm.JvmName("\$getChars")
 public fun String.getChars(srcBegin: Int, srcEnd: Int, dst: CharArray, dstBegin: Int): Unit = (this as java.lang.String).getChars(srcBegin, srcEnd, dst, dstBegin)
 
 
 /**
  * Returns a canonical representation for this string object.
  */
-@kotlin.jvm.JvmName("~intern")
+@kotlin.jvm.JvmName("\$intern")
 public fun String.intern(): String = (this as java.lang.String).intern()
 
 /**
@@ -316,7 +316,7 @@ public fun CharSequence.isBlank(): Boolean = length() == 0 || indices.all { this
 /**
  * Returns the index within this string that is offset from the given [index] by [codePointOffset] code points.
  */
-@kotlin.jvm.JvmName("~offsetByCodePoints")
+@kotlin.jvm.JvmName("\$offsetByCodePoints")
 public fun String.offsetByCodePoints(index: Int, codePointOffset: Int): Int = (this as java.lang.String).offsetByCodePoints(index, codePointOffset)
 
 /**
@@ -349,60 +349,61 @@ public fun String.regionMatches(thisOffset: Int, other: String, otherOffset: Int
 /**
  * Returns a copy of this string converted to lower case using the rules of the specified locale.
  */
-@kotlin.jvm.JvmName("~toLowerCase")
+@kotlin.jvm.JvmName("\$toLowerCase")
 public fun String.toLowerCase(locale: java.util.Locale): String = (this as java.lang.String).toLowerCase(locale)
 
 /**
  * Returns a copy of this string converted to upper case using the rules of the specified locale.
  */
-@kotlin.jvm.JvmName("~toUpperCase")
+@kotlin.jvm.JvmName("\$toUpperCase")
 public fun String.toUpperCase(locale: java.util.Locale): String = (this as java.lang.String).toUpperCase(locale)
 
 /**
  * Returns `true` if the contents of this string is equal to the word "true", ignoring case, and `false` otherwise.
  */
-@kotlin.jvm.JvmName("~toBoolean")
+@kotlin.jvm.JvmName("\$toBoolean")
 public fun String.toBoolean(): Boolean = java.lang.Boolean.parseBoolean(this)
 
 /**
  * Parses the string as a signed [Byte] number and returns the result.
  * @throws NumberFormatException if the string is not a valid representation of a number.
  */
+@kotlin.jvm.JvmName("\$toByte")
 public fun String.toByte(): Byte = java.lang.Byte.parseByte(this)
 
 /**
  * Parses the string as a [Short] number and returns the result.
  * @throws NumberFormatException if the string is not a valid representation of a number.
  */
-@kotlin.jvm.JvmName("~toShort")
+@kotlin.jvm.JvmName("\$toShort")
 public fun String.toShort(): Short = java.lang.Short.parseShort(this)
 
 /**
  * Parses the string as an [Int] number and returns the result.
  * @throws NumberFormatException if the string is not a valid representation of a number.
  */
-@kotlin.jvm.JvmName("~toInt")
+@kotlin.jvm.JvmName("\$toInt")
 public fun String.toInt(): Int = java.lang.Integer.parseInt(this)
 
 /**
  * Parses the string as a [Long] number and returns the result.
  * @throws NumberFormatException if the string is not a valid representation of a number.
  */
-@kotlin.jvm.JvmName("~toLong")
+@kotlin.jvm.JvmName("\$toLong")
 public fun String.toLong(): Long = java.lang.Long.parseLong(this)
 
 /**
  * Parses the string as a [Float] number and returns the result.
  * @throws NumberFormatException if the string is not a valid representation of a number.
  */
-@kotlin.jvm.JvmName("~toFloat")
+@kotlin.jvm.JvmName("\$toFloat")
 public fun String.toFloat(): Float = java.lang.Float.parseFloat(this)
 
 /**
  * Parses the string as a [Double] number and returns the result.
  * @throws NumberFormatException if the string is not a valid representation of a number.
  */
-@kotlin.jvm.JvmName("~toDouble")
+@kotlin.jvm.JvmName("\$toDouble")
 public fun String.toDouble(): Double = java.lang.Double.parseDouble(this)
 
 /**
@@ -416,13 +417,13 @@ public fun String.toCharList(): List<Char> = toCharArray().toList()
  * @param start the start index (inclusive).
  * @param end the end index (exclusive).
  */
-@kotlin.jvm.JvmName("~subSequence")
+@kotlin.jvm.JvmName("\$subSequence")
 public operator fun CharSequence.get(start: Int, end: Int): CharSequence = subSequence(start, end)
 
 /**
  * Encodes the contents of this string using the specified character set and returns the resulting byte array.
  */
-@kotlin.jvm.JvmName("~toByteArray")
+@kotlin.jvm.JvmName("\$toByteArray")
 public fun String.toByteArray(charset: String): ByteArray = (this as java.lang.String).getBytes(charset)
 
 @Deprecated("Use getBytes() in java", level = DeprecationLevel.HIDDEN)
@@ -433,12 +434,12 @@ public fun String.`~toByteArray`(charset: String): ByteArray = (this as java.lan
 /**
  * Encodes the contents of this string using the specified character set and returns the resulting byte array.
  */
-@kotlin.jvm.JvmName("~toByteArray")
+@kotlin.jvm.JvmName("\$toByteArray")
 public fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray = (this as java.lang.String).getBytes(charset)
 
-@Deprecated("Use getBytes() in java", level = DeprecationLevel.HIDDEN)
+@Deprecated("Provided for binary compatibility", level = DeprecationLevel.HIDDEN)
 @kotlin.jvm.JvmName("toByteArray")
-public fun String.`~toByteArray`(charset: Charset = Charsets.UTF_8): ByteArray = (this as java.lang.String).getBytes(charset)
+public fun String.`-toByteArray`(charset: Charset = Charsets.UTF_8): ByteArray = (this as java.lang.String).getBytes(charset)
 
 
 /**
@@ -446,7 +447,7 @@ public fun String.`~toByteArray`(charset: Charset = Charsets.UTF_8): ByteArray =
  * with the specified [flags] from [Pattern] or'd together
  * so that strings can be split or matched on.
  */
-@kotlin.jvm.JvmName("~toPattern")
+@kotlin.jvm.JvmName("\$toPattern")
 public fun String.toPattern(flags: Int = 0): java.util.regex.Pattern {
     return java.util.regex.Pattern.compile(this, flags)
 }

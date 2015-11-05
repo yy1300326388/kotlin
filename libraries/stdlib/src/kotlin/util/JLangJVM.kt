@@ -46,7 +46,7 @@ public fun <reified T: Any> javaClass(): Class<T> = T::class.java
 /**
  * Returns the annotation type of this annotation.
  */
-@JvmName("~annotationType")
+@JvmName("\$annotationType")
 public fun <T : Annotation> T.annotationType() : Class<out T> =
     (this as java.lang.annotation.Annotation).annotationType() as Class<out T>
 
@@ -54,7 +54,7 @@ public fun <T : Annotation> T.annotationType() : Class<out T> =
  * Invokes the underlying method represented by this [Method] object, on the specified [instance] with the specified parameters.
  */
 @Suppress("NOTHING_TO_INLINE")
-@JvmName("~invoke")
+@JvmName("\$invoke")
 public inline operator fun Method.invoke(instance: Any, vararg args: Any?): Any? {
     return invoke(instance, *args)
 }

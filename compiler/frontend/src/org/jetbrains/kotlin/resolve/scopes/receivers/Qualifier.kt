@@ -17,14 +17,12 @@
 package org.jetbrains.kotlin.resolve.scopes.receivers
 
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.diagnostics.Errors.*
 import org.jetbrains.kotlin.incremental.KotlinLookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
-import org.jetbrains.kotlin.resolve.BindingContext.*
-import org.jetbrains.kotlin.resolve.DescriptorUtils.getFqName
+import org.jetbrains.kotlin.resolve.BindingContext.QUALIFIER
 import org.jetbrains.kotlin.resolve.bindingContextUtil.recordScope
 import org.jetbrains.kotlin.resolve.descriptorUtil.classObjectType
 import org.jetbrains.kotlin.resolve.scopes.ChainedScope
@@ -34,8 +32,6 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.utils.findClassifier
 import org.jetbrains.kotlin.resolve.scopes.utils.findPackage
 import org.jetbrains.kotlin.resolve.scopes.utils.memberScopeAsImportingScope
-import org.jetbrains.kotlin.resolve.validation.SymbolUsageValidator
-import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.util.*
@@ -99,7 +95,7 @@ class ClassifierQualifierWithEmptyScope(
 
     override fun getNestedClassesAndPackageMembersScope(): MemberScope = scope
 
-    override val scope: MemberScope = MemberScope.empty(classifier)
+    override val scope: MemberScope = MemberScope.Empty
 }
 
 class ClassQualifier(

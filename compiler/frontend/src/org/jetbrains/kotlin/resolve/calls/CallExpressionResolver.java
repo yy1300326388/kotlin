@@ -57,7 +57,6 @@ import org.jetbrains.kotlin.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
 
 import static org.jetbrains.kotlin.diagnostics.Errors.*;
@@ -331,10 +330,19 @@ public class CallExpressionResolver {
     public KotlinTypeInfo getQualifiedExpressionTypeInfo(
             @NotNull KtQualifiedExpression expression, @NotNull ExpressionTypingContext context
     ) {
-        ExpressionTypingContext currentContext = context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(INDEPENDENT);
-        Deque<CallExpressionElement> elementChain = CallExpressionUnrollerKt.unroll(expression);
+        ////noinspection ConstantConditions
+        //KotlinTypeInfo existingTypeInfo = context.trace.get(BindingContext.EXPRESSION_TYPE_INFO, expression);
+        //if (existingTypeInfo != null) {
+        //    return existingTypeInfo;
+        //}
 
-        KotlinTypeInfo receiverTypeInfo = expressionTypingServices.getTypeInfo(elementChain.getFirst().getReceiver(), currentContext);
+        ExpressionTypingContext currentContext = context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(INDEPENDENT);
+
+        List<CallExpressionElement> elementChain =
+                qualifiedExpressionResolver.resolveQualifierInExpressionAndUnroll(expression, context);
+
+        CallExpressionElement firstElement = elementChain.iterator().next();
+        KotlinTypeInfo receiverTypeInfo = expressionTypingServices.getTypeInfo(firstElement.getReceiver(), currentContext);
         KotlinType receiverType = receiverTypeInfo.getType();
         DataFlowInfo receiverDataFlowInfo = receiverTypeInfo.getDataFlowInfo();
         KotlinTypeInfo resultTypeInfo = receiverTypeInfo;
@@ -351,15 +359,14 @@ public class CallExpressionResolver {
             Receiver receiver = qualifierReceiver == null ? new ExpressionReceiver(element.getReceiver(), receiverType) : qualifierReceiver;
 
             boolean lastStage = element.getQualified() == expression;
-            assert lastStage == (element == elementChain.getLast());
             // Drop NO_EXPECTED_TYPE / INDEPENDENT at last stage
             // But receiver data flow info changes should be always applied, while we are inside call chain
             ExpressionTypingContext baseContext = lastStage ? context : currentContext;
             currentContext = baseContext.replaceDataFlowInfo(receiverDataFlowInfo);
 
             KtExpression selectorExpression = element.getSelector();
-            KotlinTypeInfo selectorReturnTypeInfo = getSelectorReturnTypeInfo(
-                    receiver, element.getNode(), selectorExpression, currentContext);
+            KotlinTypeInfo selectorReturnTypeInfo =
+                    getSelectorReturnTypeInfo(receiver, element.getNode(), selectorExpression, currentContext);
             KotlinType selectorReturnType = selectorReturnTypeInfo.getType();
 
             resolveDeferredReceiverInQualifiedExpression(qualifierReceiver, element.getQualified(), currentContext);

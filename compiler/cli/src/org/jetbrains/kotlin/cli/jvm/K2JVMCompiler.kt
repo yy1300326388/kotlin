@@ -112,7 +112,7 @@ public open class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
                 configuration.addKotlinSourceRoot(arg)
                 val file = File(arg)
                 if (file.isDirectory()) {
-                    configuration.addJavaSourceRoot(file)
+                    configuration.addJavaSourceRoot(file, null)
                 }
             }
         }

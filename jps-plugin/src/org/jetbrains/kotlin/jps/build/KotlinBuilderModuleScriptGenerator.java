@@ -33,6 +33,7 @@ import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ModuleBuildTarget;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.kotlin.config.IncrementalCompilation;
+import org.jetbrains.kotlin.modules.JavaSourceRoot;
 import org.jetbrains.kotlin.modules.KotlinModuleXmlBuilder;
 
 import java.io.File;
@@ -127,13 +128,14 @@ public class KotlinBuilderModuleScriptGenerator {
     }
 
     @NotNull
-    private static List<File> findSourceRoots(@NotNull CompileContext context, @NotNull ModuleBuildTarget target) {
+    private static List<JavaSourceRoot> findSourceRoots(@NotNull CompileContext context, @NotNull ModuleBuildTarget target) {
         List<JavaSourceRootDescriptor> roots = context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context);
-        List<File> result = ContainerUtil.newArrayList();
+        List<JavaSourceRoot> result = ContainerUtil.newArrayList();
         for (JavaSourceRootDescriptor root : roots) {
             File file = root.getRootFile();
+            String prefix = root.getPackagePrefix();
             if (file.exists()) {
-                result.add(file);
+                result.add(new JavaSourceRoot(file, prefix.isEmpty() ? null : prefix));
             }
         }
         return result;

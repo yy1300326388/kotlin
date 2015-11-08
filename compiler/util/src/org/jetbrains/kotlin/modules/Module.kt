@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.modules
 
+import java.io.File
+
 public interface Module {
     public fun getModuleName(): String
 
@@ -27,5 +29,7 @@ public interface Module {
 
     public fun getClasspathRoots(): List<String>
 
-    public fun getJavaSourceRoots(): List<String>
+    public fun getJavaSourceRoots(): List<JavaSourceRoot>
 }
+
+data class JavaSourceRoot(val file: File, val packagePrefix: String? = null)

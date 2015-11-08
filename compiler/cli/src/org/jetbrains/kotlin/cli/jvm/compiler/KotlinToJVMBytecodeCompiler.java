@@ -49,6 +49,7 @@ import org.jetbrains.kotlin.idea.MainFunctionDetector;
 import org.jetbrains.kotlin.load.kotlin.ModuleVisibilityManager;
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCache;
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents;
+import org.jetbrains.kotlin.modules.JavaSourceRoot;
 import org.jetbrains.kotlin.modules.Module;
 import org.jetbrains.kotlin.modules.TargetId;
 import org.jetbrains.kotlin.modules.TargetIdKt;
@@ -183,8 +184,8 @@ public class KotlinToJVMBytecodeCompiler {
         }
 
         for (Module module : chunk) {
-            for (String javaSourceRoot : module.getJavaSourceRoots()) {
-                JvmContentRootsKt.addJavaSourceRoot(configuration, new File(javaSourceRoot));
+            for (JavaSourceRoot javaSourceRoot : module.getJavaSourceRoots()) {
+                JvmContentRootsKt.addJavaSourceRoot(configuration, javaSourceRoot.getFile(), javaSourceRoot.getPackagePrefix());
             }
         }
 

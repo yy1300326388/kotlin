@@ -43,7 +43,7 @@ public class KotlinModuleXmlBuilder {
             String moduleName,
             String outputDir,
             List<File> sourceFiles,
-            List<File> javaSourceRoots,
+            List<JavaSourceRoot> javaSourceRoots,
             Collection<File> classpathRoots,
             JavaModuleBuildTargetType targetType,
             Set<File> directoriesToFilterOut
@@ -100,10 +100,18 @@ public class KotlinModuleXmlBuilder {
         }
     }
 
-    private void processJavaSourceRoots(@NotNull List<File> files) {
+    private void processJavaSourceRoots(@NotNull List<JavaSourceRoot> roots) {
         p.println("<!-- Java source roots -->");
-        for (File file : files) {
-            p.println("<", JAVA_SOURCE_ROOTS, " ", PATH, "=\"", getEscapedPath(file), "\"/>");
+        for (JavaSourceRoot root : roots) {
+            p.print("<");
+            p.printWithNoIndent(JAVA_SOURCE_ROOTS, " ", PATH, "=\"", getEscapedPath(root.getFile()), "\"");
+
+            if (root.getPackagePrefix() != null) {
+                p.printWithNoIndent(" ", JAVA_SOURCE_PACKAGE_PREFIX, " ", "=\"", root.getPackagePrefix(), "\"");
+            }
+
+            p.printWithNoIndent("/>");
+            p.println();
         }
     }
 

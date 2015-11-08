@@ -76,7 +76,7 @@ public class MultiModuleJavaAnalysisCustomTest : UsefulTestCase() {
 
     private fun createEnvironment(moduleDirs: Array<File>): KotlinCoreEnvironment {
         val configuration = CompilerConfiguration()
-        configuration.addJavaSourceRoots(moduleDirs.toList())
+        configuration.addJavaSourceRoots(moduleDirs.toList(), null)
         return KotlinCoreEnvironment.createForTests(getTestRootDisposable()!!, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
     }
 

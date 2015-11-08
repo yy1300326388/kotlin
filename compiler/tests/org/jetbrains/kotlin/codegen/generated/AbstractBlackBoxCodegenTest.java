@@ -150,7 +150,7 @@ public abstract class AbstractBlackBoxCodegenTest extends CodegenTestCase {
         CompilerConfiguration configuration = KotlinTestUtils.compilerConfigurationForTests(
                 ConfigurationKind.ALL, TestJdkKind.MOCK_JDK, KotlinTestUtils.getAnnotationsJar()
         );
-        JvmContentRootsKt.addJavaSourceRoot(configuration, dirFile);
+        JvmContentRootsKt.addJavaSourceRoot(configuration, dirFile, null);
         myEnvironment = KotlinCoreEnvironment.createForTests(getTestRootDisposable(), configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES);
         loadFiles(ArrayUtil.toStringArray(ktFilePaths));
         classFileFactory =

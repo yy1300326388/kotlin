@@ -433,7 +433,7 @@ public class KotlinTestUtils {
             @NotNull List<File> javaSource
     ) {
         CompilerConfiguration configuration = new CompilerConfiguration();
-        JvmContentRootsKt.addJavaSourceRoots(configuration, javaSource);
+        JvmContentRootsKt.addJavaSourceRoots(configuration, javaSource, null);
         if (jdkKind == TestJdkKind.MOCK_JDK) {
             JvmContentRootsKt.addJvmClasspathRoot(configuration, findMockJdkRtJar());
         }

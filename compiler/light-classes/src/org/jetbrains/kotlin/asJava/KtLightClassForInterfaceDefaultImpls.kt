@@ -47,7 +47,5 @@ public open class KtLightClassForInterfaceDefaultImpls(
         throw IncorrectOperationException("Impossible to rename DefaultImpls")
     }
 
-    override fun getContainingClass(): PsiClass? {
-        return KtLightClassForExplicitDeclaration.create(classOrObject)
-    }
+    override fun getContainingClass() = KtLightClassForExplicitDeclaration.create(classOrObject)
 }

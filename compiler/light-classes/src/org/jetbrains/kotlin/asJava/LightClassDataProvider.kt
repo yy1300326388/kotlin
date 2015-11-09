@@ -143,6 +143,8 @@ abstract class LightClassDataProvider<T : WithFileStubAndExtraDiagnostics>(
             }
         }
 
+        fakeFile.isPhysical = false
+
         javaFileStub.setPsi(fakeFile)
         return javaFileStub
     }

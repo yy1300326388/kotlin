@@ -237,7 +237,7 @@ public open class KtLightClassForExplicitDeclaration(
             return create(containingClassOrObject)
         }
 
-        return super.getContainingClass()
+        return null
     }
 
     override fun getParent(): PsiElement? = _parent

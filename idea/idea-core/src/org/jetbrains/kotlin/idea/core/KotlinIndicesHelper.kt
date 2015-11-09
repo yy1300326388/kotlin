@@ -64,12 +64,7 @@ public class KotlinIndicesHelper(
         declarations.addTopLevelNonExtensionCallablesByName(KotlinFunctionShortNameIndex.getInstance(), name)
         declarations.addTopLevelNonExtensionCallablesByName(KotlinPropertyShortNameIndex.getInstance(), name)
         return declarations.flatMap {
-            if (it.getContainingJetFile().isCompiled()) { //TODO: it's temporary while resolveToDescriptor does not work for compiled declarations
-                resolutionFacade.resolveImportReference(moduleDescriptor, it.getFqName()!!).filterIsInstance<CallableDescriptor>()
-            }
-            else {
-                (resolutionFacade.resolveToDescriptor(it) as? CallableDescriptor).singletonOrEmptyList()
-            }
+            (resolutionFacade.resolveToDescriptor(it) as? CallableDescriptor).singletonOrEmptyList()
         }.filter { it.getExtensionReceiverParameter() == null && descriptorFilter(it) }
     }
 
@@ -146,17 +141,7 @@ public class KotlinIndicesHelper(
         }
 
         for (declaration in declarations) {
-            if (declaration.getContainingJetFile().isCompiled()) {
-                //TODO: it's temporary while resolveToDescriptor does not work for compiled declarations
-                for (descriptor in resolutionFacade.resolveImportReference(moduleDescriptor, declaration.getFqName()!!)) {
-                    if (descriptor is CallableDescriptor && descriptor.getExtensionReceiverParameter() != null) {
-                        processDescriptor(descriptor)
-                    }
-                }
-            }
-            else {
-                processDescriptor(resolutionFacade.resolveToDescriptor(declaration) as CallableDescriptor)
-            }
+            processDescriptor(resolutionFacade.resolveToDescriptor(declaration) as CallableDescriptor)
         }
 
         return result

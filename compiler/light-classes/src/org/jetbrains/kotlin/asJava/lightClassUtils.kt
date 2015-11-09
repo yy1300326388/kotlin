@@ -114,7 +114,7 @@ private fun hasNonAbstractMembers(ktInterface: KtClass): Boolean {
 
 private fun isNonAbstractMember(member: KtDeclaration?): Boolean {
     return (member is KtNamedFunction && member.hasBody()) ||
-           (member is KtProperty && (member.hasDelegateExpressionOrInitializer() || member.getter?.hasBody() ?: false))
+           (member is KtProperty && (member.hasDelegateExpressionOrInitializer() || member.getter?.hasBody() ?: false || member.setter?.hasBody() ?: false))
 }
 
 private val DEFAULT_IMPLS_CLASS_NAME = Name.identifier(JvmAbi.DEFAULT_IMPLS_CLASS_NAME)

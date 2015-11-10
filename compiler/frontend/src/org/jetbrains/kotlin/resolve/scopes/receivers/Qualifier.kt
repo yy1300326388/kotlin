@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.resolve.scopes.utils.memberScopeAsImportingScope
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
 import org.jetbrains.kotlin.utils.addIfNotNull
 import java.util.*
-import kotlin.properties.Delegates
 
 public interface Qualifier: Receiver {
 
@@ -143,11 +142,7 @@ class ClassQualifier(
     override fun toString() = "Class{$classifier}"
 }
 
-fun createQualifier(
-        expression: KtSimpleNameExpression,
-        receiver: Receiver,
-        context: ExpressionTypingContext
-): QualifierReceiver? {
+fun createQualifier(expression: KtSimpleNameExpression, receiver: Receiver, context: ExpressionTypingContext): QualifierReceiver? {
     val receiverScope = when {
         !receiver.exists() -> context.scope
         receiver is QualifierReceiver -> receiver.scope.memberScopeAsImportingScope()

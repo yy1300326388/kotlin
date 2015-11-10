@@ -12939,6 +12939,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("implicitReceiverProperty.kt")
+            public void testImplicitReceiverProperty() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/implicitReceiverProperty.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("incompleteConstructorInvocation.kt")
             public void testIncompleteConstructorInvocation() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/incompleteConstructorInvocation.kt");

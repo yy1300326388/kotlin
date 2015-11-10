@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.resolve.calls;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
@@ -329,17 +330,39 @@ public class CallExpressionResolver {
      */
     @NotNull
     public KotlinTypeInfo getQualifiedExpressionTypeInfo(
-            @NotNull KtQualifiedExpression expression, @NotNull ExpressionTypingContext context
+            @NotNull KtQualifiedExpression expression, @NotNull final ExpressionTypingContext context
     ) {
         ExpressionTypingContext currentContext = context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(INDEPENDENT);
 
+        Function1<KtExpression, Boolean> isValueFunction = new Function1<KtExpression, Boolean>() {
+            @Override
+            public Boolean invoke(KtExpression expression) {
+                KotlinType expressionType = expressionTypingServices.getType(
+                        context.scope, expression, NO_EXPECTED_TYPE, context.dataFlowInfo, context.trace);
+                return expressionType != null;
+            }
+        };
         List<CallExpressionElement> elementChain =
-                qualifiedExpressionResolver.resolveQualifierInExpressionAndUnroll(expression, context);
+                qualifiedExpressionResolver.resolveQualifierInExpressionAndUnroll(expression, context, isValueFunction);
+
+        KotlinTypeInfo receiverTypeInfo;
+        KotlinType receiverType;
+        DataFlowInfo receiverDataFlowInfo;
 
         CallExpressionElement firstElement = elementChain.iterator().next();
-        KotlinTypeInfo receiverTypeInfo = expressionTypingServices.getTypeInfo(firstElement.getReceiver(), currentContext);
-        KotlinType receiverType = receiverTypeInfo.getType();
-        DataFlowInfo receiverDataFlowInfo = receiverTypeInfo.getDataFlowInfo();
+        Qualifier firstQualifier = context.trace.get(BindingContext.QUALIFIER, firstElement.getReceiver());
+        if (firstQualifier == null) {
+            receiverTypeInfo = expressionTypingServices.getTypeInfo(firstElement.getReceiver(), currentContext);
+            receiverType = receiverTypeInfo.getType();
+            receiverDataFlowInfo = receiverTypeInfo.getDataFlowInfo();
+        }
+        else {
+            receiverType = null;
+            receiverDataFlowInfo = currentContext.dataFlowInfo;
+            //noinspection ConstantConditions
+            receiverTypeInfo = new KotlinTypeInfo(receiverType, receiverDataFlowInfo);
+        }
+
         KotlinTypeInfo resultTypeInfo = receiverTypeInfo;
 
         boolean unconditional = true;

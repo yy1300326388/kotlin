@@ -28,14 +28,11 @@ import org.jetbrains.kotlin.resolve.calls.unrollToLeftMostQualifiedExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.ImportingScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
-import org.jetbrains.kotlin.resolve.scopes.receivers.PackageQualifier
-import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
-import org.jetbrains.kotlin.resolve.scopes.receivers.createClassifierQualifier
-import org.jetbrains.kotlin.resolve.scopes.utils.findClassifier
+import org.jetbrains.kotlin.resolve.scopes.receivers.*
+import org.jetbrains.kotlin.resolve.scopes.utils.*
 import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.resolve.validation.SymbolUsageValidator
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
-import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.check
 
@@ -380,6 +377,37 @@ public class QualifiedExpressionResolver(val symbolUsageValidator: SymbolUsageVa
         return Pair(currentDescriptor, path.size)
     }
 
+    public fun resolveNameExpressionAsQualifierForDiagnostics(
+            expression: KtSimpleNameExpression,
+            receiver: Receiver,
+            context: ExpressionTypingContext
+    ): Qualifier? {
+        val name = expression.getReferencedNameAsName()
+
+        val qualifier = when (receiver) {
+            is PackageQualifier -> {
+                val childPackageFQN = receiver.packageView.fqName.child(name)
+                val childPackageDescriptor = receiver.packageView.module.getPackage(childPackageFQN).check { !it.isEmpty() }
+                if (childPackageDescriptor != null)
+                    PackageQualifier(expression, childPackageDescriptor)
+                else
+                    receiver.packageView.memberScope.getContributedClassifier(name, KotlinLookupLocation(expression))?.let {
+                        createClassifierQualifier(expression, it)
+                    }
+            }
+            is ClassQualifier ->
+                receiver.scope.getContributedClassifier(name, KotlinLookupLocation(expression))?.let {
+                    createClassifierQualifier(expression, it)
+                }
+            else -> null
+        }
+
+        if (qualifier != null) {
+            storeResult(context.trace, expression, qualifier.descriptor, context.scope.ownerDescriptor, QualifierPosition.EXPRESSION)
+        }
+
+        return qualifier
+    }
 
     public fun resolveQualifierInExpressionAndUnroll(
             expression: KtQualifiedExpression,
@@ -399,11 +427,11 @@ public class QualifiedExpressionResolver(val symbolUsageValidator: SymbolUsageVa
                 isValue = isValue
         ).second
 
-        val firstExpressionAfterQualifierIndex =
+        val nextExpressionIndexAfterQualifier =
                 if (nextIndexAfterPrefix == 0) 0 else nextIndexAfterPrefix - 1
 
         return qualifiedExpressions
-                .subList(firstExpressionAfterQualifierIndex, qualifiedExpressions.size)
+                .subList(nextExpressionIndexAfterQualifier, qualifiedExpressions.size)
                 .map { CallExpressionElement(it) }
     }
 

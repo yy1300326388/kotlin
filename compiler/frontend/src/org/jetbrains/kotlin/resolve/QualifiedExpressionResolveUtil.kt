@@ -23,15 +23,15 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.hasClassObjectType
 import org.jetbrains.kotlin.resolve.scopes.receivers.ClassQualifier
 import org.jetbrains.kotlin.resolve.scopes.receivers.ClassifierQualifier
 import org.jetbrains.kotlin.resolve.scopes.receivers.PackageQualifier
-import org.jetbrains.kotlin.resolve.scopes.receivers.QualifierReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.Qualifier
 import org.jetbrains.kotlin.resolve.validation.SymbolUsageValidator
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
 
 
-public fun resolveAsReceiverInQualifiedExpression(
-        qualifier: QualifierReceiver,
-        context: ExpressionTypingContext,
+public fun resolveQualifierAsReceiverInExpression(
+        qualifier: Qualifier,
         selector: DeclarationDescriptor?,
+        context: ExpressionTypingContext,
         symbolUsageValidator: SymbolUsageValidator
 ) {
     resolveAndRecordReferenceTarget(qualifier, context, selector, symbolUsageValidator)
@@ -47,8 +47,8 @@ public fun resolveAsReceiverInQualifiedExpression(
     }
 }
 
-public fun resolveAsStandaloneExpression(
-        qualifier: QualifierReceiver,
+public fun resolveQualifierAsStandaloneExpression(
+        qualifier: Qualifier,
         context: ExpressionTypingContext,
         symbolUsageValidator: SymbolUsageValidator
 ) {
@@ -69,7 +69,7 @@ public fun resolveAsStandaloneExpression(
 }
 
 private fun resolveAndRecordReferenceTarget(
-        qualifier: QualifierReceiver,
+        qualifier: Qualifier,
         context: ExpressionTypingContext,
         selector: DeclarationDescriptor?,
         symbolUsageValidator: SymbolUsageValidator
@@ -79,7 +79,7 @@ private fun resolveAndRecordReferenceTarget(
 }
 
 private fun resolveReferenceTarget(
-        qualifier: QualifierReceiver,
+        qualifier: Qualifier,
         context: ExpressionTypingContext,
         selector: DeclarationDescriptor?,
         symbolUsageValidator: SymbolUsageValidator

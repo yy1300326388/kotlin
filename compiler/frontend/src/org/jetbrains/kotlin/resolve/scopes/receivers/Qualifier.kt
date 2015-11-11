@@ -24,7 +24,9 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext.QUALIFIER
 import org.jetbrains.kotlin.resolve.bindingContextUtil.recordScope
+import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.classObjectType
+import org.jetbrains.kotlin.resolve.descriptorUtil.hasClassObjectType
 import org.jetbrains.kotlin.resolve.scopes.ChainedScope
 import org.jetbrains.kotlin.resolve.scopes.FilteringScope
 import org.jetbrains.kotlin.resolve.scopes.JetScopeUtils
@@ -140,40 +142,6 @@ class ClassQualifier(
             classifier.classObjectType?.let { ExpressionReceiver(referenceExpression, it) } ?: ReceiverValue.NO_RECEIVER
 
     override fun toString() = "Class{$classifier}"
-}
-
-fun createQualifier(expression: KtSimpleNameExpression, receiver: Receiver, context: ExpressionTypingContext): QualifierReceiver? {
-    val receiverScope = when {
-        !receiver.exists() -> context.scope
-        receiver is QualifierReceiver -> receiver.scope.memberScopeAsImportingScope()
-        receiver is ReceiverValue -> receiver.type.memberScope.memberScopeAsImportingScope()
-        else -> throw IllegalArgumentException("Unexpected receiver kind: $receiver")
-    }
-
-    val name = expression.getReferencedNameAsName()
-    val packageViewDescriptor = receiverScope.findPackage(name)
-    val classifierDescriptor = receiverScope.findClassifier(name, KotlinLookupLocation(expression))
-
-    if (packageViewDescriptor == null && classifierDescriptor == null) return null
-
-    context.trace.recordScope(context.scope, expression)
-
-    val qualifier =
-            if (receiver is PackageQualifier) {
-                if (packageViewDescriptor != null)
-                    PackageQualifier(expression, packageViewDescriptor)
-                else
-                    createClassifierQualifier(expression, classifierDescriptor!!)
-            }
-            else {
-                if (classifierDescriptor != null)
-                    createClassifierQualifier(expression, classifierDescriptor)
-                else
-                    PackageQualifier(expression, packageViewDescriptor!!)
-            }
-
-    context.trace.record(QUALIFIER, qualifier.expression, qualifier)
-    return qualifier
 }
 
 fun createClassifierQualifier(expression: KtSimpleNameExpression, classifier: ClassifierDescriptor): ClassifierQualifier =

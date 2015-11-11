@@ -4761,6 +4761,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("companionObjectUsage.kt")
+            public void testCompanionObjectUsage() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/deprecated/companionObjectUsage.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("componentUsage.kt")
             public void testComponentUsage() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/deprecated/componentUsage.kt");
@@ -13056,6 +13062,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("constructorVsCompanion.kt")
+            public void testConstructorVsCompanion() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/constructorVsCompanion.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("CycleInTypeArgs.kt")
             public void testCycleInTypeArgs() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/CycleInTypeArgs.kt");
@@ -13089,6 +13101,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
             @TestMetadata("inferenceInLinkedLambdasDependentOnExpectedType.kt")
             public void testInferenceInLinkedLambdasDependentOnExpectedType() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/inferenceInLinkedLambdasDependentOnExpectedType.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("localObject.kt")
+            public void testLocalObject() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/localObject.kt");
                 doTest(fileName);
             }
 

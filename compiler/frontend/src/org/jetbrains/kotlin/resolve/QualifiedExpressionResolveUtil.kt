@@ -18,12 +18,15 @@ package org.jetbrains.kotlin.resolve
 
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.incremental.KotlinLookupLocation
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.classObjectType
 import org.jetbrains.kotlin.resolve.descriptorUtil.hasClassObjectType
-import org.jetbrains.kotlin.resolve.scopes.receivers.ClassQualifier
-import org.jetbrains.kotlin.resolve.scopes.receivers.ClassifierQualifier
-import org.jetbrains.kotlin.resolve.scopes.receivers.PackageQualifier
-import org.jetbrains.kotlin.resolve.scopes.receivers.QualifierReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.*
+import org.jetbrains.kotlin.resolve.scopes.utils.findClassifier
+import org.jetbrains.kotlin.resolve.scopes.utils.findPackage
+import org.jetbrains.kotlin.resolve.scopes.utils.memberScopeAsImportingScope
 import org.jetbrains.kotlin.resolve.validation.SymbolUsageValidator
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
 
@@ -44,27 +47,6 @@ public fun resolveAsReceiverInQualifiedExpression(
         else if (classifier is ClassDescriptor && classifier.hasClassObjectType) {
             context.trace.recordType(qualifier.expression, classifier.classObjectType)
         }
-    }
-}
-
-public fun resolveAsStandaloneExpression(
-        qualifier: QualifierReceiver,
-        context: ExpressionTypingContext,
-        symbolUsageValidator: SymbolUsageValidator
-) {
-    resolveAndRecordReferenceTarget(qualifier, context, selector = null, symbolUsageValidator = symbolUsageValidator)
-
-    if (qualifier is ClassifierQualifier) {
-        val classifier = qualifier.classifier
-        if (classifier is TypeParameterDescriptor) {
-            context.trace.report(Errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.referenceExpression, classifier))
-        }
-        else if (classifier is ClassDescriptor && !classifier.hasClassObjectType) {
-            context.trace.report(Errors.NO_COMPANION_OBJECT.on(qualifier.referenceExpression, classifier))
-        }
-    }
-    else if (qualifier is PackageQualifier) {
-        context.trace.report(Errors.EXPRESSION_EXPECTED_PACKAGE_FOUND.on(qualifier.referenceExpression))
     }
 }
 

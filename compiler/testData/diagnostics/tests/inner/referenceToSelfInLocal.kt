@@ -14,7 +14,7 @@ fun f() {
 
     <!LOCAL_OBJECT_NOT_ALLOWED!>object MyObject<!> {
         init {
-            val obj: MyObject = MyObject
+            val obj: MyObject = <!UNRESOLVED_REFERENCE!>MyObject<!>
         }
     }
 

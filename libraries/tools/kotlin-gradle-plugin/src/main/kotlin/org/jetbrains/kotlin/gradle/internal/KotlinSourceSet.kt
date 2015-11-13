@@ -7,19 +7,15 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.util.ConfigureUtil
 
 interface KotlinSourceSet {
-
     fun getKotlin(): SourceDirectorySet
     fun kotlin(configureClosure: Closure<Any?>?): KotlinSourceSet
-
 }
 
-
 open class KotlinSourceSetImpl(displayName: String?, resolver: FileResolver?): KotlinSourceSet {
-
     private val kotlin: DefaultSourceDirectorySet = DefaultSourceDirectorySet(displayName + " Kotlin source", resolver)
 
     init {
-        kotlin.getFilter()?.include("**/*.java", "**/*.kt")
+        kotlin.filter?.include("**/*.java", "**/*.kt")
     }
 
     override fun getKotlin(): SourceDirectorySet {

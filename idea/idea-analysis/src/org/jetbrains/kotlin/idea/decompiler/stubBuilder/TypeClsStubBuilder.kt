@@ -50,13 +50,18 @@ class TypeClsStubBuilder(private val c: ClsStubBuilderContext) {
             val isTopLevelClass = !it.isNestedClass()
             isTopLevelClass && it.asSingleFqName() in JvmAnnotationNames.ANNOTATIONS_COPIED_TO_TYPES
         }
+        if (type.getNullable()) {
+            createTypeAnnotationStubs(typeReference, annotations)
+        }
 
         val effectiveParent =
                 if (type.getNullable()) KotlinPlaceHolderStubImpl<KtNullableType>(typeReference, KtStubElementTypes.NULLABLE_TYPE)
                 else typeReference
 
         fun createTypeParameterStub(name: Name) {
-            createTypeAnnotationStubs(effectiveParent, annotations)
+            if (!type.getNullable()) {
+                createTypeAnnotationStubs(typeReference, annotations)
+            }
             createStubForTypeName(ClassId.topLevel(FqName.topLevel(name)), effectiveParent)
         }
 
@@ -85,7 +90,9 @@ class TypeClsStubBuilder(private val c: ClsStubBuilderContext) {
             createFunctionTypeStub(parent, type, extension)
             return
         }
-        createTypeAnnotationStubs(parent, annotations)
+        if (!type.nullable) {
+            createTypeAnnotationStubs(parent, annotations)
+        }
         val outerTypeChain = sequence(type) { it.outerType(c.typeTable) }.toList()
 
         createStubForTypeName(classId, parent) {

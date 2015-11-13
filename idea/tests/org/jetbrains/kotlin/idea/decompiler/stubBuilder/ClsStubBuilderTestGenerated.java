@@ -41,6 +41,12 @@ public class ClsStubBuilderTestGenerated extends AbstractClsStubBuilderTest {
         doTest(fileName);
     }
 
+    @TestMetadata("AnnotatedTypes")
+    public void testAnnotatedTypes() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/stubBuilder/AnnotatedTypes/");
+        doTest(fileName);
+    }
+
     @TestMetadata("AnnotationClass")
     public void testAnnotationClass() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea/testData/decompiler/stubBuilder/AnnotationClass/");

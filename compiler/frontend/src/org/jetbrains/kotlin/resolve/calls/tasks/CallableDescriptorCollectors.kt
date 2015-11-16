@@ -169,6 +169,7 @@ private object VariableCollector : CallableDescriptorCollector<VariableDescripto
     override fun getLocalNonExtensionsByName(lexicalScope: LexicalScope, name: Name, location: LookupLocation): Collection<VariableDescriptor> {
         val result = SmartList<VariableDescriptor>()
         result.addIfNotNull(lexicalScope.findLocalVariable(name))
+        // Although local objects are prohibited, we'll include objects declared in current scope so that their usages are still resolved.
         result.addIfNotNull(getContributedFakeDescriptorForObject(lexicalScope, name, location))
         return result
     }

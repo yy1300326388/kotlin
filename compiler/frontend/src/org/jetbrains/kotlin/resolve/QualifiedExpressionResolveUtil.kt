@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.resolve
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.resolve.descriptorUtil.classObjectType
-import org.jetbrains.kotlin.resolve.descriptorUtil.hasClassObjectType
 import org.jetbrains.kotlin.resolve.scopes.receivers.ClassQualifier
 import org.jetbrains.kotlin.resolve.scopes.receivers.ClassifierQualifier
 import org.jetbrains.kotlin.resolve.scopes.receivers.PackageQualifier
@@ -94,19 +93,18 @@ private fun resolveQualifierReferenceTarget(
     // TODO make decisions about short reference to companion object somewhere else
     if (qualifier is ClassQualifier) {
         val classifier = qualifier.classifier
-        if (selector is CallableDescriptor &&
-            (selector.dispatchReceiverParameter != null || selector.extensionReceiverParameter != null) &&
-            classifier is ClassDescriptor &&
-            classifier.hasClassObjectType
-        ) {
-            val companionObjectDescriptor = classifier.companionObjectDescriptor
-            if (companionObjectDescriptor != null) {
-                context.trace.record(BindingContext.REFERENCE_TARGET, qualifier.referenceExpression, companionObjectDescriptor)
+        val selectorIsCallable = selector is CallableDescriptor &&
+                                 (selector.dispatchReceiverParameter != null || selector.extensionReceiverParameter != null)
+        val classObjectType = classifier.classObjectType
+        if (selectorIsCallable && classObjectType != null) {
+            val classObjectDescriptor = DescriptorUtils.getClassDescriptorForType(classObjectType)
+            context.trace.record(BindingContext.REFERENCE_TARGET, qualifier.referenceExpression, classObjectDescriptor)
+            context.trace.recordType(qualifier.expression, classObjectType)
+            if (classifier.companionObjectDescriptor != null) {
                 context.trace.record(BindingContext.SHORT_REFERENCE_TO_COMPANION_OBJECT, qualifier.referenceExpression, classifier)
-                context.trace.recordType(qualifier.expression, classifier.classObjectType)
-                symbolUsageValidator.validateTypeUsage(companionObjectDescriptor, context.trace, qualifier.referenceExpression)
-                return companionObjectDescriptor
+                symbolUsageValidator.validateTypeUsage(classObjectDescriptor, context.trace, qualifier.referenceExpression)
             }
+            return classObjectDescriptor
         }
     }
 

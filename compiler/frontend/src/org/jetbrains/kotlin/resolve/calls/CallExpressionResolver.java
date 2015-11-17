@@ -177,11 +177,13 @@ public class CallExpressionResolver {
                 call, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, result);
         if (result[0]) {
             FunctionDescriptor functionDescriptor = resolvedCall != null ? resolvedCall.getResultingDescriptor() : null;
-            temporaryForFunction.commit();
-            boolean hasValueParameters = functionDescriptor == null || functionDescriptor.getValueParameters().size() > 0;
-            context.trace.report(FUNCTION_CALL_EXPECTED.on(nameExpression, nameExpression, hasValueParameters));
-            type = functionDescriptor != null ? functionDescriptor.getReturnType() : null;
-            return TypeInfoFactoryKt.createTypeInfo(type, context);
+            if (!(functionDescriptor instanceof ConstructorDescriptor)) {
+                temporaryForFunction.commit();
+                boolean hasValueParameters = functionDescriptor == null || functionDescriptor.getValueParameters().size() > 0;
+                context.trace.report(FUNCTION_CALL_EXPECTED.on(nameExpression, nameExpression, hasValueParameters));
+                type = functionDescriptor != null ? functionDescriptor.getReturnType() : null;
+                return TypeInfoFactoryKt.createTypeInfo(type, context);
+            }
         }
 
         TemporaryTraceAndCache temporaryForQualifier = TemporaryTraceAndCache.create(context, "trace to resolve as qualifier", nameExpression);

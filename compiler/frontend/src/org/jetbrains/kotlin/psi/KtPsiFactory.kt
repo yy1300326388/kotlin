@@ -39,6 +39,9 @@ public var KtFile.doNotAnalyze: String? by UserDataProperty(Key.create("DO_NOT_A
 public var KtFile.analysisContext: PsiElement? by UserDataProperty(Key.create("ANALYSIS_CONTEXT"))
 public var KtFile.moduleInfo: ModuleInfo? by UserDataProperty(Key.create("MODULE_INFO"))
 
+private val DO_NOT_ANALYZE_COMMENT = "This file was created by KtPsiFactory and should not be analyzed\n" +
+                                     "Use createAnalyzableFile to create file that can be analyzed\n"
+
 public class KtPsiFactory(private val project: Project) {
 
     public fun createValKeyword(): PsiElement {
@@ -149,12 +152,9 @@ public class KtPsiFactory(private val project: Project) {
     }
 
     public fun createFile(fileName: String, text: String): KtFile {
-        val file = doCreateFile(fileName, text)
-
-        file.doNotAnalyze = "This file was created by KtPsiFactory and should not be analyzed\n" +
-                            "Use createAnalyzableFile to create file that can be analyzed\n"
-
-        return file
+        return doCreateFile(fileName, text).apply {
+            doNotAnalyze = DO_NOT_ANALYZE_COMMENT
+        }
     }
 
     public fun createAnalyzableFile(fileName: String, text: String, contextToAnalyzeIn: PsiElement): KtFile {

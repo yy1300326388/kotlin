@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.types.Variance.*
 import org.jetbrains.kotlin.types.typeUtil.createProjection
 import org.jetbrains.kotlin.types.typeUtil.replaceAnnotations
 import org.jetbrains.kotlin.utils.sure
+import org.jetbrains.kotlin.utils.toReadOnlyList
 
 private val JAVA_LANG_CLASS_FQ_NAME: FqName = FqName("java.lang.Class")
 
@@ -226,7 +227,7 @@ class LazyJavaTypeResolver(
                                     ErrorUtils.createErrorTypeParameter(i, "#$i for ${typeConstructor}")
                                 else typeParameters[i]
                 transformToTypeProjection(t, howTheProjectionIsUsed.toAttributes(), parameter)
-            }.toList()
+            }.toReadOnlyList()
         }
 
         private fun transformToTypeProjection(

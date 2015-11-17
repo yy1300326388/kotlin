@@ -207,7 +207,7 @@ public abstract class LazyJavaScope(protected val c: LazyJavaResolverContext) : 
                     varargElementType,
                     c.components.sourceElementFactory.source(javaParameter)
             )
-        }.toList()
+        }.toReadOnlyList()
         return ResolvedValueParameters(descriptors, synthesizedNames)
     }
 

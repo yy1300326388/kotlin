@@ -39,6 +39,10 @@ public class DescriptorSubstitutor {
             @NotNull DeclarationDescriptor newContainingDeclaration,
             @NotNull @Mutable List<TypeParameterDescriptor> result
     ) {
+        if (typeParameters.isEmpty()) {
+            return originalSubstitution.buildSubstitutor();
+        }
+
         Map<TypeConstructor, TypeProjection> mutableSubstitution = new HashMap<TypeConstructor, TypeProjection>();
 
         Map<TypeParameterDescriptor, TypeParameterDescriptorImpl> substitutedMap = new HashMap<TypeParameterDescriptor, TypeParameterDescriptorImpl>();

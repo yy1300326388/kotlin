@@ -175,7 +175,7 @@ public class IncrementalCacheImpl(
                 packagePartMap.addPackagePart(className)
 
                 protoMap.process(kotlinClass, isPackage = true) +
-                constantsMap.process(kotlinClass) +
+                constantsMap.process(kotlinClass, isPackage = true) +
                 inlineFunctionsMap.process(kotlinClass, isPackage = true)
             }
             header.isCompatibleMultifileClassKind() -> {
@@ -184,7 +184,7 @@ public class IncrementalCacheImpl(
                 multifileClassFacadeMap.add(className, partNames)
 
                 // TODO NO_CHANGES? (delegates only)
-                constantsMap.process(kotlinClass) +
+                constantsMap.process(kotlinClass, isPackage = true) +
                 inlineFunctionsMap.process(kotlinClass, isPackage = true)
             }
             header.isCompatibleMultifileClassPartKind() -> {
@@ -193,14 +193,14 @@ public class IncrementalCacheImpl(
                 multifileClassPartMap.add(className.internalName, header.multifileClassName!!)
 
                 protoMap.process(kotlinClass, isPackage = true) +
-                constantsMap.process(kotlinClass) +
+                constantsMap.process(kotlinClass, isPackage = true) +
                 inlineFunctionsMap.process(kotlinClass, isPackage = true)
             }
             header.isCompatibleClassKind() && !header.isLocalClass -> {
                 addToClassStorage(kotlinClass)
 
                 protoMap.process(kotlinClass, isPackage = false) +
-                constantsMap.process(kotlinClass) +
+                constantsMap.process(kotlinClass, isPackage = true) +
                 inlineFunctionsMap.process(kotlinClass, isPackage = false)
             }
             else -> CompilationResult.NO_CHANGES
@@ -416,12 +416,12 @@ public class IncrementalCacheImpl(
         operator fun contains(className: JvmClassName): Boolean =
                 className.internalName in storage
 
-        public fun process(kotlinClass: LocalFileKotlinClass): CompilationResult {
-            return put(kotlinClass.className, getConstantsMap(kotlinClass.fileContents))
+        public fun process(kotlinClass: LocalFileKotlinClass, isPackage: Boolean): CompilationResult {
+            return put(kotlinClass.className, getConstantsMap(kotlinClass.fileContents), isPackage)
         }
 
-        private fun put(className: JvmClassName, constantsMap: Map<String, Any>?): CompilationResult {
-            val key = className.getInternalName()
+        private fun put(className: JvmClassName, constantsMap: Map<String, Any>?, isPackage: Boolean): CompilationResult {
+            val key = className.internalName
 
             val oldMap = storage[key]
             if (oldMap == constantsMap) return CompilationResult.NO_CHANGES
@@ -433,11 +433,23 @@ public class IncrementalCacheImpl(
                 storage.remove(key)
             }
 
-            return CompilationResult(constantsChanged = true)
+            val changes =
+                    if (IncrementalCompilation.isExperimental()) {
+                        val changedNames = ((oldMap?.entries ?: emptySet()) - (constantsMap?.entries ?: emptySet())).map { it.key }
+
+                        val fqName = if (isPackage) className.packageFqName else className.fqNameForClassNameWithoutDollars
+
+                        sequenceOf(ChangeInfo.MembersChanged(fqName, changedNames))
+                    }
+                    else {
+                        emptySequence<ChangeInfo>()
+                    }
+
+            return CompilationResult(constantsChanged = true, changes = changes)
         }
 
         public fun remove(className: JvmClassName) {
-            put(className, null)
+            storage.remove(className.internalName)
         }
 
         override fun dumpValue(value: Map<String, Any>): String =

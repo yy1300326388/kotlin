@@ -38,7 +38,7 @@ abstract class AbstractBeforeExtractFunctionInsertionTest : LightCodeInsightTest
 
         val fragmentFile = KotlinTestUtils.createFile("${myFile.name}fragment.kt", FileUtil.loadFile(File(path + ".fragment"), true), getProject())
 
-        val imports = fragmentFile.importList?.text ?: ""
+        val imports = fragmentFile.importList.text
         val allText = fragmentFile.text
         val fragmentText = if (imports.isBlank()) allText else allText.substringAfter(imports, allText)
 

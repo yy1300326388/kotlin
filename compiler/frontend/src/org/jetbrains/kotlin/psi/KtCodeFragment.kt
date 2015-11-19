@@ -109,12 +109,12 @@ public abstract class KtCodeFragment(
         add(tempElement).delete()
     }
 
-    public fun importsAsImportList(): KtImportList? {
-        return KtPsiFactory(this).createFile(imports.joinToString("\n")).getImportList()
+    public fun importsAsImportList(): KtImportList {
+        return KtPsiFactory(this).createFile(imports.joinToString("\n")).importList
     }
 
     override fun getImportDirectives(): List<KtImportDirective> {
-        return importsAsImportList()?.imports ?: emptyList()
+        return importsAsImportList().imports
     }
 
     override fun setVisibilityChecker(checker: JavaCodeFragment.VisibilityChecker?) { }

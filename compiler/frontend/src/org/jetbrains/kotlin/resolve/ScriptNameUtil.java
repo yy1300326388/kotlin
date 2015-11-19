@@ -47,7 +47,7 @@ public class ScriptNameUtil {
         name = Character.toUpperCase(name.charAt(0)) + (name.length() == 0 ? "" : name.substring(1));
         name = name.replace('.', '_');
         KtPackageDirective directive = file.getPackageDirective();
-        if(directive != null && directive.getQualifiedName().length() > 0) {
+        if (directive.getQualifiedName().length() > 0) {
             name = directive.getQualifiedName() + "." + name;
         }
         return new FqName(name);

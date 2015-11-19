@@ -45,8 +45,7 @@ private fun KtFile.aliasImportMap(): Multimap<String, String> {
 
 private fun KtFile.buildAliasImportMap(): Multimap<String, String> {
     val map = HashMultimap.create<String, String>()
-    val importList = getImportList() ?: return map
-    for (import in importList.getImports()) {
+    for (import in importList.imports) {
         val aliasName = import.getAliasName() ?: continue
         val name = import.getImportPath()?.fqnPart()?.shortName()?.asString() ?: continue
         map.put(aliasName, name)

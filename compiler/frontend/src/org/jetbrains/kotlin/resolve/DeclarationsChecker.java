@@ -30,7 +30,10 @@ import org.jetbrains.kotlin.diagnostics.Errors;
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.psi.*;
-import org.jetbrains.kotlin.types.*;
+import org.jetbrains.kotlin.types.KotlinType;
+import org.jetbrains.kotlin.types.SubstitutionUtils;
+import org.jetbrains.kotlin.types.TypeProjection;
+import org.jetbrains.kotlin.types.TypeUtils;
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 import org.jetbrains.kotlin.types.typeUtil.TypeUtilsKt;
 
@@ -129,8 +132,6 @@ public class DeclarationsChecker {
 
     private void checkModifiersAndAnnotationsInPackageDirective(KtFile file) {
         KtPackageDirective packageDirective = file.getPackageDirective();
-        if (packageDirective == null) return;
-
         KtModifierList modifierList = packageDirective.getModifierList();
         if (modifierList == null) return;
 

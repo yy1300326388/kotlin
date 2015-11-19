@@ -36,8 +36,8 @@ public class KotlinChangePackageRefactoring(val file: KtFile) {
     private val project = file.getProject()
 
     fun run(newFqName: FqName) {
-        val packageDirective = file.getPackageDirective() ?: return
-        val currentFqName = packageDirective.getFqName()
+        val packageDirective = file.packageDirective
+        val currentFqName = packageDirective.fqName
 
         val declarationProcessor = MoveKotlinTopLevelDeclarationsProcessor(
                 project,

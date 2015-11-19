@@ -30,8 +30,7 @@ import org.jetbrains.kotlin.idea.core.refactoring.invokeOnceOnCommandFinish
 import org.jetbrains.kotlin.idea.refactoring.move.moveTopLevelDeclarations.MoveKotlinTopLevelDeclarationsProcessor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
-import java.util.ArrayList
-import java.util.HashMap
+import java.util.*
 
 public class KotlinMoveDirectoryWithClassesHelper : MoveDirectoryWithClassesHelper() {
     private class FileUsagesWrapper(
@@ -89,7 +88,7 @@ public class KotlinMoveDirectoryWithClassesHelper : MoveDirectoryWithClassesHelp
         moveContextMap[file] = MoveContext(moveDestination,
                                            fileHandler.findInternalUsages(file, moveDestination),
                                            moveDeclarationsProcessor)
-        moveDestination.getPackage()?.let { newPackage -> file.packageDirective?.fqName = FqName(newPackage.qualifiedName) }
+        moveDestination.getPackage()?.let { newPackage -> file.packageDirective.fqName = FqName(newPackage.qualifiedName) }
         return true
     }
 

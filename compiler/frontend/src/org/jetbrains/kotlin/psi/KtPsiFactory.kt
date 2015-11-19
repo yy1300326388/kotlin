@@ -292,7 +292,7 @@ public class KtPsiFactory(private val project: Project) {
     }
 
     public fun createPackageDirective(fqName: FqName): KtPackageDirective {
-        return createFile("package ${fqName.asString()}").getPackageDirective()!!
+        return createFile("package ${fqName.asString()}").packageDirective
     }
 
     public fun createPackageDirectiveIfNeeded(fqName: FqName): KtPackageDirective? {

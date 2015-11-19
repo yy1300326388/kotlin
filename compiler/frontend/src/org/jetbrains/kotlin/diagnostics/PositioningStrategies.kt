@@ -204,7 +204,7 @@ public object PositioningStrategies {
         override fun mark(element: PsiElement): List<TextRange> {
             val nameIdentifier = when (element) {
                 is KtNamedDeclaration -> element.getNameIdentifier()
-                is KtFile -> element.getPackageDirective()!!.getNameIdentifier()
+                is KtFile -> element.packageDirective.nameIdentifier
                 else -> null
             }
 

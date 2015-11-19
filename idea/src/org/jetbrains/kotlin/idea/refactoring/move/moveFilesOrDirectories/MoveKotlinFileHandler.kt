@@ -24,7 +24,6 @@ import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectori
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.codeInsight.shorten.runWithElementsToShortenIsEmptyIgnored
-import org.jetbrains.kotlin.idea.core.KotlinNameSuggester
 import org.jetbrains.kotlin.idea.core.getPackage
 import org.jetbrains.kotlin.idea.core.packageMatchesDirectory
 import org.jetbrains.kotlin.idea.core.refactoring.hasIdentifiersOnly
@@ -129,7 +128,7 @@ public class MoveKotlinFileHandler : MoveFileHandler() {
         val packageNameInfo = file.getPackageNameInfo(newDirectory, true) ?: return
         val newPackageName = packageNameInfo.newPackageName
         assert(newPackageName.isSafe) { newPackageName }
-        file.packageDirective?.fqName = newPackageName.toSafe()
+        file.packageDirective.fqName = newPackageName.toSafe()
     }
 
     override fun retargetUsages(usageInfos: List<UsageInfo>?, oldToNewMap: Map<PsiElement, PsiElement>) {

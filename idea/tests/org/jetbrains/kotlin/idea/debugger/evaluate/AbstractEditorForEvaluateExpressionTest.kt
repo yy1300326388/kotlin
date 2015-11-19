@@ -106,7 +106,7 @@ public abstract class AbstractCodeFragmentAutoImportTest : AbstractPsiCheckerTes
 
 private fun KtCodeFragment.checkImports(testPath: String) {
     val importList = importsAsImportList()
-    val importsText = StringUtil.convertLineSeparators(importList?.text ?: "")
+    val importsText = StringUtil.convertLineSeparators(importList.text)
     val fragmentAfterFile = File(testPath + ".after.imports")
 
     if (fragmentAfterFile.exists()) {

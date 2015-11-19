@@ -44,7 +44,6 @@ import org.jetbrains.kotlin.idea.refactoring.CallableRefactoring
 import org.jetbrains.kotlin.idea.refactoring.changeSignature.ui.KotlinChangeSignatureDialog
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getElementTextWithContext
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.OverrideResolver
 
 public interface KotlinChangeSignatureConfiguration {
@@ -143,7 +142,7 @@ public class KotlinChangeSignature(project: Project,
         val ktChangeInfo = KotlinChangeInfo(methodDescriptor = descriptor, context = defaultValueContext)
         val ktSignature = ktChangeInfo.getNewSignature(descriptor.originalPrimaryCallable)
         val dummyFileText = with(StringBuilder()) {
-            contextFile.getPackageDirective()?.let { append(it.getText()).append("\n") }
+            append(contextFile.packageDirective.text).append("\n")
             append("class Dummy {\n").append(ktSignature).append("{}\n}")
             toString()
         }

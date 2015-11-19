@@ -228,7 +228,7 @@ public abstract class AbstractRenameTest : KotlinMultiFileTestCase() {
             val fileFqn = jetFile.getPackageFqName()
             Assert.assertTrue("File '${mainFilePath}' should have package containing ${fqn}", fileFqn.isSubpackageOf(fqn))
 
-            val packageSegment = jetFile.getPackageDirective()!!.getPackageNames()[fqn.pathSegments().size() - 1]
+            val packageSegment = jetFile.packageDirective.packageNames[fqn.pathSegments().size() - 1]
             val segmentReference = packageSegment.mainReference
 
             val psiElement = segmentReference.resolve()!!

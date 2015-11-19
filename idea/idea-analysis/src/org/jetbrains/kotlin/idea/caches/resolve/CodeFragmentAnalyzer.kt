@@ -134,7 +134,7 @@ public class CodeFragmentAnalyzer(
         if (scopeForContextElement == null) return null
 
         val importList = codeFragment.importsAsImportList()
-        if (importList == null || importList.imports.isEmpty()) {
+        if (importList.imports.isEmpty()) {
             return scopeForContextElement to dataFlowInfo
         }
 

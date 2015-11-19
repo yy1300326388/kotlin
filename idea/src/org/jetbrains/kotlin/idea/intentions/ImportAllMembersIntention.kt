@@ -47,7 +47,7 @@ class ImportAllMembersIntention : SelfTargetingIntention<KtDotQualifiedExpressio
 
         val file = element.getContainingKtFile()
         val project = file.project
-        val dummyFileText = (file.packageDirective?.text ?: "") + "\n" + (file.importList?.text ?: "")
+        val dummyFileText = "${file.packageDirective.text}\n${file.importList.text}"
         val dummyFile = KtPsiFactory(project).createAnalyzableFile("Dummy.kt", dummyFileText, file)
         val helper = ImportInsertHelper.getInstance(project)
         if (helper.importDescriptor(dummyFile, target, forceAllUnderImport = true) == ImportDescriptorResult.FAIL) return false

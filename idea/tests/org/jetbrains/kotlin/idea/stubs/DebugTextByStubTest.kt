@@ -16,28 +16,14 @@
 
 package org.jetbrains.kotlin.idea.stubs
 
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.stubs.elements.KtFileStubBuilder
 import com.intellij.psi.stubs.StubElement
+import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.debugText.getDebugText
+import org.jetbrains.kotlin.psi.stubs.*
+import org.jetbrains.kotlin.psi.stubs.elements.KtFileStubBuilder
 import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
 import org.junit.Assert
-import org.jetbrains.kotlin.psi.KtPackageDirective
-import org.jetbrains.kotlin.psi.stubs.KotlinPlaceHolderStub
-import org.jetbrains.kotlin.psi.KtImportList
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.stubs.KotlinFunctionStub
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.stubs.KotlinClassStub
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.stubs.KotlinObjectStub
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.stubs.KotlinPropertyStub
-import kotlin.test.assertEquals
-import org.jetbrains.kotlin.psi.KtClassBody
-import org.jetbrains.kotlin.psi.KtClassInitializer
-import org.jetbrains.kotlin.psi.debugText.getDebugText
 
 public class DebugTextByStubTest : LightCodeInsightFixtureTestCase() {
     private fun createFileAndStubTree(text: String): Pair<KtFile, StubElement<*>> {
@@ -52,7 +38,7 @@ public class DebugTextByStubTest : LightCodeInsightFixtureTestCase() {
         val (file, tree) = createFileAndStubTree(text)
         val packageDirective = tree.findChildStubByType(KtStubElementTypes.PACKAGE_DIRECTIVE)
         val psi = KtPackageDirective(packageDirective as KotlinPlaceHolderStub)
-        Assert.assertEquals(file.getPackageDirective()!!.getText(), psi.getDebugText())
+        Assert.assertEquals(file.packageDirective.text, psi.getDebugText())
     }
 
     fun function(text: String) {
@@ -107,7 +93,7 @@ public class DebugTextByStubTest : LightCodeInsightFixtureTestCase() {
         val (file, tree) = createFileAndStubTree(text)
         val importList = tree.findChildStubByType(KtStubElementTypes.IMPORT_LIST)
         val psi = KtImportList(importList as KotlinPlaceHolderStub)
-        Assert.assertEquals(file.getImportList()!!.getText(), psi.getDebugText())
+        Assert.assertEquals(file.getImportList().getText(), psi.getDebugText())
     }
 
     fun testPackageDirective() {

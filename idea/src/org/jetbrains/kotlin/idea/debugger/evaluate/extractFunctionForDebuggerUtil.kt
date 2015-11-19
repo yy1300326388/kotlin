@@ -119,23 +119,16 @@ fun addDebugExpressionIntoTmpFileForExtractFunction(originalFile: KtFile, codeFr
     return addDebugExpressionBeforeContextElement(codeFragment, contextElement)
 }
 
-private fun addImportsToFile(newImportList: KtImportList?, tmpFile: KtFile) {
-    if (newImportList != null && newImportList.imports.isNotEmpty()) {
+private fun addImportsToFile(newImportList: KtImportList, tmpFile: KtFile) {
+    if (newImportList.imports.isNotEmpty()) {
         val tmpFileImportList = tmpFile.importList
         val psiFactory = KtPsiFactory(tmpFile)
-        if (tmpFileImportList == null) {
-            val packageDirective = tmpFile.packageDirective
-            tmpFile.addAfter(psiFactory.createNewLine(), packageDirective)
-            tmpFile.addAfter(newImportList, tmpFile.packageDirective)
-        }
-        else {
-            newImportList.imports.forEach {
-                tmpFileImportList.add(psiFactory.createNewLine())
-                tmpFileImportList.add(it)
-            }
-
+        newImportList.imports.forEach {
             tmpFileImportList.add(psiFactory.createNewLine())
+            tmpFileImportList.add(it)
         }
+
+        tmpFileImportList.add(psiFactory.createNewLine())
     }
 }
 

@@ -47,12 +47,10 @@ public class KotlinFoldingBuilder : CustomFoldingBuilder(), DumbAware {
             val startOffset = importKeyword.endOffset + 1
 
             val importList = root.getImportList()
-            if (importList != null) {
-                val endOffset = importList.endOffset
+            val endOffset = importList.endOffset
 
-                val range = TextRange(startOffset, endOffset)
-                descriptors.add(FoldingDescriptor(importList, range))
-            }
+            val range = TextRange(startOffset, endOffset)
+            descriptors.add(FoldingDescriptor(importList, range))
         }
 
         appendDescriptors(root.getNode(), document, descriptors)

@@ -81,9 +81,11 @@ public class KtFile extends PsiFileBase implements KtDeclarationContainer, KtAnn
         return PsiTreeUtil.getChildrenOfTypeAsList(this, KtDeclaration.class);
     }
 
-    @Nullable
+    @NotNull
     public KtImportList getImportList() {
-        return findChildByTypeOrClass(KtStubElementTypes.IMPORT_LIST, KtImportList.class);
+        KtImportList importList = findChildByTypeOrClass(KtStubElementTypes.IMPORT_LIST, KtImportList.class);
+        assert importList != null : "Import list should be present in kotlin file";
+        return importList;
     }
 
     @Nullable
@@ -106,8 +108,7 @@ public class KtFile extends PsiFileBase implements KtDeclarationContainer, KtAnn
 
     @NotNull
     public List<KtImportDirective> getImportDirectives() {
-        KtImportList importList = getImportList();
-        return importList != null ? importList.getImports() : Collections.<KtImportDirective>emptyList();
+        return getImportList().getImports();
     }
 
     @Nullable
@@ -120,16 +121,17 @@ public class KtFile extends PsiFileBase implements KtDeclarationContainer, KtAnn
         return null;
     }
 
-    // scripts have no package directive, all other files must have package directives
-    @Nullable
+    @NotNull
     public KtPackageDirective getPackageDirective() {
         KotlinFileStub stub = getStub();
         if (stub != null) {
             StubElement<KtPackageDirective> packageDirectiveStub = stub.findChildStubByType(KtStubElementTypes.PACKAGE_DIRECTIVE);
-            return packageDirectiveStub != null ? packageDirectiveStub.getPsi() : null;
+            assert packageDirectiveStub != null : "Package directive should be present in kotlin file";
+            return packageDirectiveStub.getPsi();
         }
         ASTNode ast = getNode().findChildByType(KtNodeTypes.PACKAGE_DIRECTIVE);
-        return ast != null ? (KtPackageDirective) ast.getPsi() : null;
+        assert ast != null : "Package directive should be present in kotlin file";
+        return (KtPackageDirective) ast.getPsi();
     }
 
     @Deprecated // getPackageFqName should be used instead
@@ -150,11 +152,7 @@ public class KtFile extends PsiFileBase implements KtDeclarationContainer, KtAnn
 
     @NotNull
     public FqName getPackageFqNameByTree() {
-        KtPackageDirective packageDirective = getPackageDirective();
-        if (packageDirective == null) {
-            return FqName.ROOT;
-        }
-        return packageDirective.getFqName();
+        return getPackageDirective().getFqName();
     }
 
     @Override

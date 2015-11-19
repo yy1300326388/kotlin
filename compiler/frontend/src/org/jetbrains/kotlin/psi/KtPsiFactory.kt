@@ -292,11 +292,10 @@ public class KtPsiFactory(private val project: Project) {
     }
 
     public fun createPackageDirective(fqName: FqName): KtPackageDirective {
+        if (fqName.isRoot) {
+            return createFile("").packageDirective
+        }
         return createFile("package ${fqName.asString()}").packageDirective
-    }
-
-    public fun createPackageDirectiveIfNeeded(fqName: FqName): KtPackageDirective? {
-        return if (fqName.isRoot()) null else createPackageDirective(fqName)
     }
 
     public fun createImportDirective(importPath: ImportPath): KtImportDirective {

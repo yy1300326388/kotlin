@@ -118,22 +118,21 @@ public class KtPackageDirective extends KtModifierListOwnerStub<KotlinPlaceHolde
     }
 
     public void setFqName(@NotNull FqName fqName) {
+        KtPsiFactory psiFactory = new KtPsiFactory(getProject());
         if (fqName.isRoot()) {
-            delete();
+            replace(psiFactory.createPackageDirective(fqName));
             return;
         }
 
-        KtPsiFactory psiFactory = new KtPsiFactory(getProject());
-        PsiElement newExpression = psiFactory.createExpression(fqName.asString());
         KtExpression currentExpression = getPackageNameExpression();
         if (currentExpression != null) {
-            currentExpression.replace(newExpression);
+            currentExpression.replace(psiFactory.createExpression(fqName.asString()));
             return;
         }
 
         PsiElement keyword = getPackageKeyword();
         if (keyword != null) {
-            addAfter(newExpression, keyword);
+            addAfter(psiFactory.createExpression(fqName.asString()), keyword);
             return;
         }
 

@@ -836,10 +836,6 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
             fun convertToJava(targetClass: PsiClass): PsiMember? {
                 val psiFactory = KtPsiFactory(declaration)
 
-                psiFactory.createPackageDirectiveIfNeeded(config.currentFile.getPackageFqName())?.let {
-                    declaration.getContainingFile().addBefore(it, null)
-                }
-
                 val adjustedDeclaration = when (declaration) {
                     is KtNamedFunction, is KtProperty -> {
                         val klass = psiFactory.createClass("class Foo {}")

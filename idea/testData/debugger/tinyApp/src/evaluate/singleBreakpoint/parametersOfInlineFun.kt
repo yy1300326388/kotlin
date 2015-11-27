@@ -18,20 +18,20 @@ inline fun A.foo(f: (i: Int) -> Unit) {
 
 class A(val prop: Int)
 
-// EXPRESSION: primitive
+// EXPRESSION: `primitive$inline_var`
 // RESULT: 1: I
 
 // EXPRESSION: it
 // RESULT: 1: I
 
-// EXPRESSION: array
+// EXPRESSION: `array$inline_var`
 // RESULT: instance of java.lang.Integer[1] (id=ID): [Ljava/lang/Integer;
 
-// EXPRESSION: str
+// EXPRESSION: `str$inline_var`
 // RESULT: "str": Ljava/lang/String;
 
-// EXPRESSION: list
+// EXPRESSION: `list$inline_var`
 // RESULT: instance of java.util.Collections$SingletonList(id=ID): Ljava/util/Collections$SingletonList;
 
-// EXPRESSION: `$receiver`.prop
+// EXPRESSION: `$receiver$inline_var`.prop
 // RESULT: 1: I

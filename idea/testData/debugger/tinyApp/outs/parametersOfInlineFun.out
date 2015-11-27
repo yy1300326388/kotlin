@@ -3,12 +3,12 @@ LineBreakpoint created at parametersOfInlineFun.kt:8
 Connected to the target VM, address: '!HOST_NAME!:PORT_NAME!', transport: 'socket'
 parametersOfInlineFun.kt:8
 parametersOfInlineFun.kt:8
-Compile bytecode for primitive
+Compile bytecode for `primitive$inline_var`
 Compile bytecode for it
-Compile bytecode for array
-Compile bytecode for str
-Compile bytecode for list
-Compile bytecode for `$receiver`.prop
+Compile bytecode for `array$inline_var`
+Compile bytecode for `str$inline_var`
+Compile bytecode for `list$inline_var`
+Compile bytecode for `$receiver$inline_var`.prop
 Disconnected from the target VM, address: '!HOST_NAME!:PORT_NAME!', transport: 'socket'
 
 Process finished with exit code 0

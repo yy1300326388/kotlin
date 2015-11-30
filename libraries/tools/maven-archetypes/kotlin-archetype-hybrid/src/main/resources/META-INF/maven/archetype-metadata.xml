@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor
+        xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
+        name="kotlin.hybrid"
+        xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <modules>
+        <module id="${rootArtifactId}.shared" dir="shared" name="${rootArtifactId}.shared">
+            <fileSets>
+                <fileSet encoding="UTF-8" filtered="true">
+                    <directory>src/main/kotlin</directory>
+                    <includes>
+                        <include>**/*.kt</include>
+                    </includes>
+                </fileSet>
+            </fileSets>
+        </module>
+        <module id="${rootArtifactId}.jvm" dir="jvm" name="${rootArtifactId}.jvm">
+            <fileSets>
+                <fileSet encoding="UTF-8" filtered="true">
+                    <directory>src/main/kotlin</directory>
+                    <includes>
+                        <include>**/*.kt</include>
+                    </includes>
+                </fileSet>
+                <fileSet encoding="UTF-8"  filtered="true">
+                    <directory>src/test/kotlin</directory>
+                    <includes>
+                        <include>**/*.kt</include>
+                    </includes>
+                </fileSet>
+            </fileSets>
+        </module>
+        <module id="${rootArtifactId}.js" dir="js" name="${rootArtifactId}.js">
+            <fileSets>
+                <fileSet encoding="UTF-8"  filtered="true">
+                    <directory>src/main/kotlin</directory>
+                    <includes>
+                        <include>**/*.kt</include>
+                    </includes>
+                </fileSet>
+                <fileSet encoding="UTF-8">
+                    <directory>src/test/karma</directory>
+                    <includes>
+                        <include>**/*.json</include>
+                        <include>**/*.js</include>
+                    </includes>
+                </fileSet>
+                <fileSet encoding="UTF-8" filtered="true">
+                    <directory>src/test/kotlin</directory>
+                    <includes>
+                        <include>**/*.kt</include>
+                    </includes>
+                </fileSet>
+            </fileSets>
+        </module>
+    </modules>
+
+    <requiredProperties>
+        <requiredProperty key="kotlinVersion">
+            <defaultValue>${project.version}</defaultValue>
+        </requiredProperty>
+    </requiredProperties>
+</archetype-descriptor>

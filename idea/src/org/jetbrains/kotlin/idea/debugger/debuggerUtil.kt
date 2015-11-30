@@ -29,6 +29,10 @@ public fun isInsideInlineFunctionBody(visibleVariables: List<LocalVariable>): Bo
     return visibleVariables.any { it.name().startsWith(JvmAbi.LOCAL_VARIABLE_NAME_PREFIX_INLINE_FUNCTION) }
 }
 
+public fun numberOfInlinedFunctions(visibleVariables: List<LocalVariable>): Int {
+    return visibleVariables.count { it.name().startsWith(JvmAbi.LOCAL_VARIABLE_NAME_PREFIX_INLINE_FUNCTION) }
+}
+
 fun isInsideInlineArgument(inlineArgument: KtFunction, location: Location, debugProcess: DebugProcessImpl): Boolean {
     val visibleVariables = location.visibleVariables(debugProcess)
     val lambdaOrdinalIndex = runReadAction { lambdaOrdinalIndex(inlineArgument) }

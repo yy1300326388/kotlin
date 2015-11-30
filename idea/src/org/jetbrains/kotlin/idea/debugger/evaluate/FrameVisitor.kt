@@ -28,6 +28,7 @@ import org.jetbrains.eval4j.obj
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.inline.InlineCodegenUtil
 import org.jetbrains.kotlin.idea.debugger.isInsideInlineFunctionBody
+import org.jetbrains.kotlin.idea.debugger.numberOfInlinedFunctions
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
@@ -50,7 +51,8 @@ class FrameVisitor(context: EvaluationContextImpl) {
                 }
                 else -> {
                     if (isInsideInlineFunctionBody(frame.visibleVariables())) {
-                        val inlineFunVar = findLocalVariableForInlineArgument(name, asmType, true)
+                        val number = numberOfInlinedFunctions(frame.visibleVariables())
+                        val inlineFunVar = findLocalVariableForInlineArgument(name, number, asmType, true)
                         if (inlineFunVar != null) {
                             return inlineFunVar
                         }
@@ -86,7 +88,8 @@ class FrameVisitor(context: EvaluationContextImpl) {
 
     private fun findThis(asmType: Type?): Value? {
         if (isInsideInlineFunctionBody(frame!!.visibleVariables())) {
-            val inlineFunVar = findLocalVariableForInlineArgument("this_", asmType, true)
+            val number = numberOfInlinedFunctions(frame.visibleVariables())
+            val inlineFunVar = findLocalVariableForInlineArgument("this_", number, asmType, true)
             if (inlineFunVar != null) {
                 return inlineFunVar
             }
@@ -114,8 +117,8 @@ class FrameVisitor(context: EvaluationContextImpl) {
         return findLocalVariable(name + "$", asmType, checkType)
     }
 
-    private fun findLocalVariableForInlineArgument(name: String, asmType: Type?, checkType: Boolean): Value? {
-        return findLocalVariable(name + InlineCodegenUtil.INLINE_FUN_VAR_SUFFIX, asmType, checkType)
+    private fun findLocalVariableForInlineArgument(name: String, number: Int, asmType: Type?, checkType: Boolean): Value? {
+        return findLocalVariable(name + InlineCodegenUtil.INLINE_FUN_VAR_SUFFIX.repeat(number), asmType, checkType)
     }
 
     private fun isFunctionType(type: Type?): Boolean {

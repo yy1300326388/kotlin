@@ -41,6 +41,12 @@ public class AccessorForConstructorDescriptor(
 
     override fun substitute(substitutor: TypeSubstitutor) = super.substitute(substitutor) as ConstructorDescriptor
 
+    override fun copy(
+            newOwner: DeclarationDescriptor?, modality: Modality?, visibility: Visibility?, kind: CallableMemberDescriptor.Kind?, copyOverrides: Boolean
+    ): AccessorForConstructorDescriptor {
+        throw UnsupportedOperationException("Trying to copy synthetic accessor $this")
+    }
+
     init {
         initialize(
                 DescriptorUtils.getReceiverParameterType(extensionReceiverParameter),

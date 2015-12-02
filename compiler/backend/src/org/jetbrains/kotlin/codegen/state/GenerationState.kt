@@ -17,6 +17,8 @@
 package org.jetbrains.kotlin.codegen.state
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.ReflectionTypes
 import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.codegen.`when`.MappingsClassesForWhenByEnum
@@ -28,6 +30,7 @@ import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.optimization.OptimizationClassBuilderFactory
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ScriptDescriptor
+import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
 import org.jetbrains.kotlin.modules.TargetId
@@ -96,11 +99,10 @@ public class GenerationState @JvmOverloads constructor(
     private var used = false
 
     public val diagnostics: DiagnosticSink get() = extraJvmDiagnosticsTrace
-    public val collectedExtraJvmDiagnostics: Diagnostics
-        get() {
-            duplicateSignatureFactory.reportDiagnostics()
-            return extraJvmDiagnosticsTrace.bindingContext.diagnostics
-        }
+    public val collectedExtraJvmDiagnostics: Diagnostics = LazyJvmDiagnostics {
+        duplicateSignatureFactory.reportDiagnostics()
+        extraJvmDiagnosticsTrace.bindingContext.diagnostics
+    }
 
     public val moduleName: String = moduleName ?: JvmCodegenUtil.getModuleName(module)
     public val classBuilderMode: ClassBuilderMode = builderFactory.getClassBuilderMode()
@@ -173,4 +175,21 @@ public class GenerationState @JvmOverloads constructor(
     public fun destroy() {
         interceptedBuilderFactory.close()
     }
+}
+
+private class LazyJvmDiagnostics(compute: () -> Diagnostics): Diagnostics {
+    private val delegate by lazy(LazyThreadSafetyMode.SYNCHRONIZED, compute)
+
+    override val modificationTracker: ModificationTracker
+        get() = delegate.modificationTracker
+
+    override fun all(): Collection<Diagnostic> = delegate.all()
+
+    override fun forElement(psiElement: PsiElement)  = delegate.forElement(psiElement)
+
+    override fun isEmpty() = delegate.isEmpty()
+
+    override fun noSuppression() = delegate.noSuppression()
+
+    override fun iterator() = delegate.iterator()
 }

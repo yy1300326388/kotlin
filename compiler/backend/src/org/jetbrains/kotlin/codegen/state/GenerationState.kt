@@ -96,7 +96,11 @@ public class GenerationState @JvmOverloads constructor(
     private var used = false
 
     public val diagnostics: DiagnosticSink get() = extraJvmDiagnosticsTrace
-    public val collectedExtraJvmDiagnostics: Diagnostics get() = extraJvmDiagnosticsTrace.bindingContext.diagnostics
+    public val collectedExtraJvmDiagnostics: Diagnostics
+        get() {
+            duplicateSignatureFactory.reportDiagnostics()
+            return extraJvmDiagnosticsTrace.bindingContext.diagnostics
+        }
 
     public val moduleName: String = moduleName ?: JvmCodegenUtil.getModuleName(module)
     public val classBuilderMode: ClassBuilderMode = builderFactory.getClassBuilderMode()
@@ -110,6 +114,7 @@ public class GenerationState @JvmOverloads constructor(
     public val reflectionTypes: ReflectionTypes = ReflectionTypes(module)
     public val jvmRuntimeTypes: JvmRuntimeTypes = JvmRuntimeTypes()
     public val factory: ClassFileFactory
+    private val duplicateSignatureFactory: BuilderFactoryForDuplicateSignatureDiagnostics
 
     public val replSpecific = ForRepl()
 
@@ -135,11 +140,12 @@ public class GenerationState @JvmOverloads constructor(
 
     init {
         val optimizationClassBuilderFactory = OptimizationClassBuilderFactory(builderFactory, disableOptimization)
-        var interceptedBuilderFactory: ClassBuilderFactory = BuilderFactoryForDuplicateSignatureDiagnostics(
+        duplicateSignatureFactory = BuilderFactoryForDuplicateSignatureDiagnostics(
                 optimizationClassBuilderFactory, this.bindingContext, diagnostics, fileClassesProvider,
                 getIncrementalCacheForThisTarget(),
                 this.moduleName)
 
+        var interceptedBuilderFactory: ClassBuilderFactory = duplicateSignatureFactory
         interceptedBuilderFactory = BuilderFactoryForDuplicateClassNameDiagnostics(interceptedBuilderFactory, diagnostics);
 
         val interceptExtensions = ClassBuilderInterceptorExtension.getInstances(project)

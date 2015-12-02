@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.resolve.OverridingUtil.OverrideCompatibilityInfo.Result.OVERRIDABLE
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
-import java.util.*
 
 class DelegationResolver<T : CallableMemberDescriptor> private constructor(
         private val classOrObject: KtClassOrObject,
@@ -60,7 +59,7 @@ class DelegationResolver<T : CallableMemberDescriptor> private constructor(
             }
 
     private fun generateDelegationCandidates(delegatedInterfaceType: KotlinType): Collection<T> =
-            getOverridableMembers(delegatedInterfaceType).map { memberDescriptor ->
+            getDelegatableMembers(delegatedInterfaceType).map { memberDescriptor ->
                 val newModality = if (memberDescriptor.modality == Modality.ABSTRACT) Modality.OPEN else memberDescriptor.modality
                 @Suppress("UNCHECKED_CAST")
                 (memberDescriptor.copy(ownerDescriptor, newModality, Visibilities.INHERITED, DELEGATION, false) as T)
@@ -76,8 +75,17 @@ class DelegationResolver<T : CallableMemberDescriptor> private constructor(
         return false
     }
 
-    private fun getOverridableMembers(interfaceType: KotlinType): Collection<T> {
-        return memberExtractor.getMembersByType(interfaceType).filter { descriptor -> descriptor.modality.isOverridable }
+    private fun getDelegatableMembers(interfaceType: KotlinType): Collection<T> {
+        val classSupertypeMembers =
+                TypeUtils.getAllSupertypes(interfaceType).firstOrNull {
+                    val typeConstructor = it.constructor.declarationDescriptor
+                    typeConstructor is ClassDescriptor && typeConstructor.kind != ClassKind.INTERFACE
+                }?.let {
+                    memberExtractor.getMembersByType(it)
+                } ?: emptyList<CallableMemberDescriptor>()
+        return memberExtractor.getMembersByType(interfaceType).filter { descriptor ->
+            descriptor.modality.isOverridable && !classSupertypeMembers.any { isOverridableBy(it, descriptor)  }
+        }
     }
 
     interface MemberExtractor<T : CallableMemberDescriptor> {
@@ -97,7 +105,8 @@ class DelegationResolver<T : CallableMemberDescriptor> private constructor(
                 memberExtractor: MemberExtractor<T>,
                 typeResolver: TypeResolver
         ): Collection<T> =
-                DelegationResolver(classOrObject, ownerDescriptor, existingMembers, trace, memberExtractor, typeResolver).generateDelegatedMembers()
+                DelegationResolver(classOrObject, ownerDescriptor, existingMembers, trace, memberExtractor, typeResolver)
+                        .generateDelegatedMembers()
 
         private fun isOverridingAnyOf(
                 candidate: CallableMemberDescriptor,
@@ -108,12 +117,5 @@ class DelegationResolver<T : CallableMemberDescriptor> private constructor(
         private fun isOverridableBy(memberOne: CallableDescriptor, memberTwo: CallableDescriptor): Boolean =
                 OverridingUtil.DEFAULT.isOverridableBy(memberOne, memberTwo).result == OVERRIDABLE
 
-        private fun isNotTrait(descriptor: DeclarationDescriptor?): Boolean {
-            if (descriptor is ClassDescriptor) {
-                val kind = descriptor.kind
-                return kind != ClassKind.INTERFACE
-            }
-            return false
-        }
     }
 }

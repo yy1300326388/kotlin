@@ -37,31 +37,35 @@ public object CodegenUtilKt {
     @JvmStatic
     public fun getDelegates(
             descriptor: ClassDescriptor,
-            toTrait: ClassDescriptor,
+            toInterface: ClassDescriptor,
             delegateExpressionType: KotlinType? = null
     ): Map<CallableMemberDescriptor, CallableDescriptor> {
         if (delegateExpressionType?.isDynamic() ?: false) return mapOf();
 
-        return descriptor.getDefaultType().getMemberScope().getContributedDescriptors().asSequence()
+        return descriptor.defaultType.memberScope.getContributedDescriptors().asSequence()
             .filterIsInstance<CallableMemberDescriptor>()
-            .filter { it.getKind() == CallableMemberDescriptor.Kind.DELEGATION }
+            .filter { it.kind == CallableMemberDescriptor.Kind.DELEGATION }
             .asIterable()
             .sortedWith(MemberComparator.INSTANCE)
             .keysToMapExceptNulls {
                 delegatingMember ->
 
                 val actualDelegates = DescriptorUtils.getAllOverriddenDescriptors(delegatingMember)
-                        .filter { it.getContainingDeclaration() == toTrait }
-                        .map {
+                        .mapNotNull {
                             overriddenDescriptor ->
-                            val scope = (delegateExpressionType ?: toTrait.getDefaultType()).getMemberScope()
-                            val name = overriddenDescriptor.getName()
+                            if (overriddenDescriptor.containingDeclaration == toInterface) {
+                                val scope = (delegateExpressionType ?: toInterface.defaultType).memberScope
+                                val name = overriddenDescriptor.name
 
-                            // this is the actual member of delegateExpressionType that we are delegating to
-                            (scope.getContributedFunctions(name, NoLookupLocation.FROM_BACKEND) + scope.getContributedVariables(name, NoLookupLocation.FROM_BACKEND))
-                                    .first {
-                                        (listOf(it) + DescriptorUtils.getAllOverriddenDescriptors(it)).map { it.getOriginal() }.contains(overriddenDescriptor.getOriginal())
-                                    }
+                                // this is the actual member of delegateExpressionType that we are delegating to
+                                (scope.getContributedFunctions(name, NoLookupLocation.FROM_BACKEND) + scope.getContributedVariables(name, NoLookupLocation.FROM_BACKEND))
+                                        .firstOrNull {
+                                            (listOf(it) + DescriptorUtils.getAllOverriddenDescriptors(it))
+                                                    .map { it.original }
+                                                    .contains(overriddenDescriptor.original)
+                                        }
+                            }
+                            else null
                         }
                 assert(actualDelegates.size() <= 1) { "Many delegates found for $delegatingMember: $actualDelegates" }
 

@@ -499,7 +499,7 @@ public class OverrideResolver {
         Set<CallableMemberDescriptor> relevantDirectlyOverridden =
                 getRelevantDirectlyOverridden(overriddenDeclarationsByDirectParent, allFilteredOverriddenDeclarations);
 
-        checkInheritedDescriptorsGroup(relevantDirectlyOverridden, reportingStrategy);
+        checkInheritedDescriptorsGroup(relevantDirectlyOverridden, descriptor, reportingStrategy);
 
         if (kind == DELEGATION && overrideReportStrategyForDelegates != null) {
             checkOverridesForMember(descriptor, relevantDirectlyOverridden, overrideReportStrategyForDelegates);
@@ -816,26 +816,18 @@ public class OverrideResolver {
 
     private static void checkInheritedDescriptorsGroup(
             @NotNull Collection<CallableMemberDescriptor> inheritedDescriptors,
+            @NotNull CallableMemberDescriptor mostSpecific,
             @NotNull CheckInheritedSignaturesReportStrategy reportingStrategy
     ) {
         // FIXME This algorithm depends on transitiveness of sub-typing relation, which is broken in presence of flexible types.
         if (inheritedDescriptors.size() > 1) {
-            Iterator<CallableMemberDescriptor> inheritedIterator = inheritedDescriptors.iterator();
-            CallableMemberDescriptor mostSpecificInherited = inheritedIterator.next();
-            while (inheritedIterator.hasNext()) {
-                CallableMemberDescriptor overriddenDescriptor = inheritedIterator.next();
-                if (OverridingUtil.isMoreSpecific(overriddenDescriptor, mostSpecificInherited)) {
-                    mostSpecificInherited = overriddenDescriptor;
-                }
-            }
-
             for (CallableMemberDescriptor inheritedDescriptor : inheritedDescriptors) {
-                if (!OverridingUtil.isMoreSpecific(mostSpecificInherited, inheritedDescriptor)) {
+                if (!OverridingUtil.isMoreSpecific(mostSpecific, inheritedDescriptor)) {
                     if (inheritedDescriptor instanceof PropertyDescriptor) {
-                        reportingStrategy.propertyTypeMismatchOnInheritance(mostSpecificInherited, inheritedDescriptor);
+                        reportingStrategy.propertyTypeMismatchOnInheritance(mostSpecific, inheritedDescriptor);
                     }
                     else {
-                        reportingStrategy.returnTypeMismatchOnInheritance(mostSpecificInherited, inheritedDescriptor);
+                        reportingStrategy.returnTypeMismatchOnInheritance(mostSpecific, inheritedDescriptor);
                     }
                 }
             }

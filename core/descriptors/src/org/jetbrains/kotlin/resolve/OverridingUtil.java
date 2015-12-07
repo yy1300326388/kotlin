@@ -322,11 +322,10 @@ public class OverridingUtil {
 
     public static boolean isMoreSpecific(@NotNull CallableMemberDescriptor a, @NotNull CallableMemberDescriptor b) {
         KotlinType aReturnType = a.getReturnType();
-        assert aReturnType != null : "Return type is null for " + a;
-        // Use upper bound for flexible type.
-        aReturnType = TypeCapabilitiesKt.getSupertypeRepresentative(aReturnType);
         KotlinType bReturnType = b.getReturnType();
-        assert bReturnType != null : "Return type is null for " + b;
+
+        assert aReturnType != null : "Return type of " + a + " is null";
+        assert bReturnType != null : "Return type of " + b + " is null";
 
         if (a instanceof SimpleFunctionDescriptor) {
             assert b instanceof SimpleFunctionDescriptor : "b is " + b.getClass();
@@ -341,12 +340,8 @@ public class OverridingUtil {
             if (pa.isVar() && pb.isVar()) {
                 return KotlinTypeChecker.DEFAULT.equalTypes(aReturnType, bReturnType);
             }
-            else if (!pa.isVar() && pb.isVar()) {
-                // val can't be more specific than var, regardless of return type.
-                return false;
-            }
             else {
-                // both vals or var <? val
+                // both vals or var vs val
                 return KotlinTypeChecker.DEFAULT.isSubtypeOf(aReturnType, bReturnType);
             }
         }
@@ -381,7 +376,12 @@ public class OverridingUtil {
         // Should be 'foo(s: String): String'.
         Modality modality = getMinimalModality(effectiveOverridden);
         Visibility visibility = allInvisible ? Visibilities.INVISIBLE_FAKE : Visibilities.INHERITED;
-        CallableMemberDescriptor mostSpecific = selectMostSpecificMemberFromSuper(effectiveOverridden);
+        CallableMemberDescriptor mostSpecific =
+                OverridingUtilsKt.getOverriddenWithMostSpecificReturnTypeOrNull(KotlinTypeChecker.DEFAULT, effectiveOverridden);
+        if (mostSpecific == null) {
+            // Use some (possibly erroneous) inherited signature. Will be reported as an error later.
+            mostSpecific = selectMostSpecificMemberFromSuper(effectiveOverridden);
+        }
         CallableMemberDescriptor fakeOverride =
                 mostSpecific.copy(current, modality, visibility, CallableMemberDescriptor.Kind.FAKE_OVERRIDE, false);
         for (CallableMemberDescriptor descriptor : effectiveOverridden) {

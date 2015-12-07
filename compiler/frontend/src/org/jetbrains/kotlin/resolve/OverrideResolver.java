@@ -830,7 +830,7 @@ public class OverrideResolver {
             }
 
             for (CallableMemberDescriptor inheritedDescriptor : inheritedDescriptors) {
-                if (!OverridingUtil.isMoreSpecific(mostSpecificInherited, inheritedDescriptor)) {
+                if (inheritedDescriptor != mostSpecificInherited && !OverridingUtil.isMoreSpecific(mostSpecificInherited, inheritedDescriptor)) {
                     if (inheritedDescriptor instanceof PropertyDescriptor) {
                         reportingStrategy.propertyTypeMismatchOnInheritance(mostSpecificInherited, inheritedDescriptor);
                     }

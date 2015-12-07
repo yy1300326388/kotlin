@@ -320,13 +320,20 @@ public class OverridingUtil {
         }
     }
 
+    private static @NotNull KotlinType getNormalizedReturnType(@NotNull CallableMemberDescriptor callableMemberDescriptor) {
+        KotlinType returnType = callableMemberDescriptor.getReturnType();
+        assert returnType != null : "Return type is null for " + callableMemberDescriptor;
+        if (callableMemberDescriptor.getModality() == Modality.ABSTRACT) {
+            return TypeCapabilitiesKt.getSupertypeRepresentative(returnType);
+        }
+        else {
+            return TypeCapabilitiesKt.getSubtypeRepresentative(returnType);
+        }
+    }
+
     public static boolean isMoreSpecific(@NotNull CallableMemberDescriptor a, @NotNull CallableMemberDescriptor b) {
-        KotlinType aReturnType = a.getReturnType();
-        assert aReturnType != null : "Return type is null for " + a;
-        // Use upper bound for flexible type.
-        aReturnType = TypeCapabilitiesKt.getSupertypeRepresentative(aReturnType);
-        KotlinType bReturnType = b.getReturnType();
-        assert bReturnType != null : "Return type is null for " + b;
+        KotlinType aReturnType = getNormalizedReturnType(a);
+        KotlinType bReturnType = getNormalizedReturnType(b);
 
         if (a instanceof SimpleFunctionDescriptor) {
             assert b instanceof SimpleFunctionDescriptor : "b is " + b.getClass();

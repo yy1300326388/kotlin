@@ -11342,6 +11342,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     doTest(fileName);
                 }
 
+                @TestMetadata("genericWithUpperBound.kt")
+                public void testGenericWithUpperBound() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/override/clashesOnInheritance/genericWithUpperBound.kt");
+                    doTest(fileName);
+                }
+
                 @TestMetadata("returnTypeMismatch.kt")
                 public void testReturnTypeMismatch() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/override/clashesOnInheritance/returnTypeMismatch.kt");

@@ -39,6 +39,8 @@ public interface KtReference : PsiPolyVariantReference {
 public abstract class AbstractKtReference<T : KtElement>(element: T)
 : PsiPolyVariantReferenceBase<T>(element), KtReference {
 
+    override fun getElement(): T = super.getElement()
+
     public val expression: T
         get() = getElement()
 

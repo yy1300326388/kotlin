@@ -401,8 +401,7 @@ public class OverrideResolver {
                 @NotNull CallableMemberDescriptor overriding,
                 @NotNull CallableMemberDescriptor overridden
         ) {
-            conflictingReturnTypes.add(overridden);
-            reportDelegationProblemIfRequired(RETURN_TYPE_MISMATCH_ON_OVERRIDE_BY_DELEGATION, overriding, overridden);
+            // Always reported as RETURN_TYPE_MISMATCH_ON_INHERITANCE
         }
 
         @Override
@@ -410,8 +409,7 @@ public class OverrideResolver {
                 @NotNull CallableMemberDescriptor overriding,
                 @NotNull CallableMemberDescriptor overridden
         ) {
-            conflictingReturnTypes.add(overridden);
-            reportDelegationProblemIfRequired(PROPERTY_TYPE_MISMATCH_ON_OVERRIDE_BY_DELEGATION, overriding, overridden);
+            // Always reported as PROPERTY_TYPE_MISMATCH_ON_INHERITANCE
         }
 
         @Override

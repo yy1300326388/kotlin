@@ -177,11 +177,11 @@ public class KotlinPsiUnifier(
                 return when {
                     op1 == op2 ->
                         true
-                    op1 == KtTokens.NOT_IN, op2 == KtTokens.NOT_IN ->
+                    op1 == KtTokens.NOT_IN || op2 == KtTokens.NOT_IN ->
                         false
-                    op1 == KtTokens.EXCLEQ, op2 == KtTokens.EXCLEQ ->
+                    op1 == KtTokens.EXCLEQ || op2 == KtTokens.EXCLEQ ->
                         false
-                    op1 in OperatorConventions.COMPARISON_OPERATIONS, op2 in OperatorConventions.COMPARISON_OPERATIONS ->
+                    op1 in OperatorConventions.COMPARISON_OPERATIONS || op2 in OperatorConventions.COMPARISON_OPERATIONS ->
                         false
                     else ->
                         true
@@ -663,7 +663,7 @@ public class KotlinPsiUnifier(
 
         private fun matchResolvedInfo(e1: PsiElement, e2: PsiElement): Status? {
             return when {
-                e1 !is KtElement, e2 !is KtElement ->
+                e1 !is KtElement || e2 !is KtElement ->
                     null
 
                 e1 is KtMultiDeclaration && e2 is KtMultiDeclaration ->

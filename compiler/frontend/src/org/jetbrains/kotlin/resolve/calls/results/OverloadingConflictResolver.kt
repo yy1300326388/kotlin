@@ -36,60 +36,70 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             discriminateGenericDescriptors: Boolean,
             checkArgumentsMode: CheckArgumentTypesMode
     ): MutableResolvedCall<D>? {
-        // Different smartcasts may lead to the same candidate descriptor wrapped into different ResolvedCallImpl objects
-        
-        val maximallySpecific = THashSet(object : TObjectHashingStrategy<MutableResolvedCall<D>> {
-            override fun equals(call1: MutableResolvedCall<D>?, call2: MutableResolvedCall<D>?): Boolean =
-                    if (call1 == null) call2 == null
-                    else call1.resultingDescriptor == call2!!.resultingDescriptor
+        val candidates2 =
+                if (candidates.first() is VariableAsFunctionResolvedCall) {
+                    candidates.filterCandidates {
+                        isMaximallySpecificVariable(it, candidates, discriminateGenericDescriptors, checkArgumentsMode)
+                    }
+                }
+                else candidates
 
-            override fun computeHashCode(call: MutableResolvedCall<D>?): Int =
-                    call?.resultingDescriptor?.hashCode() ?: 0
-        })
-        
-        candidates.filterTo(maximallySpecific) {
-            isMaximallySpecific(it, candidates, discriminateGenericDescriptors, checkArgumentsMode)
+        val maximallySpecific = candidates2.filterCandidates {
+            isMaximallySpecific(it, candidates2, discriminateGenericDescriptors, checkArgumentsMode)
         }
 
         return if (maximallySpecific.size == 1) maximallySpecific.first() else null
     }
 
+    private inline
+    fun <D : CallableDescriptor> Set<MutableResolvedCall<D>>.filterCandidates(
+            isMaxSpecific: (MutableResolvedCall<D>) -> Boolean
+    ) : Set<MutableResolvedCall<D>> =
+            this.filterTo(createCallSet<D>()) { isMaxSpecific(it) }
+
     private fun <D : CallableDescriptor> isMaximallySpecific(
             candidateCall: MutableResolvedCall<D>,
             candidates: Set<MutableResolvedCall<D>>,
             discriminateGenericDescriptors: Boolean,
-            checkArgumentsMode: CheckArgumentTypesMode): Boolean {
+            checkArgumentsMode: CheckArgumentTypesMode
+    ): Boolean {
         val me = candidateCall.resultingDescriptor
-
-        val isInvoke = candidateCall is VariableAsFunctionResolvedCall
-        val variable = (candidateCall as? VariableAsFunctionResolvedCall)?.variableCall?.resultingDescriptor
-
-        for (otherCall in candidates) {
+        return candidates.all { otherCall ->
             val other = otherCall.resultingDescriptor
-            if (other === me) continue
-
-            if (definitelyNotMaximallySpecific(me, other, discriminateGenericDescriptors, checkArgumentsMode)) {
-                if (!isInvoke) return false
-
-                assert(otherCall is VariableAsFunctionResolvedCall) { "'invoke' candidate goes with usual one: " + candidateCall + otherCall }
-
-                val otherVariableCall = (otherCall as VariableAsFunctionResolvedCall).variableCall
-                if (definitelyNotMaximallySpecific(variable!!, otherVariableCall.resultingDescriptor, discriminateGenericDescriptors, checkArgumentsMode)) {
-                    return false
-                }
-            }
+            other === me
+            || !definitelyNotMoreSpecific(me, other, discriminateGenericDescriptors, checkArgumentsMode)
         }
-
-        return true
     }
 
-    private fun <D : CallableDescriptor> definitelyNotMaximallySpecific(
+    private fun <D : CallableDescriptor> isMaximallySpecificVariable(
+            candidateCall: MutableResolvedCall<D>,
+            candidates: Set<MutableResolvedCall<D>>,
+            discriminateGenericDescriptors: Boolean,
+            checkArgumentsMode: CheckArgumentTypesMode
+    ): Boolean {
+        val myVariable = (candidateCall as VariableAsFunctionResolvedCall).variableCall.resultingDescriptor
+        return candidates.all { otherCall ->
+            assert(otherCall is VariableAsFunctionResolvedCall) {
+                "Variable-as-function call $candidateCall is compared with regular call $otherCall"
+            }
+            val otherVariable = (otherCall as VariableAsFunctionResolvedCall).variableCall.resultingDescriptor
+            otherVariable === myVariable
+            || !definitelyNotMoreSpecific(myVariable, otherVariable, discriminateGenericDescriptors, checkArgumentsMode)
+        }
+
+    }
+
+
+    private fun <D : CallableDescriptor> definitelyNotMoreSpecific(
             me: D,
             other: D,
             discriminateGenericDescriptors: Boolean,
-            checkArgumentsMode: CheckArgumentTypesMode): Boolean {
-        return !moreSpecific(me, other, discriminateGenericDescriptors, checkArgumentsMode) ||
-               moreSpecific(other, me, discriminateGenericDescriptors, checkArgumentsMode)
+            checkArgumentsMode: CheckArgumentTypesMode
+    ): Boolean {
+        val meMoreSpecific = moreSpecific(me, other, discriminateGenericDescriptors, checkArgumentsMode)
+        if (!meMoreSpecific) return true
+        val otherMoreSpecific = moreSpecific(other, me, discriminateGenericDescriptors, checkArgumentsMode)
+        return otherMoreSpecific
     }
 
     /**
@@ -99,11 +109,12 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
      * Int < Long
      * Int < Short < Byte
      */
-    private fun <Descriptor : CallableDescriptor> moreSpecific(
-            f: Descriptor,
-            g: Descriptor,
+    private fun <D : CallableDescriptor> moreSpecific(
+            f: D,
+            g: D,
             discriminateGenericDescriptors: Boolean,
-            checkArgumentsMode: CheckArgumentTypesMode): Boolean {
+            checkArgumentsMode: CheckArgumentTypesMode
+    ): Boolean {
         val resolvingCallableReference = checkArgumentsMode == CheckArgumentTypesMode.CHECK_CALLABLE_TYPE
 
         if (f.containingDeclaration is ScriptDescriptor && g.containingDeclaration is ScriptDescriptor) {
@@ -259,6 +270,28 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
         }
 
         return false
+    }
+
+    private fun <D : CallableDescriptor> createCallSet(): MutableSet<MutableResolvedCall<D>> =
+            THashSet(getCallHashingStrategy<D>())
+
+    companion object {
+        // Different smartcasts may lead to the same candidate descriptor wrapped into different ResolvedCallImpl objects.
+
+        private object CallHashingStrategy : TObjectHashingStrategy<MutableResolvedCall<*>> {
+            override fun equals(call1: MutableResolvedCall<*>?, call2: MutableResolvedCall<*>?): Boolean =
+                    if (call1 != null && call2 != null)
+                        call1.resultingDescriptor == call2.resultingDescriptor
+                    else
+                        call2 == call1
+
+            override fun computeHashCode(call: MutableResolvedCall<*>?): Int =
+                    call?.resultingDescriptor?.hashCode() ?: 0
+        }
+
+        @Suppress("CAST_NEVER_SUCCEEDS")
+        private fun <D : CallableDescriptor> getCallHashingStrategy(): TObjectHashingStrategy<MutableResolvedCall<D>> =
+                CallHashingStrategy as TObjectHashingStrategy<MutableResolvedCall<D>>
     }
 
 }

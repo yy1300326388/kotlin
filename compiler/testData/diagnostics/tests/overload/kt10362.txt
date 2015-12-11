@@ -1,0 +1,5 @@
+package
+
+public val kotlin.Any.extValWithInvoke: (kotlin.String) -> kotlin.String
+public val kotlin.String.extValWithInvoke: (kotlin.Any) -> kotlin.Int
+public fun test(): kotlin.Int

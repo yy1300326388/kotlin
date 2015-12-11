@@ -170,26 +170,23 @@ public class OverrideResolver {
 
                     @Override
                     public boolean isEqual(D d1, D d2) {
-                        CallableDescriptor f = transform.fun(d1);
-                        CallableDescriptor g = transform.fun(d2);
-                        return DescriptorEquivalenceForOverrides.INSTANCE$.areEquivalent(f.getOriginal(), g.getOriginal());
+                        return OverrideRelationsKt.areEquivalent(d1, d2, transform);
                     }
                 });
 
         Set<D> candidates = Sets.newLinkedHashSet();
         outerLoop:
         for (D meD : noDuplicates) {
-            CallableDescriptor me = transform.fun(meD);
             for (D otherD : noDuplicates) {
-                CallableDescriptor other = transform.fun(otherD);
-                if (me == other) continue;
+                if (OverrideRelationsKt.equals(meD, otherD, transform)) continue;
+
                 if (filtering == Filtering.RETAIN_OVERRIDING) {
-                    if (overrides(other, me)) {
+                    if (OverrideRelationsKt.overrides(otherD, meD, transform)) {
                         continue outerLoop;
                     }
                 }
                 else if (filtering == Filtering.RETAIN_OVERRIDDEN) {
-                    if (overrides(me, other)) {
+                    if (OverrideRelationsKt.overrides(meD, otherD, transform)) {
                         continue outerLoop;
                     }
                 }
@@ -198,10 +195,9 @@ public class OverrideResolver {
                 }
             }
             for (D otherD : candidates) {
-                CallableDescriptor other = transform.fun(otherD);
-                if (me.getOriginal() == other.getOriginal()
-                    && OverridingUtil.DEFAULT.isOverridableBy(other, me, null).getResult() == OVERRIDABLE
-                    && OverridingUtil.DEFAULT.isOverridableBy(me, other, null).getResult() == OVERRIDABLE) {
+                if (OverrideRelationsKt.originalEquals(meD, otherD, transform)
+                    && OverrideRelationsKt.isOverridableBy(otherD, meD, transform)
+                    && OverrideRelationsKt.isOverridableBy(meD, otherD, transform)) {
                     continue outerLoop;
                 }
             }
@@ -219,10 +215,10 @@ public class OverrideResolver {
         // when B is defined in modules m1 and m2, and C (indirectly) inherits from both versions,
         // we'll be getting sets of members that do not override each other, but are structurally equivalent.
         // As other code relies on no equal descriptors passed here, we guard against f == g, but this may not be necessary
-        if (!f.equals(g) && DescriptorEquivalenceForOverrides.INSTANCE$.areEquivalent(f.getOriginal(), g.getOriginal())) return true;
+        if (!f.equals(g) && DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(f.getOriginal(), g.getOriginal())) return true;
         CallableDescriptor originalG = g.getOriginal();
         for (D overriddenFunction : DescriptorUtils.getAllOverriddenDescriptors(f)) {
-            if (DescriptorEquivalenceForOverrides.INSTANCE$.areEquivalent(originalG, overriddenFunction.getOriginal())) return true;
+            if (DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(originalG, overriddenFunction.getOriginal())) return true;
         }
         return false;
     }

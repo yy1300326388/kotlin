@@ -57,6 +57,10 @@
             idea.maven.version="${ideaVersion}"/>
     </target>
 
+    <target name="update_custom" depends="fetch-third-party,fetch-annotations" description="Update dependencies">
+        <execute_custom_update/>
+    </target>
+
     <target name="jb_update" depends="fetch-third-party,fetch-annotations" description="Update dependencies for JB local network">
         <execute_update_with_idea_maven_artifacts
             base.url="http://jetbrains-com-mirror.labs.intellij.net/intellij-repository/releases/com/jetbrains/intellij/idea"
@@ -496,6 +500,28 @@
         </sequential>
     </macrodef>
 
+    <macrodef name="execute_custom_update">
+        <sequential>
+            <loadfile property="execute.build.id" srcFile="dependencies/version.txt"/>
+
+            <local name="idea.already.downloaded"/>
+            <condition property="idea.already.downloaded">
+                <equals arg1="${ideaVersion}" arg2="${execute.build.id}"/>
+            </condition>
+
+            <echo message="IDEA build id: ${execute.build.id}. Already downloaded." if:set="idea.already.downloaded"/>
+
+            <sequential unless:set="idea.already.downloaded">
+                <echo message="IDEA build id: ${execute.build.id}, previous build id: ${dependencies.info.prev.idea.build.id}"/>
+                <download_and_update_idea_custom idea.maven.version="${ideaVersion}"/>
+
+                <propertyfile file="${dependencies.info.file}">
+                    <entry key="idea.build.id" value="${execute.build.id}"/>
+                </propertyfile>
+            </sequential>
+        </sequential>
+    </macrodef>
+
     <macrodef name="download_teamcity_artifact">
         <attribute name="teamcity.server.url"/>
         <attribute name="build.locator.request"/>
@@ -704,6 +730,45 @@
             <download_and_unzip
                 dir="@{download.dir}/jps-standalone-@{idea.maven.version}"
                 url="@{base.repository.url}/jps-standalone/@{idea.maven.version}/jps-standalone-@{idea.maven.version}.zip"
+                usetimestamp="true"/>
+
+            <configure_idea_sdk_dir
+                idea.dir="${idea.dir}"
+                idea.sdk.fetch.needed="${idea.sdk.fetch.needed}"
+
+                download.dir.intellij-core="@{download.dir}/intellij-core-@{idea.maven.version}"
+                download.dir.jps-standalone="@{download.dir}/jps-standalone-@{idea.maven.version}"
+                download.file.archive.idea="@{download.dir}/ideaIC-@{idea.maven.version}.zip"
+                download.file.archive.sources="@{download.dir}/ideaIC-@{idea.maven.version}-sources.jar"
+                download.file.archive.jps-build-test="@{download.dir}/jps-build-test-@{idea.maven.version}.jar"/>
+        </sequential>
+    </macrodef>
+
+    <macrodef name="download_and_update_idea_custom">
+        <attribute name="idea.maven.version"/>
+        <attribute name="download.dir" default="dependencies/idea"/>
+
+        <sequential>
+            <delete dir="@{download.dir}"/>
+            <mkdir dir="@{download.dir}"/>
+
+            <get src="file:///C:/Users/Nikolay.Krasko/Downloads/1_8_Idea/sources.zip"
+                 dest="@{download.dir}/ideaIC-@{idea.maven.version}-sources.jar" usetimestamp="true"/>
+
+            <get src="file:///C:/Users/Nikolay.Krasko/Downloads/1_8_Idea/ideaIC-144.2039.zip"
+                 dest="@{download.dir}/ideaIC-@{idea.maven.version}.zip" usetimestamp="true"/>
+
+            <download_and_unzip
+                dir="@{download.dir}/intellij-core-@{idea.maven.version}"
+                url="file:///C:/Users/Nikolay.Krasko/Downloads/1_8_Idea/intellij-core-144.2039.zip"
+                usetimestamp="true"/>
+
+            <get src="file:///C:/Users/Nikolay.Krasko/Downloads/1_8_Idea/jps-build-test-144.2039.jar"
+                 dest="@{download.dir}/jps-build-test-@{idea.maven.version}.jar" usetimestamp="true"/>
+
+            <download_and_unzip
+                dir="@{download.dir}/jps-standalone-@{idea.maven.version}"
+                url="file:///C:/Users/Nikolay.Krasko/Downloads/1_8_Idea/standalone-jps-144.2039.zip"
                 usetimestamp="true"/>
 
             <configure_idea_sdk_dir

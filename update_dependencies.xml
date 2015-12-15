@@ -512,11 +512,11 @@
             <echo message="IDEA build id: ${execute.build.id}. Already downloaded." if:set="idea.already.downloaded"/>
 
             <sequential unless:set="idea.already.downloaded">
-                <echo message="IDEA build id: ${execute.build.id}, previous build id: ${dependencies.info.prev.idea.build.id}"/>
+                <echo message="IDEA build id: ${ideaVersion}, previous build id: ${execute.build.id}"/>
                 <download_and_update_idea_custom idea.maven.version="${ideaVersion}"/>
 
                 <propertyfile file="${dependencies.info.file}">
-                    <entry key="idea.build.id" value="${execute.build.id}"/>
+                    <entry key="idea.build.id" value="${ideaVersion}"/>
                 </propertyfile>
             </sequential>
         </sequential>

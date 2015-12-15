@@ -500,23 +500,12 @@
 
     <macrodef name="execute_custom_update">
         <sequential>
-            <loadfile property="execute.build.id" srcFile="dependencies/version.txt"/>
+            <echo message="IDEA build id: ${ideaVersion}, previous build id: ${execute.build.id}"/>
+            <download_and_update_idea_custom idea.maven.version="${ideaVersion}"/>
 
-            <local name="idea.already.downloaded"/>
-            <condition property="idea.already.downloaded">
-                <equals arg1="${ideaVersion}" arg2="${execute.build.id}"/>
-            </condition>
-
-            <echo message="IDEA build id: ${execute.build.id}. Already downloaded." if:set="idea.already.downloaded"/>
-
-            <sequential unless:set="idea.already.downloaded">
-                <echo message="IDEA build id: ${ideaVersion}, previous build id: ${execute.build.id}"/>
-                <download_and_update_idea_custom idea.maven.version="${ideaVersion}"/>
-
-                <propertyfile file="${dependencies.info.file}">
-                    <entry key="idea.build.id" value="${ideaVersion}"/>
-                </propertyfile>
-            </sequential>
+            <propertyfile file="${dependencies.info.file}">
+                <entry key="idea.build.id" value="${ideaVersion}"/>
+            </propertyfile>
         </sequential>
     </macrodef>
 

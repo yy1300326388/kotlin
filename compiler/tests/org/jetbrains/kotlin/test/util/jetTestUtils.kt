@@ -32,7 +32,7 @@ public fun String.trimTrailingWhitespacesAndAddNewlineAtEOF(): String =
         }
 
 public fun CodeInsightTestFixture.configureWithExtraFile(path: String, vararg extraNameParts: String) {
-    configureWithExtraFile(path, *extraNameParts)
+    configureWithExtraFile(path, *extraNameParts, relativePaths = false)
 }
 
 public fun CodeInsightTestFixture.configureWithExtraFile(path: String, vararg extraNameParts: String = arrayOf(".Data"), relativePaths: Boolean = false) {

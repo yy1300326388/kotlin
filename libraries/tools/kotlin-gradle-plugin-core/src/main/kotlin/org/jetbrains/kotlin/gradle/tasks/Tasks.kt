@@ -37,6 +37,9 @@ import org.jetbrains.kotlin.utils.LibraryUtils
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 import java.util.*
+import kotlin.collections.*
+import kotlin.sequences.*
+import kotlin.text.*
 
 val DEFAULT_ANNOTATIONS = "org.jebrains.kotlin.gradle.defaultAnnotations"
 
@@ -187,8 +190,8 @@ public open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments
             }
         }
 
-        testsMap.get(this.name)?.let {
-            addFriendPathForTestTask(it)
+        testsMap.get(this.name).let {
+            addFriendPathForTestTask(it!!)
         }
 
         logger.kotlinDebug("args.moduleName = ${args.moduleName}")
@@ -327,7 +330,7 @@ public open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments
             .filterNotNull()
             .toSet()
 
-    private fun File.isJavaFile() = extension.equals(JavaFileType.INSTANCE.getDefaultExtension(), ignoreCase = true)
+    private fun File.isJavaFile() = extension.equals(JavaFileType.INSTANCE.defaultExtension, ignoreCase = true)
 
     override fun afterCompileHook(args: K2JVMCompilerArguments) {
         logger.debug("Copying resulting files to classes")

@@ -220,7 +220,7 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
             val T_CLASSIFIER = targetList(CLASS)
 
             val T_LOCAL_VARIABLE = targetList(LOCAL_VARIABLE) {
-                onlyWithUseSiteTarget(PROPERTY, FIELD, PROPERTY_GETTER, PROPERTY_SETTER, VALUE_PARAMETER)
+                onlyWithUseSiteTarget(PROPERTY_SETTER, VALUE_PARAMETER)
             }
 
             val T_DESTRUCTURING_DECLARATION = targetList(DESTRUCTURING_DECLARATION)
@@ -242,9 +242,7 @@ public class AnnotationChecker(private val additionalCheckers: Iterable<Addition
             val T_PROPERTY_GETTER = targetList(PROPERTY_GETTER)
             val T_PROPERTY_SETTER = targetList(PROPERTY_SETTER)
 
-            val T_VALUE_PARAMETER_WITHOUT_VAL = targetList(VALUE_PARAMETER) {
-                onlyWithUseSiteTarget(PROPERTY, FIELD)
-            }
+            val T_VALUE_PARAMETER_WITHOUT_VAL = targetList(VALUE_PARAMETER)
 
             val T_VALUE_PARAMETER_WITH_VAL = targetList(VALUE_PARAMETER, PROPERTY, MEMBER_PROPERTY) {
                 extraTargets(FIELD)

@@ -31,5 +31,7 @@ public class KotlinModelSerializerService extends JpsModelSerializerExtension {
                              new Kotlin2JvmCompilerArgumentsSerializer(),
                              new Kotlin2JsCompilerArgumentsSerializer(),
                              new KotlinCompilerSettingsSerializer());
+
+
     }
 }

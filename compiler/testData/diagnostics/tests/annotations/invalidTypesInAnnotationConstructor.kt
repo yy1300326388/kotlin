@@ -33,11 +33,11 @@ annotation class Ann8(val p1: Array<String>,
                       val p3: Array<MyEnum>,
                       val p4: Array<Ann1>)
 
-annotation class Ann9(vararg val p1: String,
+annotation class Ann9<!MULTIPLE_VARARG_PARAMETERS!>(vararg val p1: String,
                       vararg val p2: <!INVALID_TYPE_OF_ANNOTATION_MEMBER!>Class<*><!>,
                       vararg val p3: MyEnum,
                       vararg val p4: Ann1,
-                      vararg val p5: Int)
+                      vararg val p5: Int)<!>
 
 // INCORRECT
 annotation class InAnn1(val p1: <!NULLABLE_TYPE_OF_ANNOTATION_MEMBER!>Int?<!>,

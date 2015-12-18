@@ -173,9 +173,11 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             }
         }
 
-        if (call1.parametersWithDefaultValuesCount > 0 &&
-            call2.parametersWithDefaultValuesCount == 0
-        ) return false
+        if (!call1.resultingDescriptor.hasVarargs && !call2.resultingDescriptor.hasVarargs) {
+            if (call1.parametersWithDefaultValuesCount > 0 && call2.parametersWithDefaultValuesCount == 0) {
+                return false
+            }
+        }
 
         return true
     }

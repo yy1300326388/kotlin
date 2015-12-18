@@ -130,7 +130,7 @@ class DeclarationsChecker(
         declaration.checkTypeReferences()
         modifiersChecker.checkModifiersForDeclaration(declaration, constructorDescriptor)
         identifierChecker.checkDeclaration(declaration, trace)
-        checkVarargParameters(declaration, constructorDescriptor)
+        checkVarargParameters(trace, constructorDescriptor)
     }
 
     private fun checkModifiersAndAnnotationsInPackageDirective(file: KtFile) {
@@ -655,14 +655,6 @@ class DeclarationsChecker(
         }
 
         checkFunctionExposedType(function, functionDescriptor)
-        checkVarargParameters(function, functionDescriptor)
-    }
-
-    private fun checkVarargParameters(declaration: KtDeclaration, callableDescriptor: CallableDescriptor) {
-        val numberOfVarargParameters = callableDescriptor.valueParameters.count { it.varargElementType != null }
-        if (numberOfVarargParameters > 1) {
-            trace.report(MULTIPLE_VARARG_PARAMETERS.on(declaration))
-        }
     }
 
     private fun checkFunctionExposedType(function: KtFunction, functionDescriptor: FunctionDescriptor) {
@@ -752,6 +744,19 @@ class DeclarationsChecker(
     }
 
     companion object {
+        internal fun checkVarargParameters(trace: BindingTrace, callableDescriptor: CallableDescriptor) {
+            val numberOfVarargParameters = callableDescriptor.valueParameters.count { it.varargElementType != null }
+            if (numberOfVarargParameters > 1) {
+                for (parameter in callableDescriptor.valueParameters) {
+                    if (parameter.varargElementType != null) {
+                        val parameterDeclaration = DescriptorToSourceUtils.descriptorToDeclaration(parameter)
+                        if (parameterDeclaration is KtParameter) {
+                            trace.report(MULTIPLE_VARARG_PARAMETERS.on(parameterDeclaration))
+                        }
+                    }
+                }
+            }
+        }
 
         private fun removeDuplicateTypes(conflictingTypes: MutableSet<KotlinType>) {
             val iterator = conflictingTypes.iterator()

@@ -134,14 +134,14 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             discriminateGenericDescriptors: Boolean
     ): Boolean {
         return tryCompareDescriptorsFromScripts(call1.resultingDescriptor, call2.resultingDescriptor) ?:
-               compareConflictingCalls(call1, call2, discriminateGenericDescriptors)
+               compareCallsWithArgumentMapping(call1, call2, discriminateGenericDescriptors)
     }
 
     /**
      * Returns `true` if `d1` is definitely not less specific than `d2`,
      * `false` if `d1` is definitely less specific than `d2` or undecided.
      */
-    private fun <D : CallableDescriptor, K> compareConflictingCalls(
+    private fun <D : CallableDescriptor, K> compareCallsWithArgumentMapping(
             call1: CandidateCallWithArgumentMapping<D, K>,
             call2: CandidateCallWithArgumentMapping<D, K>,
             discriminateGenericDescriptors: Boolean
@@ -173,9 +173,11 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             }
         }
 
-        if (call1.parametersWithDefaultValuesCount > 0 &&
-            call2.parametersWithDefaultValuesCount == 0
-        ) return false
+        if (!call1.resultingDescriptor.hasVarargs && !call2.resultingDescriptor.hasVarargs) {
+            if (call1.parametersWithDefaultValuesCount > 0 && call2.parametersWithDefaultValuesCount == 0) {
+                return false
+            }
+        }
 
         return true
     }

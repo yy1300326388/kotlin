@@ -31,7 +31,7 @@ public fun String.trimTrailingWhitespacesAndAddNewlineAtEOF(): String =
             result -> if (result.endsWith("\n")) result else result + "\n"
         }
 
-public fun CodeInsightTestFixture.configureWithExtraFile(path: String, vararg extraNameParts: String) {
+public fun CodeInsightTestFixture.configureWithExtraFileAbs(path: String, vararg extraNameParts: String) {
     configureWithExtraFile(path, *extraNameParts, relativePaths = false)
 }
 

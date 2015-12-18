@@ -943,7 +943,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/android-compiler-plugin/tests", "plugins/android-compiler-plugin/testData") {
+    testGroup("plugins/plugins-tests/tests", "plugins/android-compiler-plugin/testData") {
         testClass<AbstractAndroidSyntheticPropertyDescriptorTest>() {
             model("descriptors", recursive = false, extension = null)
         }
@@ -958,7 +958,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/annotation-collector/test", "plugins/annotation-collector/testData") {
+    testGroup("plugins/plugins-tests/tests", "plugins/annotation-collector/testData") {
         testClass<AbstractAnnotationProcessorBoxTest>() {
             model("collectToFile", recursive = false, extension = null)
         }
@@ -982,7 +982,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/android-jps-plugin/tests", "plugins/android-jps-plugin/testData") {
+    testGroup("plugins/plugins-tests/tests", "plugins/android-jps-plugin/testData") {
         testClass<AbstractAndroidJpsTestCase>() {
             model("android", recursive = false, extension = null)
         }

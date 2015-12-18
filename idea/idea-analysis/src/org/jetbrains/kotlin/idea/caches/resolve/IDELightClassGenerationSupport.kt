@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.idea.caches.resolve
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.libraries.LibraryUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.ClassFileViewProvider
 import com.intellij.psi.PsiClass
@@ -139,14 +138,19 @@ public class IDELightClassGenerationSupport(private val project: Project) : Ligh
     }
 
     override fun getPsiClass(classOrObject: KtClassOrObject): PsiClass? {
-        val virtualFile = classOrObject.containingFile.virtualFile
-        if (virtualFile != null && LibraryUtil.findLibraryEntry(virtualFile, classOrObject.project) != null) {
-            if (ProjectRootsUtil.isLibraryClassFile(project, virtualFile)) {
+        val virtualFile = classOrObject.containingFile.virtualFile ?: return null
+        when {
+            ProjectRootsUtil.isProjectSourceFile(project, virtualFile) -> {
+                return KtLightClassForExplicitDeclaration.create(classOrObject)
+            }
+            ProjectRootsUtil.isLibraryClassFile(project, virtualFile) -> {
                 return getLightClassForDecompiledClassOrObject(classOrObject)
             }
-            return SourceNavigationHelper.getOriginalClass(classOrObject)
+            ProjectRootsUtil.isLibrarySourceFile(project, virtualFile) -> {
+                return SourceNavigationHelper.getOriginalClass(classOrObject)
+            }
         }
-        return KtLightClassForExplicitDeclaration.create(classOrObject)
+        return null
     }
 
     private fun withFakeLightClasses(

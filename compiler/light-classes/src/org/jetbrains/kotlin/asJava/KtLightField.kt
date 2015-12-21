@@ -30,7 +30,7 @@ public interface KtLightField : PsiField, KtLightElement<KtDeclaration, PsiField
 
 // Copied from com.intellij.psi.impl.light.LightField
 sealed class KtLightFieldImpl(
-        private val origin: KtDeclaration?,
+        private val origin: LightElementOrigin?,
         private val delegate: PsiField,
         private val containingClass: KtLightClass
 ) : LightElement(delegate.manager, KotlinLanguage.INSTANCE), KtLightField {
@@ -77,7 +77,7 @@ sealed class KtLightFieldImpl(
 
     override fun toString(): String = "${this.javaClass.simpleName}:$name"
 
-    override fun getOrigin() = origin
+    override fun getOrigin() = origin.element
 
     override fun getDelegate() = delegate
 
@@ -92,7 +92,7 @@ sealed class KtLightFieldImpl(
 
     override fun isWritable() = getOrigin()?.isWritable ?: false
 
-    override fun copy() = Factory.create(origin?.copy() as? KtDeclaration, delegate, containingClass)
+    override fun copy() = Factory.create(LightElementOrigin(origin?.element?.copy() as? KtDeclaration, origin.originKind), delegate, containingClass)
 
     class KtLightEnumConstant(
             origin: KtEnumEntry?,
@@ -115,14 +115,14 @@ sealed class KtLightFieldImpl(
         override fun resolveMethodGenerics() = getDelegate().resolveMethodGenerics()
     }
 
-    public class KtLightFieldForDeclaration(origin: KtDeclaration?, delegate: PsiField, containingClass: KtLightClass)
+    public class KtLightFieldForDeclaration(origin: LightElementOrigin?, delegate: PsiField, containingClass: KtLightClass)
     : KtLightFieldImpl(origin, delegate, containingClass)
 
     companion object Factory {
-        fun create(origin: KtDeclaration?, delegate: PsiField, containingClass: KtLightClass): KtLightField {
+        fun create(origin: LightElementOrigin?, delegate: PsiField, containingClass: KtLightClass): KtLightField {
             when (delegate) {
                 is PsiEnumConstant -> {
-                    val kotlinEnumEntry = origin as? KtEnumEntry
+                    val kotlinEnumEntry = origin?.element as? KtEnumEntry
                     val initializingClass = if (kotlinEnumEntry != null && kotlinEnumEntry.declarations.isNotEmpty()) {
                         val enumConstantFqName = FqName(containingClass.getFqName().asString() + "." + kotlinEnumEntry.name)
                         KtLightClassForEnumEntry(enumConstantFqName, kotlinEnumEntry, delegate)

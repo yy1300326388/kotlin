@@ -119,8 +119,8 @@ public abstract class KtWrappingLightClass extends AbstractLightClass implements
         return ContainerUtil.map(getDelegate().getFields(), new Function<PsiField, PsiField>() {
             @Override
             public PsiField fun(PsiField field) {
-                KtDeclaration declaration = ClsWrapperStubPsiFactory.getOriginalDeclaration(field);
-                return KtLightFieldImpl.Factory.create(declaration, field, KtWrappingLightClass.this);
+                LightElementOrigin origin = ClsWrapperStubPsiFactory.getOrigin(field);
+                return KtLightFieldImpl.Factory.create(origin, field, KtWrappingLightClass.this);
             }
         });
     }
@@ -131,7 +131,7 @@ public abstract class KtWrappingLightClass extends AbstractLightClass implements
         return ArraysKt.map(getDelegate().getMethods(), new Function1<PsiMethod, PsiMethod>() {
             @Override
             public PsiMethod invoke(PsiMethod method) {
-                KtDeclaration declaration = ClsWrapperStubPsiFactory.getOriginalDeclaration(method);
+                KtDeclaration declaration = ClsWrapperStubPsiFactory.getOrigin(method);
                 if (declaration instanceof KtPropertyAccessor) {
                     declaration = PsiTreeUtil.getParentOfType(declaration, KtProperty.class);
                 }

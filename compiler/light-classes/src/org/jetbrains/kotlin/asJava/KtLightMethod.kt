@@ -25,12 +25,15 @@ import com.intellij.psi.util.*
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKind
 
-public interface KtLightMethod : PsiMethod, KtLightElement<KtDeclaration, PsiMethod>
+public interface KtLightMethod : PsiMethod, KtLightElement<KtDeclaration, PsiMethod> {
+    val isDelegated: Boolean
+}
 
 sealed class KtLightMethodImpl(
         private val delegate: PsiMethod,
-        private val origin: KtDeclaration?,
+        private val lightElementOrigin: LightElementOrigin?,
         containingClass: KtLightClass
 ): LightMethod(delegate.manager, delegate, containingClass), KtLightMethod {
     override fun getContainingClass(): KtLightClass = super.getContainingClass() as KtLightClass
@@ -67,10 +70,13 @@ sealed class KtLightMethodImpl(
     override fun getNavigationElement(): PsiElement = origin ?: super.getNavigationElement()
     override fun getOriginalElement(): PsiElement = origin ?: super.getOriginalElement()
     override fun getDelegate() = delegate
-    override fun getOrigin() = origin
+    override fun getOrigin(): KtDeclaration? = lightElementOrigin?.element as? KtDeclaration
     override fun getParent(): PsiElement? = containingClass
     override fun getText() = origin?.text ?: ""
-    override fun getTextRange() = origin?.textRange ?: TextRange.EMPTY_RANGE 
+    override fun getTextRange() = origin?.textRange ?: TextRange.EMPTY_RANGE
+
+    override val isDelegated: Boolean
+        get() = origin.originKind == JvmDeclarationOriginKind.DELEGATION || origin.originKind.D
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is JavaElementVisitor) {
@@ -114,7 +120,7 @@ sealed class KtLightMethodImpl(
     }
 
     override fun copy(): PsiElement {
-        return Factory.create(delegate, origin?.copy() as? KtDeclaration, containingClass)
+        return Factory.create(delegate, lightElementOrigin?.element?.copy(), containingClass)
     }
 
     override fun getUseScope() = origin?.useScope ?: super.getUseScope()

@@ -109,7 +109,7 @@ public class StubClassBuilder extends AbstractClassBuilder {
 
         if (internalVisitor != EMPTY_METHOD_VISITOR) {
             // If stub for method generated
-            markLastChild(origin.getElement());
+            markLastChild(origin);
         }
 
         return internalVisitor;
@@ -129,13 +129,13 @@ public class StubClassBuilder extends AbstractClassBuilder {
 
         if (internalVisitor != EMPTY_FIELD_VISITOR) {
             // If stub for field generated
-            markLastChild(origin.getElement());
+            markLastChild(origin);
         }
 
         return internalVisitor;
     }
 
-    private void markLastChild(@Nullable PsiElement origin) {
+    private void markLastChild(@NotNull JvmDeclarationOrigin origin) {
         List children = v.getResult().getChildrenStubs();
         StubBase last = (StubBase) children.get(children.size() - 1);
 
@@ -144,7 +144,8 @@ public class StubClassBuilder extends AbstractClassBuilder {
             throw new IllegalStateException("Rewriting origin element: " + oldOrigin.getText() + " for stub " + last.toString());
         }
 
-        last.putUserData(ClsWrapperStubPsiFactory.ORIGIN_ELEMENT, origin);
+        last.putUserData(ClsWrapperStubPsiFactory.ORIGIN_ELEMENT, origin.getElement());
+        last.putUserData(ClsWrapperStubPsiFactory.ORIGIN_KIND, origin.getOriginKind());
     }
 
     @Override

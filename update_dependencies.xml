@@ -111,11 +111,12 @@
         <attribute name="version"/>
         <attribute name="folderName"/>
         <sequential>
-            <get src="http://archive.apache.org/dist/ant/binaries/apache-ant-@{version}-bin.tar.gz"
+            <!-- <get src="http://archive.apache.org/dist/ant/binaries/apache-ant-@{version}-bin.tar.gz"
                  dest="dependencies/download/apache-ant-@{version}-bin.tar.gz" usetimestamp="true"/>
 
             <get src="http://archive.apache.org/dist/ant/source/apache-ant-@{version}-src.zip"
                  dest="dependencies/apache-ant-@{version}-src.zip" usetimestamp="true"/>
+                 -->
 
             <delete dir="dependencies/@{folderName}" failonerror="false"/>
             <untar src="dependencies/download/apache-ant-@{version}-bin.tar.gz" dest="dependencies" compression="gzip"/>

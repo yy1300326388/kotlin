@@ -50,4 +50,8 @@ data class LightClassOrigin(override val originalElement: PsiElement?) : LightEl
     override val originKind: JvmDeclarationOriginKind? get() = null
 }
 
+fun PsiElement?.toLightClassOrigin(): LightElementOrigin {
+    return if (this != null) LightClassOrigin(this) else LightElementOrigin.None
+}
+
 fun LightMemberOrigin.copy() = LightMemberOrigin(originalElement.copy() as KtDeclaration, originKind)

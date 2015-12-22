@@ -92,7 +92,7 @@ public class StubClassBuilder extends AbstractClassBuilder {
             parentStack.push(v.getResult());
         }
 
-        ((StubBase) v.getResult()).putUserData(ClsWrapperStubPsiFactory.ORIGIN, new LightClassOrigin(origin));
+        ((StubBase) v.getResult()).putUserData(ClsWrapperStubPsiFactory.ORIGIN, LightElementOriginKt.toLightClassOrigin(origin));
     }
 
     @NotNull

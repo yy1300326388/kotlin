@@ -5,13 +5,13 @@ interface I {
         get() = 0
 }
 
-class A(i: I) : I by I
+class A(i: I) : I by i
 
-class B(i: I) : I by I {
+class B(i: I) : I by i {
     override val p = 5
 }
 
-class C : I
+class C(i: I) : I by i
 
 
 // REF: (in testing.B).p

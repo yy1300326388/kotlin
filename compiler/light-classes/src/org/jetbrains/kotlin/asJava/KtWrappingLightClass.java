@@ -137,7 +137,8 @@ public abstract class KtWrappingLightClass extends AbstractLightClass implements
                 LightMemberOrigin origin = ClsWrapperStubPsiFactory.getMemberOrigin(method);
                 KtDeclaration originalElement = origin != null ? origin.getOriginalElement() : null;
                 if (originalElement instanceof KtPropertyAccessor) {
-                    origin = new LightMemberOrigin(PsiTreeUtil.getParentOfType(originalElement, KtProperty.class), origin.getOriginKind());
+                    //noinspection ConstantConditions
+                    origin = origin.copy(PsiTreeUtil.getParentOfType(originalElement, KtProperty.class), origin.getOriginKind());
                 }
 
                 return KtLightMethodImpl.Factory.create(method, origin, KtWrappingLightClass.this);

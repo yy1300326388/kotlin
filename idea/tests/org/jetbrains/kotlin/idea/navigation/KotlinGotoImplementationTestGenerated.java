@@ -95,9 +95,27 @@ public class KotlinGotoImplementationTestGenerated extends AbstractKotlinGotoImp
         doTest(fileName);
     }
 
+    @TestMetadata("FakeOverride.kt")
+    public void testFakeOverride() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("idea/testData/navigation/implementations/FakeOverride.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("FunctionOverrideNavigation.kt")
     public void testFunctionOverrideNavigation() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea/testData/navigation/implementations/FunctionOverrideNavigation.kt");
+        doTest(fileName);
+    }
+
+    @TestMetadata("GenericDelegatedAndDefaultImplFunction.kt")
+    public void testGenericDelegatedAndDefaultImplFunction() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("idea/testData/navigation/implementations/GenericDelegatedAndDefaultImplFunction.kt");
+        doTest(fileName);
+    }
+
+    @TestMetadata("GenericFakeOverride.kt")
+    public void testGenericFakeOverride() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("idea/testData/navigation/implementations/GenericFakeOverride.kt");
         doTest(fileName);
     }
 

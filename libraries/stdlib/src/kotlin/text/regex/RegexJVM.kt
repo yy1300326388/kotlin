@@ -255,6 +255,18 @@ private class MatcherMatchResult(private val matcher: Matcher, private val input
             else
                 null
         }
+
+        override fun get(name: String): MatchGroup? {
+            throw UnsupportedOperationException("Retrieving groups by name is not supported yet.")
+/*
+            val matcher = matchResult as? Matcher ?: throw UnsupportedOperationException("Retrieving groups by name is not supported in this JDK implementation.")
+            val range = matcher.start(groupName)..matcher.end(groupName)-1
+            return if (range.start >= 0)
+                MatchGroup(matcher.group(groupName), range)
+            else
+                null
+*/
+        }
     }
 
     private var groupValues_: List<String>? = null

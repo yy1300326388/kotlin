@@ -37,7 +37,8 @@ public interface MatchGroupCollection : Collection<MatchGroup?> {
      */
     public operator fun get(index: Int): MatchGroup?
 
-    // TODO: Provide get(name: String) on JVM 7+
+    @Deprecated("Not supported yet.")
+    public operator fun get(name: String): MatchGroup?
 }
 
 /**

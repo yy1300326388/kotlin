@@ -207,6 +207,9 @@ private fun RegExp.findNext(input: String, from: Int): MatchResult? {
             override fun iterator(): Iterator<MatchGroup?> = indices.asSequence().map { this[it] }.iterator()
 
             override fun get(index: Int): MatchGroup? = match[index]?.let { MatchGroup(it) }
+            override fun get(name: String): MatchGroup? {
+                throw UnsupportedOperationException("Retrieving groups by name is not supported on this platform.")
+            }
         }
 
 

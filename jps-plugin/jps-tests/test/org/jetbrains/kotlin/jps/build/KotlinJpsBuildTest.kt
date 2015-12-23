@@ -57,8 +57,6 @@ import java.io.*
 import java.util.*
 import java.util.regex.Pattern
 import java.util.zip.ZipOutputStream
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 public class KotlinJpsBuildTest : AbstractKotlinJpsBuildTestCase() {
     companion object {
@@ -133,7 +131,7 @@ public class KotlinJpsBuildTest : AbstractKotlinJpsBuildTestCase() {
         private fun assertFilesExistInOutput(module: JpsModule, vararg relativePaths: String) {
             for (path in relativePaths) {
                 val outputFile = findFileInOutputDir(module, path)
-                assertTrue(outputFile.exists(), "Output not written: " + outputFile.getAbsolutePath() + "\n Directory contents: \n" + dirContents(outputFile.getParentFile()))
+                assertTrue("Output not written: " + outputFile.getAbsolutePath() + "\n Directory contents: \n" + dirContents(outputFile.getParentFile()), outputFile.exists())
             }
         }
 
@@ -151,7 +149,7 @@ public class KotlinJpsBuildTest : AbstractKotlinJpsBuildTestCase() {
             val outputDir = File(JpsPathUtil.urlToPath(outputUrl))
             for (path in relativePaths) {
                 val outputFile = File(outputDir, path)
-                assertFalse(outputFile.exists(), "Output directory \"" + outputFile.getAbsolutePath() + "\" contains \"" + path + "\"")
+                assertFalse("Output directory \"" + outputFile.getAbsolutePath() + "\" contains \"" + path + "\"", outputFile.exists())
             }
         }
 
@@ -833,7 +831,7 @@ public class KotlinJpsBuildTest : AbstractKotlinJpsBuildTestCase() {
                 Operation.CHANGE ->
                     touch(file)
                 Operation.DELETE ->
-                    assertTrue(file.delete(), "Can not delete file \"" + file.getAbsolutePath() + "\"")
+                    assertTrue("Can not delete file \"" + file.getAbsolutePath() + "\"", file.delete())
                 else ->
                     fail("Unknown operation")
             }

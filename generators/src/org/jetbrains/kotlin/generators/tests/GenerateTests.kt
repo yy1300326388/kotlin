@@ -978,6 +978,10 @@ fun main(args: Array<String>) {
             model("android/rename", recursive = false, extension = null)
         }
 
+        testClass<AbstractAndroidLayoutRenameTest>() {
+            model("android/renameLayout", recursive = false, extension = null)
+        }
+
         testClass<AbstractAndroidFindUsagesTest>() {
             model("android/findUsages", recursive = false, extension = null)
         }

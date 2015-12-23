@@ -51,6 +51,13 @@ class DeprecatedUsageOfStaticFieldInspection : LocalInspectionTool(), CleanupLoc
                     is KtClass -> kotlinClassOrObject.getCompanionObjects().singleOrNull() ?: return
                     else -> return
                 }
+
+                if (kotlinClassOrObject is KtObjectDeclaration &&
+                    kotlinProperty == null &&
+                    expression.text.endsWith(JvmAbi.DEPRECATED_INSTANCE_FIELD)) {
+                    return
+                }
+
                 holder.registerProblem(
                         expression, "This field will not be generated in future versions of Kotlin. Use 'const' modifier, '@JvmField' annotation or access data through corresponding object.",
                         ProblemHighlightType.LIKE_DEPRECATED,
@@ -59,7 +66,6 @@ class DeprecatedUsageOfStaticFieldInspection : LocalInspectionTool(), CleanupLoc
             }
         }
     }
-
 
     private fun createFixes(containingObject: KtObjectDeclaration, property: KtProperty?): List<LocalQuickFix> {
         if (containingObject.getContainingKtFile().isCompiled) return listOf(ReplaceWithGetterInvocationFix())

@@ -958,7 +958,7 @@ public fun CharSequence.lastIndexOf(string: String, startIndex: Int = lastIndex,
 /**
  * Returns `true` if this char sequence contains the specified [other] sequence of characters as a substring.
  */
-public fun CharSequence.contains(other: CharSequence): Boolean = contains(other, ignoreCase = false)
+public operator fun CharSequence.contains(other: CharSequence): Boolean = contains(other, ignoreCase = false)
 
 
 /**
@@ -984,7 +984,7 @@ public operator fun CharSequence.contains(char: Char): Boolean = contains(char, 
  *
  * @param ignoreCase `true` to ignore character case when comparing characters. By default `false`.
  */
-public operator fun CharSequence.contains(char: Char, ignoreCase: Boolean): Boolean =
+public fun CharSequence.contains(char: Char, ignoreCase: Boolean): Boolean =
         indexOf(char, ignoreCase = ignoreCase) >= 0
 
 /**

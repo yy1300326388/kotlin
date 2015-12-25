@@ -128,8 +128,11 @@ private class Checks private constructor(
     fun checkAll(functionDescriptor: FunctionDescriptor): CheckResult {
         val errors = ArrayList<String>(0)
         for (check in checks) {
-            check(functionDescriptor)?.let { errors += it }
-
+            val checkResult = check(functionDescriptor)
+            if (checkResult != null) {
+                errors += checkResult
+                break
+            }
         }
         additionalCheck(functionDescriptor)?.let { errors += it }
         return if (errors.isEmpty()) CheckResult.SuccessCheck else CheckResult.IllegalSignature(errors)

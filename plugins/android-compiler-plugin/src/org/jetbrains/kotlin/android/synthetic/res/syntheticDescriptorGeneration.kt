@@ -66,18 +66,17 @@ internal fun genPropertyForWidget(
                                   defaultType.constructor.parameters.map { StarProjectionImpl(it) })
     } ?: context.viewType
 
-    return genProperty(resolvedWidget.widget.id, receiverType, type, packageFragmentDescriptor, sourceEl, context, resolvedWidget.errorType)
+    return genProperty(resolvedWidget.widget.id, receiverType, type, packageFragmentDescriptor, sourceEl, resolvedWidget.errorType)
 }
 
 internal fun genPropertyForFragment(
         packageFragmentDescriptor: AndroidSyntheticPackageFragmentDescriptor,
         receiverType: KotlinType,
         type: KotlinType,
-        fragment: AndroidResource.Fragment,
-        context: SyntheticElementResolveContext
+        fragment: AndroidResource.Fragment
 ): PropertyDescriptor {
     val sourceElement = fragment.sourceElement?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
-    return genProperty(fragment.id, receiverType, type, packageFragmentDescriptor, sourceElement, context, null)
+    return genProperty(fragment.id, receiverType, type, packageFragmentDescriptor, sourceElement, null)
 }
 
 private fun genProperty(
@@ -86,10 +85,9 @@ private fun genProperty(
         type: KotlinType,
         containingDeclaration: AndroidSyntheticPackageFragmentDescriptor,
         sourceElement: SourceElement,
-        context: SyntheticElementResolveContext,
         errorType: String?
 ): PropertyDescriptor {
-    val alwaysCastToView = type.constructor.declarationDescriptor?.fqNameUnsafe?.asString() == AndroidConst.VIEWSTUB_FQNAME
+    val cacheView = type.constructor.declarationDescriptor?.fqNameUnsafe?.asString() == AndroidConst.VIEWSTUB_FQNAME
 
     val property = object : AndroidSyntheticProperty, PropertyDescriptorImpl(
             containingDeclaration,
@@ -104,7 +102,7 @@ private fun genProperty(
             false,
             false) {
         override val errorType = errorType
-        override val alwaysCastToView = alwaysCastToView
+        override val cacheView = cacheView
 
         override val layoutName: String
             get() = containingDeclaration.packageData.layoutName
@@ -116,8 +114,7 @@ private fun genProperty(
             get() = containingDeclaration.packageData.forView
     }
 
-    val actualType = if (alwaysCastToView) context.viewType else type
-    val flexibleType = DelegatingFlexibleType.create(actualType, actualType.makeNullable(), FlexibleTypeCapabilities.NONE)
+    val flexibleType = DelegatingFlexibleType.create(type, type.makeNullable(), FlexibleTypeCapabilities.NONE)
     property.setType(
             flexibleType,
             emptyList<TypeParameterDescriptor>(),
@@ -147,7 +144,7 @@ interface AndroidSyntheticFunction
 
 interface AndroidSyntheticProperty {
     val errorType: String?
-    val alwaysCastToView: Boolean
+    val cacheView: Boolean
     val layoutName: String
     val variantName: String
     val forView: Boolean

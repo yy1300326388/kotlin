@@ -36,24 +36,28 @@ class AndroidIndicesHelperExtension : KotlinIndicesHelperExtension {
             receiverTypes: Collection<KotlinType>,
             nameFilter: (String) -> Boolean
     ) {
-        for (packageFragment in moduleDescriptor.getPackage(FqName(AndroidConst.SYNTHETIC_PACKAGE)).fragments) {
-            if (packageFragment !is PredefinedPackageFragmentDescriptor) continue
-
-            fun handleScope(scope: MemberScope) {
-                val descriptors = scope.getContributedDescriptors(DescriptorKindFilter.CALLABLES) { nameFilter(it.asString()) }
-                for (descriptor in descriptors) {
-                    val receiverType = (descriptor as CallableDescriptor).extensionReceiverParameter?.type ?: continue
-                    if (receiverTypes.any { it.isSubtypeOf(receiverType) }) {
-                        consumer += descriptor
-                    }
+        fun handleScope(scope: MemberScope) {
+            val descriptors = scope.getContributedDescriptors(DescriptorKindFilter.CALLABLES) { nameFilter(it.asString()) }
+            for (descriptor in descriptors) {
+                val receiverType = (descriptor as CallableDescriptor).extensionReceiverParameter?.type ?: continue
+                if (receiverTypes.any { it.isSubtypeOf(receiverType) }) {
+                    consumer += descriptor
                 }
             }
+        }
 
-            handleScope(packageFragment.getMemberScope())
-            for (fragment in packageFragment.subpackages) {
-                if (fragment is AndroidSyntheticPackageFragmentDescriptor && fragment.packageData.isDeprecated) continue
-                handleScope(fragment.getMemberScope())
-            }
+        moduleDescriptor.handleAndroidSyntheticScopes(::handleScope)
+    }
+}
+
+fun ModuleDescriptor.handleAndroidSyntheticScopes(handler: (MemberScope) -> Unit) {
+    for (packageFragment in getPackage(FqName(AndroidConst.SYNTHETIC_PACKAGE)).fragments) {
+        if (packageFragment !is PredefinedPackageFragmentDescriptor) continue
+
+        handler(packageFragment.getMemberScope())
+        for (fragment in packageFragment.subpackages) {
+            if (fragment is AndroidSyntheticPackageFragmentDescriptor && fragment.packageData.isDeprecated) continue
+            handler(fragment.getMemberScope())
         }
     }
 }

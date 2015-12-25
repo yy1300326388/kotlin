@@ -70,7 +70,7 @@ internal fun genPropertyForWidget(
 }
 
 internal fun genPropertyForFragment(
-        packageFragmentDescriptor: PackageFragmentDescriptor,
+        packageFragmentDescriptor: AndroidSyntheticPackageFragmentDescriptor,
         receiverType: KotlinType,
         type: KotlinType,
         fragment: AndroidResource.Fragment,
@@ -84,7 +84,7 @@ private fun genProperty(
         id: String,
         receiverType: KotlinType,
         type: KotlinType,
-        containingDeclaration: DeclarationDescriptor,
+        containingDeclaration: AndroidSyntheticPackageFragmentDescriptor,
         sourceElement: SourceElement,
         context: SyntheticElementResolveContext,
         errorType: String?
@@ -105,6 +105,15 @@ private fun genProperty(
             false) {
         override val errorType = errorType
         override val alwaysCastToView = alwaysCastToView
+
+        override val layoutName: String
+            get() = containingDeclaration.packageData.layoutName
+
+        override val variantName: String
+            get() = containingDeclaration.packageData.variantName
+
+        override val forView: Boolean
+            get() = containingDeclaration.packageData.forView
     }
 
     val actualType = if (alwaysCastToView) context.viewType else type
@@ -139,6 +148,9 @@ interface AndroidSyntheticFunction
 interface AndroidSyntheticProperty {
     val errorType: String?
     val alwaysCastToView: Boolean
+    val layoutName: String
+    val variantName: String
+    val forView: Boolean
 
     val isErrorType: Boolean
         get() = errorType != null

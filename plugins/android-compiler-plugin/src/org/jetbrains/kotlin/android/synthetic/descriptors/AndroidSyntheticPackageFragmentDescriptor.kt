@@ -33,6 +33,8 @@ import java.util.*
 
 class AndroidSyntheticPackageData(
         val moduleData: AndroidModuleData,
+        val variantName: String,
+        val layoutName: String,
         val forView: Boolean,
         val isDeprecated: Boolean,
         val resources: List<AndroidResource>)

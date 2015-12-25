@@ -7,6 +7,11 @@
         <psi.treeChangePreprocessor implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidPsiTreeChangePreprocessor"/>
         <errorHandler implementation="org.jetbrains.kotlin.plugin.android.AndroidExtensionsReportSubmitter"/>
         <gotoDeclarationHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidGotoDeclarationHandler"/>
+
+        <intentionAction>
+            <className>org.jetbrains.kotlin.android.synthetic.idea.intention.FindViewByIdIntention</className>
+            <category>Android Extensions</category>
+        </intentionAction>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

@@ -146,12 +146,15 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             call2: CandidateCallWithArgumentMapping<D, K>,
             discriminateGenerics: Boolean
     ): Boolean {
-        if (discriminateGenerics) {
-            val isGeneric1 = call1.isGeneric
-            val isGeneric2 = call2.isGeneric
-            if (isGeneric1 && !isGeneric2) return false
-            if (!isGeneric1 && isGeneric2) return true
-        }
+        val substituteTypes =
+                if (discriminateGenerics) {
+                    val isGeneric1 = call1.isGeneric
+                    val isGeneric2 = call2.isGeneric
+                    if (isGeneric1 && !isGeneric2) return false
+                    if (!isGeneric1 && isGeneric2) return true
+                    isGeneric1 && isGeneric2
+                }
+                else false
 
         val typeParameters = call2.resolvedCall.resultingDescriptor.typeParameters
         val constraintSystemBuilder: ConstraintSystem.Builder = ConstraintSystemBuilderImpl()
@@ -174,8 +177,8 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             return true
         }
 
-        val extensionReceiverType1 = call1.getExtensionReceiverType(false)
-        val extensionReceiverType2 = call2.getExtensionReceiverType(false)
+        val extensionReceiverType1 = call1.getExtensionReceiverType(substituteTypes)
+        val extensionReceiverType2 = call2.getExtensionReceiverType(substituteTypes)
         if (!compareTypesAndUpdateConstraints(extensionReceiverType1, extensionReceiverType2, ConstraintPositionKind.RECEIVER_POSITION.position())) {
             return false
         }
@@ -186,8 +189,8 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
 
         var index = 0
         for (argumentKey in call1.argumentKeys) {
-            val type1 = call1.getValueParameterType(argumentKey, false)
-            val type2 = call2.getValueParameterType(argumentKey, false)
+            val type1 = call1.getValueParameterType(argumentKey, substituteTypes)
+            val type2 = call2.getValueParameterType(argumentKey, substituteTypes)
 
             if (!compareTypesAndUpdateConstraints(type1, type2, ConstraintPositionKind.VALUE_PARAMETER_POSITION.position(index++))) {
                 return false

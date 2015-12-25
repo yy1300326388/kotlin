@@ -126,7 +126,7 @@ object MissingIteratorExclExclFixFactory : KotlinSingleIntentionActionFactory() 
             val memberScope = descriptor.unsubstitutedMemberScope
             val functions = memberScope.getContributedFunctions(OperatorNameConventions.ITERATOR, NoLookupLocation.FROM_IDE)
 
-            return functions.any { it.isOperator && OperatorChecks.canBeOperator(it) }
+            return functions.any { it.isOperator && OperatorChecks.checkOperator(it).isSuccess }
         }
 
         when (descriptor) {

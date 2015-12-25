@@ -375,7 +375,7 @@ public abstract class MavenImportingTestCase extends MavenTestCase {
         return ModuleRootManager.getInstance(getModule(module));
     }
 
-    protected void importProject(@NonNls String xml) throws IOException {
+        protected void importProject(@NonNls String xml) throws IOException {
         createProjectPom(xml);
         importProject();
     }

@@ -13742,12 +13742,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     doTest(fileName);
                 }
 
-                @TestMetadata("javaOverloadedVarargs.kt")
-                public void testJavaOverloadedVarargs() throws Exception {
-                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/overloadConflicts/javaOverloadedVarargs.kt");
-                    doTest(fileName);
-                }
-
                 @TestMetadata("kt10472.kt")
                 public void testKt10472() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/overloadConflicts/kt10472.kt");
@@ -13766,6 +13760,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     doTest(fileName);
                 }
 
+                @TestMetadata("varargWithMoreSpecificSignature.kt")
+                public void testVarargWithMoreSpecificSignature() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/overloadConflicts/varargWithMoreSpecificSignature.kt");
+                    doTest(fileName);
+                }
+
                 @TestMetadata("varargs.kt")
                 public void testVarargs() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/overloadConflicts/varargs.kt");
@@ -13781,6 +13781,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 @TestMetadata("varargsMixed.kt")
                 public void testVarargsMixed() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/overloadConflicts/varargsMixed.kt");
+                    doTest(fileName);
+                }
+
+                @TestMetadata("varargsWithRecursiveGenerics.kt")
+                public void testVarargsWithRecursiveGenerics() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/resolve/overloadConflicts/varargsWithRecursiveGenerics.kt");
                     doTest(fileName);
                 }
             }

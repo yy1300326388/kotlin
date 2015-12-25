@@ -151,6 +151,7 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             val isGeneric2 = call2.isGeneric
             if (isGeneric1 && !isGeneric2) return false
             if (!isGeneric1 && isGeneric2) return true
+            if (isGeneric1 && isGeneric2) return false
         }
 
         val typeParameters = call2.resolvedCall.resultingDescriptor.typeParameters

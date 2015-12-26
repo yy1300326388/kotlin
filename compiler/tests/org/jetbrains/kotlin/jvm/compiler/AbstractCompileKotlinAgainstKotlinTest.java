@@ -86,19 +86,23 @@ public abstract class AbstractCompileKotlinAgainstKotlinTest extends TestCaseWit
     }
 
     protected ClassFileFactory compileA(@NotNull File ktAFile) throws IOException {
-        KotlinCoreEnvironment jetCoreEnvironment = KotlinTestUtils.createEnvironmentWithMockJdkAndIdeaAnnotations(getTestRootDisposable(),
+        Disposable disposable = CompilerDisposable.create(getTestRootDisposable(), "compileA");
+
+        KotlinCoreEnvironment jetCoreEnvironment = KotlinTestUtils.createEnvironmentWithMockJdkAndIdeaAnnotations(disposable,
                                                                                                                   ConfigurationKind.ALL);
-        return compileKotlin(ktAFile, aDir, jetCoreEnvironment, getTestRootDisposable());
+        return compileKotlin(ktAFile, aDir, jetCoreEnvironment, disposable);
     }
 
     protected ClassFileFactory compileB(@NotNull File ktBFile) throws IOException {
+        Disposable disposable = CompilerDisposable.create(getTestRootDisposable(), "compileB");
+
         CompilerConfiguration configurationWithADirInClasspath = KotlinTestUtils
                 .compilerConfigurationForTests(ConfigurationKind.ALL, TestJdkKind.MOCK_JDK, KotlinTestUtils.getAnnotationsJar(), aDir);
 
         KotlinCoreEnvironment environment =
-                KotlinCoreEnvironment.createForTests(getTestRootDisposable(), configurationWithADirInClasspath, EnvironmentConfigFiles.JVM_CONFIG_FILES);
+                KotlinCoreEnvironment.createForTests(disposable, configurationWithADirInClasspath, EnvironmentConfigFiles.JVM_CONFIG_FILES);
 
-        return compileKotlin(ktBFile, bDir, environment, getTestRootDisposable());
+        return compileKotlin(ktBFile, bDir, environment, disposable);
     }
 
     private ClassFileFactory compileKotlin(
@@ -118,5 +122,28 @@ public abstract class AbstractCompileKotlinAgainstKotlinTest extends TestCaseWit
 
         Disposer.dispose(disposable);
         return outputFiles;
+    }
+
+    private static class CompilerDisposable implements Disposable {
+        private final String debugString;
+
+        public static Disposable create(Disposable parent, String debugString) {
+            CompilerDisposable disposable = new CompilerDisposable(parent.toString() + " " + debugString);
+            Disposer.register(parent, disposable);
+
+            return disposable;
+        }
+
+        private CompilerDisposable(String debugString) {
+            this.debugString = debugString;
+        }
+
+        @Override
+        public void dispose() {}
+
+        @Override
+        public String toString() {
+            return debugString;
+        }
     }
 }

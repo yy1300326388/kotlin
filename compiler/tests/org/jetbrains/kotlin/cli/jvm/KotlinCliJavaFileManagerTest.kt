@@ -16,6 +16,7 @@
 package org.jetbrains.kotlin.cli.jvm
 
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.PlatformTestCase
@@ -114,7 +115,7 @@ public class KotlinCliJavaFileManagerTest : PsiTestCase() {
 
     public fun testDoNotThrowOnMalformedInput() {
         val fileWithEmptyName = configureManager("package foo;\n\n public class Top\$Level {}", "")
-        val allScope = GlobalSearchScope.allScope(getProject())
+        val allScope = GlobalSearchScope.allScope(project)
         fileWithEmptyName.findClass("foo.", allScope)
         fileWithEmptyName.findClass(".", allScope)
         fileWithEmptyName.findClass("..", allScope)
@@ -134,7 +135,7 @@ public class KotlinCliJavaFileManagerTest : PsiTestCase() {
     public fun testScopeCheck() {
         val manager = configureManager("package foo;\n\n" + "public class Test {}\n", "Test")
 
-        TestCase.assertNotNull("Should find class in all scope", manager.findClass("foo.Test", GlobalSearchScope.allScope(getProject())))
+        TestCase.assertNotNull("Should find class in all scope", manager.findClass("foo.Test", GlobalSearchScope.allScope(project)))
         TestCase.assertNull("Should not find class in empty scope", manager.findClass("foo.Test", GlobalSearchScope.EMPTY_SCOPE))
     }
 
@@ -144,7 +145,11 @@ public class KotlinCliJavaFileManagerTest : PsiTestCase() {
         val dir = myPsiManager.findDirectory(pkg)
         TestCase.assertNotNull(dir)
         dir!!
-        dir.add(PsiFileFactory.getInstance(getProject()).createFileFromText(className + ".java", JavaFileType.INSTANCE, text))
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            dir.add(PsiFileFactory.getInstance(project).createFileFromText(className + ".java", JavaFileType.INSTANCE, text))
+        }
+
         val coreJavaFileManagerExt = KotlinCliJavaFileManagerImpl(myPsiManager)
         coreJavaFileManagerExt.initIndex(JvmDependenciesIndex(listOf(JavaRoot(root, JavaRoot.RootType.SOURCE))))
         coreJavaFileManagerExt.addToClasspath(root)
@@ -152,7 +157,7 @@ public class KotlinCliJavaFileManagerTest : PsiTestCase() {
     }
 
     private fun assertCanFind(manager: KotlinCliJavaFileManagerImpl, packageFQName: String, classFqName: String) {
-        val allScope = GlobalSearchScope.allScope(getProject())
+        val allScope = GlobalSearchScope.allScope(project)
 
         val classId = ClassId(FqName(packageFQName), FqName(classFqName), false)
         val stringRequest = classId.asSingleFqName().asString()
@@ -164,13 +169,13 @@ public class KotlinCliJavaFileManagerTest : PsiTestCase() {
         TestCase.assertNotNull("Could not find: $stringRequest", foundByString)
 
         TestCase.assertEquals(foundByClassId, foundByString)
-        TestCase.assertEquals("Found ${foundByClassId!!.getQualifiedName()} instead of $packageFQName", packageFQName + "." + classFqName,
-                              foundByClassId.getQualifiedName())
+        TestCase.assertEquals("Found ${foundByClassId!!.qualifiedName} instead of $packageFQName", packageFQName + "." + classFqName,
+                              foundByClassId.qualifiedName)
     }
 
     private fun assertCannotFind(manager: KotlinCliJavaFileManagerImpl, packageFQName: String, classFqName: String) {
         val classId = ClassId(FqName(packageFQName), FqName(classFqName), false)
-        val foundClass = manager.findClass(classId, GlobalSearchScope.allScope(getProject()))
+        val foundClass = manager.findClass(classId, GlobalSearchScope.allScope(project))
         TestCase.assertNull("Found, but shouldn't have: $classId", foundClass)
     }
 }

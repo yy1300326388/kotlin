@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.annotation
 
 import java.io.File
-import java.io.IOException
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.AnnotationMirror
@@ -25,7 +24,6 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
-import javax.tools.StandardLocation
 import kotlin.properties.Delegates
 
 public class AnnotationProcessorStub : AbstractProcessor() {
@@ -114,7 +112,7 @@ public abstract class AnnotationProcessorWrapper(
     }
 
     override fun getSupportedSourceVersion(): SourceVersion? {
-        return processor.getSupportedSourceVersion()
+        return processor.supportedSourceVersion
     }
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment): Boolean {
@@ -122,18 +120,27 @@ public abstract class AnnotationProcessorWrapper(
 
         val roundEnvironmentWrapper = RoundEnvironmentWrapper(
                 processingEnv, roundEnv, roundCounter, kotlinAnnotationsProvider)
-        processor.process(annotations, roundEnvironmentWrapper)
+
+        val wrappedAnnotations = annotations?.toMutableSet() ?: hashSetOf<TypeElement>()
+        val existingFqNames = wrappedAnnotations.mapTo(hashSetOf<String>()) { it.qualifiedName.toString() }
+
+        for (annotationFqName in kotlinAnnotationsProvider.annotatedKotlinElements.keys) {
+            if (annotationFqName in existingFqNames) continue
+            processingEnv.elementUtils.getTypeElement(annotationFqName)?.let { wrappedAnnotations += it }
+        }
+
+        processor.process(wrappedAnnotations, roundEnvironmentWrapper)
         return false
     }
 
     override fun getSupportedOptions(): MutableSet<String> {
-        val supportedOptions = processor.getSupportedOptions().toHashSet()
+        val supportedOptions = processor.supportedOptions.toHashSet()
         supportedOptions.add(KAPT_ANNOTATION_OPTION)
         return supportedOptions
     }
 
     private fun ProcessingEnvironment.err(message: String) {
-        getMessager().printMessage(Diagnostic.Kind.ERROR, message)
+        messager.printMessage(Diagnostic.Kind.ERROR, message)
     }
 
 }

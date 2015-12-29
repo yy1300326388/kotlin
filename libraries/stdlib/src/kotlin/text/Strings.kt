@@ -966,7 +966,7 @@ public operator fun CharSequence.contains(other: CharSequence): Boolean = contai
  *
  * @param ignoreCase `true` to ignore character case when comparing strings. By default `false`.
  */
-public fun CharSequence.contains(other: CharSequence, ignoreCase: Boolean): Boolean =
+public fun CharSequence.contains(other: CharSequence, ignoreCase: Boolean = false): Boolean =
         if (other is String)
             indexOf(other, ignoreCase = ignoreCase) >= 0
         else
@@ -984,7 +984,7 @@ public operator fun CharSequence.contains(char: Char): Boolean = contains(char, 
  *
  * @param ignoreCase `true` to ignore character case when comparing characters. By default `false`.
  */
-public fun CharSequence.contains(char: Char, ignoreCase: Boolean): Boolean =
+public fun CharSequence.contains(char: Char, ignoreCase: Boolean = false): Boolean =
         indexOf(char, ignoreCase = ignoreCase) >= 0
 
 /**

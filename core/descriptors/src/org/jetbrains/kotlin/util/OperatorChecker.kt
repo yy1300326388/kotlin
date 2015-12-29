@@ -52,10 +52,9 @@ import org.jetbrains.kotlin.util.OperatorNameConventions.RANGE_TO
 import org.jetbrains.kotlin.util.OperatorNameConventions.SET
 import org.jetbrains.kotlin.util.OperatorNameConventions.SET_VALUE
 import org.jetbrains.kotlin.util.OperatorNameConventions.SIMPLE_UNARY_OPERATION_NAMES
-import java.util.*
 
 sealed class CheckResult(val isSuccess: Boolean) {
-    class IllegalSignature(val errors: List<String>) : CheckResult(false)
+    class IllegalSignature(val error: String) : CheckResult(false)
     object IllegalFunctionName : CheckResult(false)
     object SuccessCheck : CheckResult(true)
 }
@@ -126,16 +125,19 @@ private class Checks private constructor(
     }
 
     fun checkAll(functionDescriptor: FunctionDescriptor): CheckResult {
-        val errors = ArrayList<String>(0)
         for (check in checks) {
             val checkResult = check(functionDescriptor)
             if (checkResult != null) {
-                errors += checkResult
-                break
+                return CheckResult.IllegalSignature(checkResult)
             }
         }
-        additionalCheck(functionDescriptor)?.let { errors += it }
-        return if (errors.isEmpty()) CheckResult.SuccessCheck else CheckResult.IllegalSignature(errors)
+
+        val additionalCheckResult = additionalCheck(functionDescriptor)
+        if (additionalCheckResult != null) {
+            return CheckResult.IllegalSignature(additionalCheckResult)
+        }
+
+        return CheckResult.SuccessCheck
     }
 
     constructor(name: Name, vararg checks: Check, additionalChecks: FunctionDescriptor.() -> String? = { null })

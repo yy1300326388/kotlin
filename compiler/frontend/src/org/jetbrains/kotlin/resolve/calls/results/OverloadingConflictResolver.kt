@@ -149,13 +149,16 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
         if (discriminateGenerics) {
             val isGeneric1 = call1.isGeneric
             val isGeneric2 = call2.isGeneric
+            // generic loses to non-generic
             if (isGeneric1 && !isGeneric2) return false
             if (!isGeneric1 && isGeneric2) return true
+            // two generics are non-comparable
             if (isGeneric1 && isGeneric2) return false
         }
 
         val typeParameters = call2.resolvedCall.resultingDescriptor.typeParameters
         val constraintSystemBuilder: ConstraintSystem.Builder = ConstraintSystemBuilderImpl()
+        val generantTypes = arrayListOf<Pair<KotlinType, KotlinType>>()
         var hasConstraints = false
         val typeSubstitutor = constraintSystemBuilder.registerTypeVariables(call1.resolvedCall.call.toHandle(), typeParameters)
 
@@ -168,9 +171,10 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
                 }
             }
             else {
+                hasConstraints = true
                 val substitutedType2 = typeSubstitutor.safeSubstitute(type2, Variance.INVARIANT)
                 constraintSystemBuilder.addSubtypeConstraint(type1, substitutedType2, constraintPosition)
-                hasConstraints = true
+                generantTypes.add(type1 to type2)
             }
             return true
         }
@@ -199,6 +203,9 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
             constraintSystemBuilder.fixVariables()
             val constraintSystem = constraintSystemBuilder.build()
             if (constraintSystem.status.hasContradiction()) {
+                return false
+            }
+            if (generantTypes.any { isDefinitelyLessSpecificByTypeSpecificity(it.first, it.second) }) {
                 return false
             }
         }
@@ -306,14 +313,16 @@ class OverloadingConflictResolver(private val builtIns: KotlinBuiltIns) {
 
         if (!isSubtype) return false
 
-        val sThanG = specific.getSpecificityRelationTo(general)
-        val gThanS = general.getSpecificityRelationTo(specific)
-        if (sThanG == Specificity.Relation.LESS_SPECIFIC &&
-            gThanS != Specificity.Relation.LESS_SPECIFIC) {
-            return false
-        }
+        if (isDefinitelyLessSpecificByTypeSpecificity(specific, general)) return false
 
         return true
+    }
+
+    private fun isDefinitelyLessSpecificByTypeSpecificity(specific: KotlinType, general: KotlinType): Boolean {
+        val sThanG = specific.getSpecificityRelationTo(general)
+        val gThanS = general.getSpecificityRelationTo(specific)
+        return sThanG == Specificity.Relation.LESS_SPECIFIC &&
+               gThanS != Specificity.Relation.LESS_SPECIFIC
     }
 
     private fun numericTypeMoreSpecific(specific: KotlinType, general: KotlinType): Boolean {

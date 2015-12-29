@@ -106,8 +106,8 @@ sealed class ReturnsCheck(val name: String, val type: KotlinBuiltIns.() -> Kotli
     override fun check(functionDescriptor: FunctionDescriptor) = functionDescriptor.returnType == functionDescriptor.builtIns.type()
 
     object ReturnsBoolean : ReturnsCheck("Boolean", { booleanType })
-    object ReturnsInt : ReturnsCheck("Boolean", { booleanType })
-    object ReturnsUnit : ReturnsCheck("Boolean", { unitType })
+    object ReturnsInt : ReturnsCheck("Int", { intType })
+    object ReturnsUnit : ReturnsCheck("Unit", { unitType })
 }
 
 private class Checks private constructor(

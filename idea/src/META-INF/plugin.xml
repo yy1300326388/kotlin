@@ -283,6 +283,7 @@
     <internalFileTemplate name="Kotlin Enum"/>
     <internalFileTemplate name="Kotlin Interface"/>
 
+    <outOfSourcesChecker implementation="org.jetbrains.kotlin.idea.project.KotlinOutOfSourcesChecker"/>
     <gotoSymbolContributor implementation="org.jetbrains.kotlin.idea.caches.KotlinGotoSymbolContributor"/>
     <gotoClassContributor implementation="org.jetbrains.kotlin.idea.caches.KotlinGotoClassContributor"/>
     <lang.importOptimizer language="kotlin" implementationClass="org.jetbrains.kotlin.idea.imports.KotlinImportOptimizer"/>

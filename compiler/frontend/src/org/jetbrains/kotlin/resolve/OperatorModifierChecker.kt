@@ -56,7 +56,7 @@ class OperatorModifierChecker : DeclarationChecker {
         if (checkResult.isSuccess) return
 
         val errorDescription = if (checkResult is CheckResult.IllegalSignature)
-            checkResult.errors.joinToString()
+            checkResult.error
         else
             "illegal function name"
 

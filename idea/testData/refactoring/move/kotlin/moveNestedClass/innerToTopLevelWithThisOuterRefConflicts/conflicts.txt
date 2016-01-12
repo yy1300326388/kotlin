@@ -1,0 +1,3 @@
+Call with two implicit receivers won't be processed by the Move refactoring: bar()
+Call with two implicit receivers won't be processed by the Move refactoring: foo()
+Qualified call won't be processed by the Move refactoring: 1.foo()

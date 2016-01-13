@@ -2748,36 +2748,6 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/defaultArguments/function"), Pattern.compile("^(.+)\\.kt$"), true);
             }
 
-            @TestMetadata("augmentedAssignment.kt")
-            public void testAugmentedAssignment() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/defaultArguments/function/augmentedAssignment.kt");
-                doTest(fileName);
-            }
-
-            @TestMetadata("augmentedAssignmentViaBinaryExpression.kt")
-            public void testAugmentedAssignmentViaBinaryExpression() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/defaultArguments/function/augmentedAssignmentViaBinaryExpression.kt");
-                doTest(fileName);
-            }
-
-            @TestMetadata("binaryCall.kt")
-            public void testBinaryCall() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/defaultArguments/function/binaryCall.kt");
-                doTest(fileName);
-            }
-
-            @TestMetadata("binaryExpression.kt")
-            public void testBinaryExpression() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/defaultArguments/function/binaryExpression.kt");
-                doTest(fileName);
-            }
-
-            @TestMetadata("contains.kt")
-            public void testContains() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/defaultArguments/function/contains.kt");
-                doTest(fileName);
-            }
-
             @TestMetadata("extensionFunctionManyArgs.kt")
             public void testExtensionFunctionManyArgs() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/defaultArguments/function/extensionFunctionManyArgs.kt");
@@ -3121,12 +3091,6 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
         @TestMetadata("varInInnerClass.kt")
         public void testVarInInnerClass() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/delegatedProperty/varInInnerClass.kt");
-            doTest(fileName);
-        }
-
-        @TestMetadata("vararg.kt")
-        public void testVararg() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/delegatedProperty/vararg.kt");
             doTest(fileName);
         }
     }
@@ -4499,12 +4463,6 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/functions/localFunctions/localFunctionInConstructor.kt");
                 doTest(fileName);
             }
-
-            @TestMetadata("localWithDefault.kt")
-            public void testLocalWithDefault() throws Exception {
-                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/functions/localFunctions/localWithDefault.kt");
-                doTest(fileName);
-            }
         }
     }
 
@@ -4552,12 +4510,6 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             doTest(fileName);
         }
 
-        @TestMetadata("postfixNotnullClassIncrement.kt")
-        public void testPostfixNotnullClassIncrement() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/increment/postfixNotnullClassIncrement.kt");
-            doTest(fileName);
-        }
-
         @TestMetadata("postfixNullableClassIncrement.kt")
         public void testPostfixNullableClassIncrement() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/increment/postfixNullableClassIncrement.kt");
@@ -4585,12 +4537,6 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
         @TestMetadata("prefixIncrementOnSmartCast.kt")
         public void testPrefixIncrementOnSmartCast() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/increment/prefixIncrementOnSmartCast.kt");
-            doTest(fileName);
-        }
-
-        @TestMetadata("prefixNotnullClassIncrement.kt")
-        public void testPrefixNotnullClassIncrement() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/increment/prefixNotnullClassIncrement.kt");
             doTest(fileName);
         }
 

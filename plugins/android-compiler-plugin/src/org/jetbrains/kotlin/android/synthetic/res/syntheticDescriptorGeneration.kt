@@ -87,7 +87,7 @@ private fun genProperty(
         sourceElement: SourceElement,
         errorType: String?
 ): PropertyDescriptor {
-    val cacheView = type.constructor.declarationDescriptor?.fqNameUnsafe?.asString() == AndroidConst.VIEWSTUB_FQNAME
+    val cacheView = type.constructor.declarationDescriptor?.fqNameUnsafe?.asString() != AndroidConst.VIEWSTUB_FQNAME
 
     val property = object : AndroidSyntheticProperty, PropertyDescriptorImpl(
             containingDeclaration,

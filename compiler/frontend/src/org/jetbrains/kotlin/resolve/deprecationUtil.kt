@@ -32,21 +32,9 @@ interface Deprecation {
     val deprecationLevel: DeprecationLevelValue
     val message: String
     val target: DeclarationDescriptor
-
-    fun exists() = deprecationLevel != DeprecationLevelValue.NONE
 }
 
-fun Deprecation.deprecatedByOverriddenMessage(): String? = if (this is DeprecatedByOverridden && exists()) additionalMessage() else null
-
-private object NoDeprecation : Deprecation {
-    override val deprecationLevel: DeprecationLevelValue
-        get() = DeprecationLevelValue.NONE
-    override val message: String
-        get() = error("Should not be called")
-    override val target: DeclarationDescriptor
-        get() = error("Should not be called")
-}
-
+fun Deprecation.deprecatedByOverriddenMessage(): String? = (this as? DeprecatedByOverridden)?.additionalMessage()
 
 private data class DeprecatedByAnnotation(private val annotation: AnnotationDescriptor, override val target: DeclarationDescriptor) : Deprecation {
     override val deprecationLevel: DeprecationLevelValue
@@ -87,7 +75,7 @@ private data class DeprecatedByOverridden(private val deprecations: Collection<D
     internal fun additionalMessage() = "Overrides deprecated member in '${DescriptorUtils.getContainingClass(target)!!.fqNameSafe.asString()}'"
 }
 
-fun DeclarationDescriptor.getDeprecation(): Deprecation {
+fun DeclarationDescriptor.getDeprecation(): Deprecation? {
     val deprecation = this.getDeprecationByAnnotation()
     if (deprecation != null) {
         return deprecation
@@ -97,12 +85,13 @@ fun DeclarationDescriptor.getDeprecation(): Deprecation {
         return deprecationByOverridden(this)
     }
 
-    return NoDeprecation
+    return null
 }
 
-private fun deprecationByOverridden(root: CallableMemberDescriptor): Deprecation {
+private fun deprecationByOverridden(root: CallableMemberDescriptor): Deprecation? {
     val visited = HashSet<CallableMemberDescriptor>()
     val deprecations = LinkedHashSet<Deprecation>()
+    var hasUndeprecatedOverridden = false
 
     fun traverse(node: CallableMemberDescriptor) {
         if (node in visited) return
@@ -116,7 +105,8 @@ private fun deprecationByOverridden(root: CallableMemberDescriptor): Deprecation
                 deprecations.add(deprecatedAnnotation)
             }
             overriddenDescriptors.isEmpty() -> {
-                deprecations.add(NoDeprecation)
+                hasUndeprecatedOverridden = true
+                return
             }
             else -> {
                 overriddenDescriptors.forEach { traverse(it) }
@@ -126,9 +116,7 @@ private fun deprecationByOverridden(root: CallableMemberDescriptor): Deprecation
 
     traverse(root)
 
-    if (deprecations.isEmpty()) {
-        return NoDeprecation
-    }
+    if (hasUndeprecatedOverridden || deprecations.isEmpty()) return null
 
     return DeprecatedByOverridden(deprecations)
 }
@@ -185,9 +173,9 @@ private fun DeclarationDescriptor.getDeclaredDeprecatedAnnotation(
     return null
 }
 
-// values from kotlin.DeprecationLevel and NONE
+// values from kotlin.DeprecationLevel
 enum class DeprecationLevelValue {
-    NONE, WARNING, ERROR, HIDDEN
+    WARNING, ERROR, HIDDEN
 }
 
 @Deprecated("Should be removed together with kotlin.HiddenDeclaration")
@@ -196,5 +184,5 @@ private val HIDDEN_ANNOTATION_FQ_NAME = FqName("kotlin.HiddenDeclaration")
 fun DeclarationDescriptor.isHiddenInResolution(): Boolean {
     if (this is FunctionDescriptor && this.isHiddenToOvercomeSignatureClash) return true
     return annotations.findAnnotation(HIDDEN_ANNOTATION_FQ_NAME) != null
-           || getDeprecation().deprecationLevel == DeprecationLevelValue.HIDDEN
+           || getDeprecation()?.deprecationLevel == DeprecationLevelValue.HIDDEN
 }

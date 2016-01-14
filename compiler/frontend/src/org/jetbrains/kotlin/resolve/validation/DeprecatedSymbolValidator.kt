@@ -41,7 +41,7 @@ class DeprecatedSymbolValidator : SymbolUsageValidator {
         // avoid duplicating diagnostic when deprecation for property effectively deprecates setter
         if (targetDescriptor is PropertySetterDescriptor && targetDescriptor.correspondingProperty.getDeprecation() == deprecation) return
 
-        if (deprecation.exists()) {
+        if (deprecation != null) {
             trace.report(createDeprecationDiagnostic(element, deprecation))
         }
         else if (targetDescriptor is PropertyDescriptor) {
@@ -61,7 +61,7 @@ class DeprecatedSymbolValidator : SymbolUsageValidator {
             return
 
         val deprecation = targetDescriptor.getDeprecation()
-        if (deprecation.exists()) {
+        if (deprecation != null) {
             trace.report(createDeprecationDiagnostic(element, deprecation))
         }
     }

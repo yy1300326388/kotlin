@@ -85,7 +85,6 @@ class Diff {
         @Deprecated("", level = DeprecationLevel.HIDDEN) set(value) {
 
         }
-
 }
 
 fun use(
@@ -93,7 +92,7 @@ fun use(
         getterDeprecated: GetterDeprecated, hiddenDeprecated: HiddenDeprecated,
         wd: WD, ed: ED, gd: GD, sd: SD,
         sdh: SDH, edh: EDH, ned: NED,
-        sg: SG, diff: Diff
+        diff: Diff
 ) {
     warningDeprecated.<!DEPRECATION!>p<!>
     warningDeprecated.<!DEPRECATION!>p<!> = 1
@@ -131,9 +130,6 @@ fun use(
     ned.p
     ned.p = 1
 
-    sg.p
-    sg.p = 1
-
-    diff.p
-    diff.p = 1
+    diff.<!DEPRECATION!>p<!>
+    diff.<!DEPRECATION, DEPRECATION!>p<!> = 1
 }

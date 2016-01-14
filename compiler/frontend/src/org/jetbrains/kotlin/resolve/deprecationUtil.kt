@@ -80,7 +80,7 @@ private data class DeprecatedByOverridden(private val deprecations: Collection<D
 
     override val message: String
         get() {
-            val message = deprecations.filter { it.deprecationLevel == this.deprecationLevel }.first().message
+            val message = deprecations.filter { it.deprecationLevel == this.deprecationLevel }.map { it.message }.toSet().joinToString(". ")
             return "${additionalMessage()}. $message"
         }
 
@@ -149,9 +149,9 @@ private fun DeclarationDescriptor.getDeprecationByAnnotation(): DeprecatedByAnno
             val propertyDescriptor = correspondingProperty
 
             val target = if (this is PropertyGetterDescriptor) AnnotationUseSiteTarget.PROPERTY_GETTER else AnnotationUseSiteTarget.PROPERTY_SETTER
-            val accessorAnnotationOnProperty = propertyDescriptor.getDeclaredDeprecatedAnnotation(target, false)
-            if (accessorAnnotationOnProperty != null)
-                return DeprecatedByAnnotation(accessorAnnotationOnProperty, this)
+            val useSiteAnnotationOnProperty = propertyDescriptor.getDeclaredDeprecatedAnnotation(target, false)
+            if (useSiteAnnotationOnProperty != null)
+                return DeprecatedByAnnotation(useSiteAnnotationOnProperty, this)
 
             val propertyAnnotation = propertyDescriptor.getDeclaredDeprecatedAnnotation()
             if (propertyAnnotation != null)

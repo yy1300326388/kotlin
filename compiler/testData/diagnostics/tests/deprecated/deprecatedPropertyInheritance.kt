@@ -78,12 +78,22 @@ class NED: ErrorDeprecated(), NoDeprecation {
         }
 }
 
+class Diff {
+    @Deprecated("", level = DeprecationLevel.WARNING)
+    var p: Int
+        @Deprecated("", level = DeprecationLevel.ERROR) get() = 3
+        @Deprecated("", level = DeprecationLevel.HIDDEN) set(value) {
+
+        }
+
+}
 
 fun use(
         warningDeprecated: WarningDeprecated, errorDeprecated: ErrorDeprecated, setterDeprecated: SetterDeprecated,
         getterDeprecated: GetterDeprecated, hiddenDeprecated: HiddenDeprecated,
         wd: WD, ed: ED, gd: GD, sd: SD,
-        sdh: SDH, edh: EDH, ned: NED
+        sdh: SDH, edh: EDH, ned: NED,
+        sg: SG, diff: Diff
 ) {
     warningDeprecated.<!DEPRECATION!>p<!>
     warningDeprecated.<!DEPRECATION!>p<!> = 1
@@ -120,4 +130,10 @@ fun use(
 
     ned.p
     ned.p = 1
+
+    sg.p
+    sg.p = 1
+
+    diff.p
+    diff.p = 1
 }

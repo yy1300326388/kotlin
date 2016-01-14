@@ -33,7 +33,7 @@ class OverridingDeprecatedMemberInspection : AbstractKotlinInspection() {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
         return object : KtVisitorVoid() {
             override fun visitNamedDeclaration(declaration: KtNamedDeclaration) {
-                registerProblemIfNeeded(declaration, declaration.nameIdentifier ?: declaration)
+                registerProblemIfNeeded(declaration, declaration.nameIdentifier ?: return)
             }
 
             override fun visitPropertyAccessor(accessor: KtPropertyAccessor) {

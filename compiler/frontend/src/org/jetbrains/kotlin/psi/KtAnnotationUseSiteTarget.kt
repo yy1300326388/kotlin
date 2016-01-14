@@ -54,6 +54,7 @@ public class KtAnnotationUseSiteTarget : KtElementImplStub<KotlinAnnotationUseSi
             KtTokens.RECEIVER_KEYWORD -> AnnotationUseSiteTarget.RECEIVER
             KtTokens.PARAM_KEYWORD -> AnnotationUseSiteTarget.CONSTRUCTOR_PARAMETER
             KtTokens.SETPARAM_KEYWORD -> AnnotationUseSiteTarget.SETTER_PARAMETER
+            KtTokens.DELEGATE_KEYWORD -> AnnotationUseSiteTarget.PROPERTY_DELEGATE_FIELD
             else -> throw IllegalStateException("Unknown annotation target " + node.getText())
         }
     }

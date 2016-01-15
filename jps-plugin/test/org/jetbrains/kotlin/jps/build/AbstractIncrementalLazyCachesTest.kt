@@ -20,7 +20,7 @@ import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.jps.builders.BuildTarget
 import org.jetbrains.jps.builders.storage.BuildDataPaths
 import org.jetbrains.kotlin.config.IncrementalCompilation
-import org.jetbrains.kotlin.jps.incremental.CacheVersion
+import org.jetbrains.kotlin.incremental.CacheVersion
 import org.jetbrains.kotlin.jps.incremental.CacheVersionProvider
 import org.jetbrains.kotlin.jps.incremental.KOTLIN_CACHE_DIRECTORY_NAME
 import org.jetbrains.kotlin.jps.incremental.KotlinDataContainerTarget

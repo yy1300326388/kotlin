@@ -96,7 +96,10 @@ class TowerResolver {
     private fun ScopeTower.createTowerDataList(): List<TowerData> = ArrayList<TowerData>().apply {
         operator fun TowerData.unaryPlus() = add(this)
 
-        val localLevels = createLocalLevels()
+        val localLevels = lexicalScope.parentsWithSelf.
+                filterIsInstance<LexicalScope>().filter { it.kind.withLocalDescriptors }.
+                map { ScopeBasedTowerLevel(this@createTowerDataList, it) }
+
         val nonLocalLevels = createNonLocalLevels()
         val syntheticLevel = SyntheticScopeBasedTowerLevel(this@createTowerDataList, syntheticScopes)
 

@@ -27,6 +27,8 @@
     <property name="protobuf.jar" value="${idea.sdk}/lib/protobuf-2.5.0.jar"/>
     <property name="protobuf-lite.jar" value="${basedir}/dependencies/protobuf-2.5.0-lite.jar"/>
     <property name="javax.inject.jar" value="${basedir}/lib/javax.inject.jar"/>
+    <property name="intellij.util.jar" value="${idea.sdk}/lib/util.jar"/>
+    <property name="trove4j.jar" value="${idea.sdk}/jps/trove4j.jar"/>
 
     <property name="java.target" value="1.6"/>
 
@@ -604,6 +606,53 @@
         </jar>
     </target>
 
+    <target name="kotlin-build">
+        <cleandir dir="${output}/classes/kotlin-build"/>
+
+        <javac2 destdir="${output}/classes/kotlin-build" debug="true" debuglevel="lines,vars,source" includeAntRuntime="false"
+                source="${java.target}" target="${java.target}">
+            <withKotlin modulename="kotlin-build"/>
+            <skip pattern="kotlin/jvm/internal/.*"/>
+            <src>
+                <pathelement path="build/src"/>
+            </src>
+            <classpath>
+                <pathelement path="${bootstrap.runtime}"/>
+                <pathelement path="${bootstrap.reflect}"/>
+                <pathelement path="${intellij.util.jar}"/>
+                <!--<pathelement path="${trove4j.jar}"/>-->
+                <pathelement path="${kotlin-home}/lib/kotlin-compiler.jar"/>
+            </classpath>
+        </javac2>
+
+        <jar destfile="${kotlin-home}/lib/kotlin-build.jar">
+            <fileset dir="${output}/classes/kotlin-build"/>
+            <zipfileset file="${kotlin-home}/build.txt" prefix="META-INF"/>
+            <!--<zipfileset src="${intellij.util.jar}"/>-->
+
+            <manifest>
+                <attribute name="Built-By" value="${manifest.impl.vendor}"/>
+
+                <attribute name="Implementation-Vendor" value="${manifest.impl.vendor}"/>
+                <attribute name="Implementation-Title" value="${manifest.impl.title.kotlin.build}"/>
+                <attribute name="Implementation-Version" value="${build.number}"/>
+            </manifest>
+        </jar>
+
+        <jar jarfile="${output}/kotlin-build-sources.jar">
+            <fileset dir="build/src"/>
+            <zipfileset file="${kotlin-home}/build.txt" prefix="META-INF"/>
+
+            <manifest>
+                <attribute name="Built-By" value="${manifest.impl.vendor}"/>
+
+                <attribute name="Implementation-Vendor" value="${manifest.impl.vendor}"/>
+                <attribute name="Implementation-Title" value="${manifest.impl.title.kotlin.build.sources}"/>
+                <attribute name="Implementation-Version" value="${build.number}"/>
+            </manifest>
+        </jar>
+    </target>
+
     <target name="daemon-client">
         <cleandir dir="${output}/classes/daemon-client"/>
 
@@ -623,6 +672,14 @@
             <fileset dir="${output}/classes/daemon-client"/>
             <zipfileset src="${dependencies.dir}/native-platform-uberjar.jar" includes="**" />
             <zipfileset file="${kotlin-home}/build.txt" prefix="META-INF"/>
+
+            <manifest>
+                <attribute name="Built-By" value="${manifest.impl.vendor}"/>
+
+                <attribute name="Implementation-Vendor" value="${manifest.impl.vendor}"/>
+                <attribute name="Implementation-Title" value="${manifest.impl.title.kotlin.daemon-client}"/>
+                <attribute name="Implementation-Version" value="${build.number}"/>
+            </manifest>
         </jar>
     </target>
 
@@ -1003,7 +1060,7 @@
             depends="builtins,stdlib,kotlin-test,core,reflection,pack-runtime,pack-runtime-sources"/>
 
     <target name="dist"
-            depends="clean,init,prepare-dist,preloader,runner,serialize-builtins,compiler,compiler-sources,ant-tools,jdk-annotations,android-sdk-annotations,runtime,kotlin-js-stdlib,android-compiler-plugin,daemon-client"
+            depends="clean,init,prepare-dist,preloader,runner,serialize-builtins,compiler,compiler-sources,kotlin-build,ant-tools,jdk-annotations,android-sdk-annotations,runtime,kotlin-js-stdlib,android-compiler-plugin,daemon-client"
             description="Builds redistributables from sources"/>
 
     <target name="dist-quick"

@@ -39,6 +39,7 @@ import org.jetbrains.jps.model.ex.JpsElementChildRoleBase
 import org.jetbrains.jps.model.java.JpsJavaClasspathKind
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 import org.jetbrains.jps.model.module.JpsModule
+import org.jetbrains.kotlin.build.GeneratedJvmClass
 import org.jetbrains.kotlin.cli.common.KotlinVersion
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -54,14 +55,10 @@ import org.jetbrains.kotlin.config.CompilerRunnerConstants.INTERNAL_ERROR_PREFIX
 import org.jetbrains.kotlin.config.IncrementalCompilation
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.daemon.common.isDaemonEnabled
-import org.jetbrains.kotlin.incremental.CacheVersion
-import org.jetbrains.kotlin.incremental.IncrementalCompilationComponentsImpl
-import org.jetbrains.kotlin.incremental.LookupSymbol
-import org.jetbrains.kotlin.incremental.LookupTrackerImpl
+import org.jetbrains.kotlin.incremental.*
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.jps.JpsKotlinCompilerSettings
 import org.jetbrains.kotlin.jps.incremental.*
-import org.jetbrains.kotlin.load.kotlin.ModuleMapping
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCache
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
 import org.jetbrains.kotlin.modules.TargetId
@@ -71,7 +68,6 @@ import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import org.jetbrains.kotlin.utils.JsLibraryUtils
 import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.keysToMap
-import org.jetbrains.kotlin.utils.sure
 import org.jetbrains.org.objectweb.asm.ClassReader
 import java.io.File
 import java.util.*
@@ -547,8 +543,6 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
         lookupTracker.lookups.entrySet().forEach { lookupStorage.add(it.key, it.value) }
     }
 
-    private fun File.isModuleMappingFile() = extension == ModuleMapping.MAPPING_FILE_EXT && parentFile.name == "META-INF"
-
     // if null is returned, nothing was done
     private fun compileToJs(chunk: ModuleChunk,
                             commonArguments: CommonCompilerArguments,
@@ -917,22 +911,6 @@ private fun hasKotlinDirtyOrRemovedFiles(
     if (!KotlinSourceFileCollector.getDirtySourceFiles(dirtyFilesHolder).isEmpty) return true
 
     return chunk.targets.any { KotlinSourceFileCollector.getRemovedKotlinFiles(dirtyFilesHolder, it).isNotEmpty() }
-}
-
-open class GeneratedFile internal constructor(
-        val target: ModuleBuildTarget,
-        val sourceFiles: Collection<File>,
-        val outputFile: File
-)
-
-class GeneratedJvmClass (
-        target: ModuleBuildTarget,
-        sourceFiles: Collection<File>,
-        outputFile: File
-) : GeneratedFile(target, sourceFiles, outputFile) {
-    val outputClass = LocalFileKotlinClass.create(outputFile).sure {
-        "Couldn't load KotlinClass from $outputFile; it may happen because class doesn't have valid Kotlin annotations"
-    }
 }
 
 private inline fun <T, R> Iterable<T>.forAllPairs(other: Iterable<R>, fn: (T, R)->Unit) {

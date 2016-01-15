@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.load.kotlin
 
 import com.google.protobuf.MessageLite
 import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.load.java.JvmAnnotationNames
 import org.jetbrains.kotlin.name.ClassId
@@ -103,7 +104,14 @@ public abstract class AbstractBinaryClassAnnotationAndConstantLoader<A : Any, C 
                 findClassAndLoadMemberAnnotations(container, proto, sig, isStaticFieldInOuter(proto))
             }.orEmpty()
 
-            return loadPropertyAnnotations(propertyAnnotations, fieldAnnotations)
+            // TODO: check delegate presence in some other way
+            return loadPropertyAnnotations(propertyAnnotations, fieldAnnotations,
+                                           if (fieldSignature?.signature?.contains(JvmAbi.DELEGATED_PROPERTY_NAME_SUFFIX) ?: false) {
+                                               AnnotationUseSiteTarget.PROPERTY_DELEGATE_FIELD
+                                           }
+                                           else {
+                                               AnnotationUseSiteTarget.FIELD
+                                           })
         }
 
         val signature = getCallableSignature(proto, container.nameResolver, container.typeTable, kind) ?: return emptyList()
@@ -118,7 +126,8 @@ public abstract class AbstractBinaryClassAnnotationAndConstantLoader<A : Any, C 
         return findClassAndLoadMemberAnnotations(container, proto, signature)
     }
 
-    protected abstract fun loadPropertyAnnotations(propertyAnnotations: List<A>, fieldAnnotations: List<A>): List<T>
+    protected abstract fun loadPropertyAnnotations(propertyAnnotations: List<A>, fieldAnnotations: List<A>,
+                                                   fieldUseSiteTarget: AnnotationUseSiteTarget): List<T>
 
     protected abstract fun transformAnnotations(annotations: List<A>): List<T>
 

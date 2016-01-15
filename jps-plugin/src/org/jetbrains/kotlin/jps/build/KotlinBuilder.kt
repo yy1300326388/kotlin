@@ -355,7 +355,7 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
     private fun doCompileModuleChunk(
             allCompiledFiles: MutableSet<File>, chunk: ModuleChunk, commonArguments: CommonCompilerArguments, context: CompileContext,
             dirtyFilesHolder: DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget>, environment: CompilerEnvironment,
-            filesToCompile: MultiMap<ModuleBuildTarget, File>, incrementalCaches: Map<ModuleBuildTarget, IncrementalCacheImpl>,
+            filesToCompile: MultiMap<ModuleBuildTarget, File>, incrementalCaches: Map<ModuleBuildTarget, JpsIncrementalCacheImpl>,
             messageCollector: MessageCollectorAdapter, project: JpsProject
     ): OutputItemsCollectorImpl? {
 
@@ -492,7 +492,7 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
 
     private fun updateKotlinIncrementalCache(
             compilationErrors: Boolean,
-            incrementalCaches: Map<ModuleBuildTarget, IncrementalCacheImpl>,
+            incrementalCaches: Map<ModuleBuildTarget, JpsIncrementalCacheImpl>,
             generatedFiles: List<GeneratedFile<ModuleBuildTarget>>
     ): CompilationResult {
 
@@ -741,11 +741,12 @@ private fun CompilationResult.doProcessChangesUsingLookups(
         compiledFiles: Set<File>,
         dataManager: BuildDataManager,
         fsOperations: FSOperationsHelper,
-        caches: Collection<IncrementalCacheImpl>
+        caches: Collection<JpsIncrementalCacheImpl>
 ) {
     val dirtyLookupSymbols = HashSet<LookupSymbol>()
     val lookupStorage = dataManager.getStorage(KotlinDataContainerTarget, JpsLookupStorageProvider)
-    val allCaches: Sequence<IncrementalCacheImpl> = caches.asSequence().flatMap { it.dependentsWithThis }.mapNotNull { it as? IncrementalCacheImpl }
+    // WIP wrong rebase
+    val allCaches: Sequence<JpsIncrementalCacheImpl> = caches.asSequence().flatMap { it.dependentsWithThis }.mapNotNull { it as? JpsIncrementalCacheImpl }
 
     KotlinBuilder.LOG.debug("Start processing changes")
 
@@ -796,7 +797,7 @@ private fun CompilationResult.doProcessChangesUsingLookups(
  */
 private fun withSubtypes(
         typeFqName: FqName,
-        caches: Sequence<IncrementalCacheImpl>
+        caches: Sequence<JpsIncrementalCacheImpl>
 ): Set<FqName> {
     val types = linkedListOf(typeFqName)
     val subtypes = hashSetOf<FqName>()

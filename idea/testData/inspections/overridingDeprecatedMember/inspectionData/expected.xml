@@ -28,14 +28,23 @@
         <file>test.kt</file>
         <line>31</line>
         <module>light_idea_test_case</module>
-        <entry_point TYPE="file" FQNAME="temp:///src/test.kt"/>
+        <entry_point TYPE="file" FQNAME="temp:///src/test.kt" />
         <problem_class severity="WARNING" attribute_key="DEPRECATED_ATTRIBUTES">Overriding deprecated member</problem_class>
-        <description>Overrides deprecated member in 'a.A'</description>
+        <description>Overrides deprecated member in 'foo.I'</description>
     </problem>
 
     <problem>
         <file>test.kt</file>
-        <line>38</line>
+        <line>32</line>
+        <module>light_idea_test_case</module>
+        <entry_point TYPE="file" FQNAME="temp:///src/test.kt" />
+        <problem_class severity="WARNING" attribute_key="DEPRECATED_ATTRIBUTES">Overriding deprecated member</problem_class>
+        <description>Overrides deprecated member in 'foo.I'</description>
+    </problem>
+
+    <problem>
+        <file>test.kt</file>
+        <line>30</line>
         <module>light_idea_test_case</module>
         <entry_point TYPE="file" FQNAME="temp:///src/test.kt" />
         <problem_class severity="WARNING" attribute_key="DEPRECATED_ATTRIBUTES">Overriding deprecated member</problem_class>
@@ -45,24 +54,6 @@
     <problem>
         <file>test.kt</file>
         <line>39</line>
-        <module>light_idea_test_case</module>
-        <entry_point TYPE="file" FQNAME="temp:///src/test.kt" />
-        <problem_class severity="WARNING" attribute_key="DEPRECATED_ATTRIBUTES">Overriding deprecated member</problem_class>
-        <description>Overrides deprecated member in 'foo.I'</description>
-    </problem>
-
-    <problem>
-        <file>test.kt</file>
-        <line>37</line>
-        <module>light_idea_test_case</module>
-        <entry_point TYPE="file" FQNAME="temp:///src/test.kt" />
-        <problem_class severity="WARNING" attribute_key="DEPRECATED_ATTRIBUTES">Overriding deprecated member</problem_class>
-        <description>Overrides deprecated member in 'foo.I'</description>
-    </problem>
-
-    <problem>
-        <file>test.kt</file>
-        <line>46</line>
         <module>light_idea_test_case</module>
         <entry_point TYPE="file" FQNAME="temp:///src/test.kt" />
         <problem_class severity="WARNING" attribute_key="DEPRECATED_ATTRIBUTES">Overriding deprecated member</problem_class>

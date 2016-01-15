@@ -26,13 +26,6 @@ class C : I {
     }
 }
 
-
-class InheritJava : a.A() {
-    override fun foo() {
-
-    }
-}
-
 interface IP : I {
     override var p: Int
         get() = throw UnsupportedOperationException()

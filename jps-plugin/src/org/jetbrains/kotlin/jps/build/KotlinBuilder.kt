@@ -55,6 +55,8 @@ import org.jetbrains.kotlin.config.IncrementalCompilation
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.daemon.common.isDaemonEnabled
 import org.jetbrains.kotlin.incremental.IncrementalCompilationComponentsImpl
+import org.jetbrains.kotlin.incremental.LookupSymbol
+import org.jetbrains.kotlin.incremental.LookupTrackerImpl
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.jps.JpsKotlinCompilerSettings
 import org.jetbrains.kotlin.jps.incremental.*
@@ -302,7 +304,7 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
                         rebuildAfterCacheVersionChanged[target] = true
                     }
 
-                    dataManager.getStorage(KotlinDataContainerTarget, LookupStorageProvider).clean()
+                    dataManager.getStorage(KotlinDataContainerTarget, JpsLookupStorageProvider).clean()
                     return
                 }
                 CacheVersion.Action.REBUILD_CHUNK -> {
@@ -334,7 +336,7 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
                 }
                 CacheVersion.Action.CLEAN_DATA_CONTAINER -> {
                     LOG.info("Clearing lookup cache")
-                    dataManager.getStorage(KotlinDataContainerTarget, LookupStorageProvider).clean()
+                    dataManager.getStorage(KotlinDataContainerTarget, JpsLookupStorageProvider).clean()
                     cacheVersionsProvider.dataContainerVersion().clean()
                 }
                 else -> {
@@ -535,7 +537,7 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
 
         if (lookupTracker !is LookupTrackerImpl) throw AssertionError("Lookup tracker is expected to be LookupTrackerImpl, got ${lookupTracker.javaClass}")
 
-        val lookupStorage = dataManager.getStorage(KotlinDataContainerTarget, LookupStorageProvider)
+        val lookupStorage = dataManager.getStorage(KotlinDataContainerTarget, JpsLookupStorageProvider)
 
         filesToCompile.values().forEach { lookupStorage.removeLookupsFrom(it) }
         val removedFiles = chunk.targets.flatMap { KotlinSourceFileCollector.getRemovedKotlinFiles(dirtyFilesHolder, it) }
@@ -745,7 +747,7 @@ private fun CompilationResult.doProcessChangesUsingLookups(
         caches: Collection<IncrementalCacheImpl>
 ) {
     val dirtyLookupSymbols = HashSet<LookupSymbol>()
-    val lookupStorage = dataManager.getStorage(KotlinDataContainerTarget, LookupStorageProvider)
+    val lookupStorage = dataManager.getStorage(KotlinDataContainerTarget, JpsLookupStorageProvider)
     val allCaches = caches.toHashSet()
     allCaches.addAll(caches.flatMap { it.dependentCaches })
 

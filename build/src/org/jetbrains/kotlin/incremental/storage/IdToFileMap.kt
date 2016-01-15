@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.jps.incremental.storage
+package org.jetbrains.kotlin.incremental.storage
 
-import org.jetbrains.kotlin.utils.keysToMap
+import com.intellij.util.io.ExternalIntegerKeyDescriptor
 import java.io.File
 
-internal class FileToIdMap(file: File) : BasicMap<File, Int>(file, FileKeyDescriptor, IntExternalizer) {
-    override fun dumpKey(key: File): String = key.toString()
+internal class IdToFileMap(file: File) : BasicMap<Int, File>(file, ExternalIntegerKeyDescriptor(), FileKeyDescriptor) {
+    override fun dumpKey(key: Int): String = key.toString()
 
-    override fun dumpValue(value: Int): String = value.toString()
+    override fun dumpValue(value: File): String = value.toString()
 
-    operator fun get(file: File): Int? = storage[file]
+    operator fun get(id: Int): File? = storage[id]
 
-    operator fun set(file: File, id: Int) {
-        storage[file] = id
+    operator fun contains(id: Int): Boolean = id in storage
+
+    operator fun set(id: Int, file: File) {
+        storage[id] = file
     }
 
-    fun remove(file: File) {
-        storage.remove(file)
+    fun remove(id: Int) {
+        storage.remove(id)
     }
-
-    fun toMap(): Map<File, Int> = storage.keys.keysToMap { storage[it]!! }
 }

@@ -31,11 +31,12 @@ public fun DeclarationDescriptor.hasJvmStaticAnnotation(): Boolean {
     return getAnnotations().findAnnotation(FqName("kotlin.jvm.JvmStatic")) != null
 }
 
-public fun DeclarationDescriptor.hasJvmSyntheticAnnotation(): Boolean {
-    val jvmSyntheticName = FqName("kotlin.jvm.JvmSynthetic")
-    return annotations.findAnnotation(jvmSyntheticName) != null ||
-           Annotations.findUseSiteTargetedAnnotation(annotations, AnnotationUseSiteTarget.FIELD, jvmSyntheticName) != null
-}
+private val JVM_SYNTHETIC_ANNOTATION_FQ_NAME = FqName("kotlin.jvm.JvmSynthetic")
+
+fun DeclarationDescriptor.hasJvmSyntheticAnnotation() = findJvmSyntheticAnnotation() != null
+
+fun DeclarationDescriptor.findJvmSyntheticAnnotation() =
+        DescriptorUtils.getAnnotationByFqName(annotations, JVM_SYNTHETIC_ANNOTATION_FQ_NAME)
 
 public fun CallableDescriptor.isPlatformStaticInObjectOrClass(): Boolean =
         isPlatformStaticIn { DescriptorUtils.isNonCompanionObject(it) || DescriptorUtils.isClass(it) || DescriptorUtils.isEnumClass(it) }

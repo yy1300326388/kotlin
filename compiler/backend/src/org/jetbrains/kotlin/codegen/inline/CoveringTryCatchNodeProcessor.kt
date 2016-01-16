@@ -31,7 +31,7 @@ abstract class CoveringTryCatchNodeProcessor(parameterSize: Int) {
 
     val localVarsMetaInfo: IntervalMetaInfo<LocalVarNodeWrapper> = IntervalMetaInfo()
 
-    var nextFreeLocalIndex: Int = parameterSize
+    final var nextFreeLocalIndex: Int = parameterSize
         private set
 
     fun getStartNodes(label: LabelNode): List<TryCatchBlockNodeInfo> {

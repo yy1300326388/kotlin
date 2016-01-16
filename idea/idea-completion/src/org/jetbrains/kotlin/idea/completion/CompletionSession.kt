@@ -79,7 +79,7 @@ abstract class CompletionSession(
     protected val project = position.project
     protected val isJvmModule = !ProjectStructureUtil.isJsKotlinModule(parameters.originalFile as KtFile)
 
-    protected val nameExpression: KtSimpleNameExpression?
+    protected final val nameExpression: KtSimpleNameExpression?
     protected val expression: KtExpression?
 
     init {

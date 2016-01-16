@@ -107,7 +107,7 @@ open class KotlinChangeInfo(
 
     private var isPrimaryMethodUpdated: Boolean = false
     private var javaChangeInfos: List<JavaChangeInfo>? = null
-    var originalToCurrentMethods: Map<PsiMethod, PsiMethod> = emptyMap()
+    final var originalToCurrentMethods: Map<PsiMethod, PsiMethod> = emptyMap()
         private set
 
     fun getOldParameterIndex(oldParameterName: String): Int? = oldNameToParameterIndex[oldParameterName]
@@ -182,7 +182,7 @@ open class KotlinChangeInfo(
 
     override fun getLanguage(): Language = KotlinLanguage.INSTANCE
 
-    var propagationTargetUsageInfos: List<UsageInfo> = ArrayList()
+    final var propagationTargetUsageInfos: List<UsageInfo> = ArrayList()
         private set
 
     var primaryPropagationTargets: Collection<PsiElement> = emptyList()

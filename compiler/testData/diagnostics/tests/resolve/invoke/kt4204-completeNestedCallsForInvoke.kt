@@ -3,7 +3,7 @@ package c
 
 public abstract class TestBug1() {
 
-    public fun m3(<!UNUSED_PARAMETER!>position<!>: Int) {
+    public fun m3(position: Int) {
         position(m1().second<!UNNECESSARY_NOT_NULL_ASSERTION!>!!<!>)
     }
 

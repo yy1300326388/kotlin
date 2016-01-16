@@ -11,7 +11,7 @@ public final class A {
 
     public companion object Companion : T {
         private constructor Companion()
-        public final override /*1*/ /*fake_override*/ val x: kotlin.Int?
+        public open override /*1*/ /*fake_override*/ val x: kotlin.Int?
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
@@ -26,7 +26,7 @@ public final class B {
 
     public companion object Companion : T {
         private constructor Companion()
-        public final override /*1*/ /*fake_override*/ val x: kotlin.Int?
+        public open override /*1*/ /*fake_override*/ val x: kotlin.Int?
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
@@ -35,7 +35,7 @@ public final class B {
 
 public open class T {
     public constructor T()
-    public final val x: kotlin.Int? = null
+    public open val x: kotlin.Int? = null
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String

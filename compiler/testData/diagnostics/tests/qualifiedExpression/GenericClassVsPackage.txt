@@ -110,5 +110,3 @@ package a {
         // -- Module: <top_m1> --
     }
 }
-
-

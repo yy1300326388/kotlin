@@ -23,7 +23,7 @@ package test {
 
         public open class G</*0*/ T> {
             public constructor G</*0*/ T>()
-            public final fun a(): kotlin.Unit
+            public open fun a(): kotlin.Unit
             public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
             public open fun f(): T
             public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
@@ -32,7 +32,7 @@ package test {
 
         public final class G2</*0*/ E> : test.p.G<E> {
             public constructor G2</*0*/ E>()
-            public final override /*1*/ /*fake_override*/ fun a(): kotlin.Unit
+            public open override /*1*/ /*fake_override*/ fun a(): kotlin.Unit
             public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
             public open override /*1*/ fun f(): E
             public final fun g(): E

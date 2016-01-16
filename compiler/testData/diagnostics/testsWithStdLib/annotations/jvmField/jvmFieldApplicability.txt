@@ -7,14 +7,14 @@ package
 
 @kotlin.jvm.JvmField() public abstract class C : I {
     @kotlin.jvm.JvmField() public constructor C(/*0*/ s: kotlin.String)
-    @kotlin.jvm.JvmField() public final val a: kotlin.String
+    @kotlin.jvm.JvmField() public open val a: kotlin.String
     @kotlin.jvm.JvmField() public final override /*1*/ val ai: kotlin.Int = 3
     @kotlin.jvm.JvmField() public open val b: kotlin.Int = 3
     @kotlin.jvm.JvmField() public open override /*1*/ /*fake_override*/ val bi: kotlin.Int
     @kotlin.jvm.JvmField() public abstract val c: kotlin.Int
-    @kotlin.jvm.JvmField() public final val customGetter: kotlin.String = ""
-    @kotlin.jvm.JvmField() public final var customSetter: kotlin.String
-    @kotlin.jvm.JvmField() public final val noBackingField: kotlin.String
+    @kotlin.jvm.JvmField() public open val customGetter: kotlin.String = ""
+    @kotlin.jvm.JvmField() public open var customSetter: kotlin.String
+    @kotlin.jvm.JvmField() public open val noBackingField: kotlin.String
     @kotlin.jvm.JvmField() private final val private: kotlin.Int = 3
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     @kotlin.jvm.JvmField() private final fun foo(/*0*/ s: kotlin.String = ...): kotlin.Unit

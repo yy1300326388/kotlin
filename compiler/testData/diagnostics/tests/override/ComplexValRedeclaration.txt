@@ -14,7 +14,7 @@ package override {
 
         public abstract class MyLegalAbstractClass2</*0*/ T> : override.generics.MyAbstractClass<kotlin.Int> {
             public constructor MyLegalAbstractClass2</*0*/ T>(/*0*/ t: T)
-            public final val </*0*/ R> pr: T
+            public open val </*0*/ R> pr: T
             public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
             public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
             public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String

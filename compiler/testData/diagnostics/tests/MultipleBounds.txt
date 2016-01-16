@@ -11,7 +11,7 @@ package Jet87 {
     public open class A {
         public constructor A()
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-        public final fun foo(): kotlin.Int
+        public open fun foo(): kotlin.Int
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
     }
@@ -41,7 +41,7 @@ package Jet87 {
         public constructor C()
         public open override /*1*/ /*fake_override*/ fun bar(): kotlin.Double
         public open override /*2*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-        public final override /*1*/ /*fake_override*/ fun foo(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun foo(): kotlin.Int
         public open override /*2*/ /*fake_override*/ fun hashCode(): kotlin.Int
         public open override /*2*/ /*fake_override*/ fun toString(): kotlin.String
     }
@@ -56,7 +56,7 @@ package Jet87 {
             private constructor Companion()
             public open override /*1*/ /*fake_override*/ fun bar(): kotlin.Double
             public open override /*2*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-            public final override /*1*/ /*fake_override*/ fun foo(): kotlin.Int
+            public open override /*1*/ /*fake_override*/ fun foo(): kotlin.Int
             public open override /*2*/ /*fake_override*/ fun hashCode(): kotlin.Int
             public open override /*2*/ /*fake_override*/ fun toString(): kotlin.String
         }

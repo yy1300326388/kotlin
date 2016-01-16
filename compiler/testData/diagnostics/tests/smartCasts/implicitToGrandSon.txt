@@ -2,7 +2,7 @@ package
 
 public open class A {
     public constructor A()
-    public final fun bar(): kotlin.String
+    public open fun bar(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open fun foo(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
@@ -11,7 +11,7 @@ public open class A {
 
 public open class B : A {
     public constructor B()
-    public final override /*1*/ /*fake_override*/ fun bar(): kotlin.String
+    public open override /*1*/ /*fake_override*/ fun bar(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun foo(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
@@ -20,7 +20,7 @@ public open class B : A {
 
 public open class C : B {
     public constructor C()
-    public final override /*1*/ /*fake_override*/ fun bar(): kotlin.String
+    public open override /*1*/ /*fake_override*/ fun bar(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ fun foo(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int

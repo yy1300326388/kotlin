@@ -14,7 +14,7 @@ public abstract class A<T: Any, V: String?>(<!INAPPLICABLE_LATEINIT_MODIFIER!>la
     <!INAPPLICABLE_LATEINIT_MODIFIER!>lateinit<!> val d: String
         get
 
-    public lateinit var e: String
+    public final lateinit var e: String
         get
         private set
 

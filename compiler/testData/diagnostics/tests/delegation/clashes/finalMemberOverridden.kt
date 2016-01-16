@@ -1,7 +1,7 @@
 open class Final {
-    fun foo() {}
-    val bar: Int = 0
-    var qux: Int = 0
+    final fun foo() {}
+    final val bar: Int = 0
+    final var qux: Int = 0
 }
 
 open class Derived : Final()

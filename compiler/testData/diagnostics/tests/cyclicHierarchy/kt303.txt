@@ -8,5 +8,5 @@ public open class Bar {
 
 public open class Foo {
     public constructor Foo()
-    public final val a: kotlin.Int = 1
+    public open val a: kotlin.Int = 1
 }

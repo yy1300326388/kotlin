@@ -7,8 +7,8 @@ abstract class MyAbstractClass() {
     abstract val a2: Int
     abstract val a3: Int = <!ABSTRACT_PROPERTY_WITH_INITIALIZER!>1<!>
 
-    <!MUST_BE_INITIALIZED_OR_BE_ABSTRACT!>var b: Int<!>                private set
-    var b1: Int = 0;                         private set
+    <!MUST_BE_INITIALIZED_OR_BE_ABSTRACT!>final var b: Int<!>                private set
+    final var b1: Int = 0;                         private set
     abstract var b2: Int      <!PRIVATE_SETTER_FOR_ABSTRACT_PROPERTY!>private<!> set
     abstract var b3: Int = <!ABSTRACT_PROPERTY_WITH_INITIALIZER!>0<!>; <!PRIVATE_SETTER_FOR_ABSTRACT_PROPERTY!>private<!> set
 

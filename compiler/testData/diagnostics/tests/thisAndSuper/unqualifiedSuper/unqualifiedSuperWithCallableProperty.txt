@@ -2,8 +2,8 @@ package
 
 public open class BaseWithCallableProp {
     public constructor BaseWithCallableProp()
-    public final val bar: () -> kotlin.String
-    public final val fn: () -> kotlin.String
+    public open val bar: () -> kotlin.String
+    public open val fn: () -> kotlin.String
     public open fun bar(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
@@ -12,8 +12,8 @@ public open class BaseWithCallableProp {
 
 public final class DerivedUsingFun : BaseWithCallableProp, InterfaceWithFun {
     public constructor DerivedUsingFun()
-    public final override /*1*/ /*fake_override*/ val bar: () -> kotlin.String
-    public final override /*1*/ /*fake_override*/ val fn: () -> kotlin.String
+    public open override /*1*/ /*fake_override*/ val bar: () -> kotlin.String
+    public open override /*1*/ /*fake_override*/ val fn: () -> kotlin.String
     public open override /*1*/ fun bar(): kotlin.String
     public open override /*2*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun fn(): kotlin.String

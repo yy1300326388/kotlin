@@ -1,4 +1,4 @@
-package 
+package
 
 public val a: [ERROR : Type for A]
 public val b: B.Companion

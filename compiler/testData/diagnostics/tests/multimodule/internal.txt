@@ -50,5 +50,3 @@ package p {
         // -- Module: <m1> --
     }
 }
-
-

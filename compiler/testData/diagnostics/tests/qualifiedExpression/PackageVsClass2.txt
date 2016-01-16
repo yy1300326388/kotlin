@@ -70,5 +70,3 @@ package a {
 package test {
     public fun foo(/*0*/ i: a.a): kotlin.Unit
 }
-
-

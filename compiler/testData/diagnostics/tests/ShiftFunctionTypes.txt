@@ -10,8 +10,8 @@ public final class A {
 public abstract class XXX {
     public constructor XXX()
     public abstract val a: kotlin.Int
-    public final val a11: ((kotlin.Int) -> kotlin.Int)? = null
-    public final val a12: ((kotlin.Int) -> kotlin.Int)? = null
+    public open val a11: ((kotlin.Int) -> kotlin.Int)? = null
+    public open val a12: ((kotlin.Int) -> kotlin.Int)? = null
     public abstract val a13: kotlin.Int.(kotlin.Int) -> kotlin.Int
     public abstract val a14: n.B.(kotlin.Int) -> kotlin.Int
     public abstract val a15: kotlin.Int?.(kotlin.Int) -> kotlin.Int
@@ -35,8 +35,8 @@ public abstract class XXX {
 
 public abstract class YYY {
     public constructor YYY()
-    public final val a11: ((kotlin.Int) -> kotlin.Int)? = null
-    public final val a12: ((kotlin.Int) -> kotlin.Int)? = null
+    public open val a11: ((kotlin.Int) -> kotlin.Int)? = null
+    public open val a12: ((kotlin.Int) -> kotlin.Int)? = null
     public abstract val a13: kotlin.Int.(kotlin.Int) -> kotlin.Int
     public abstract val a14: n.B.(kotlin.Int) -> kotlin.Int
     public abstract val a15: kotlin.Int?.(kotlin.Int) -> kotlin.Int

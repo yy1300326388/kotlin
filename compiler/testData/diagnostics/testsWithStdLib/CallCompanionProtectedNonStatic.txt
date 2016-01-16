@@ -5,14 +5,14 @@ public fun top(/*0*/ base: Base, /*1*/ derived: Derived): kotlin.Unit
 public open class Base {
     public constructor Base()
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-    protected final fun foo(): kotlin.Unit
+    protected open fun foo(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 
     public companion object Companion : VeryBase {
         private constructor Companion()
         protected final fun bar(): kotlin.Unit
-        protected final override /*1*/ /*fake_override*/ fun baz(): kotlin.Unit
+        protected open override /*1*/ /*fake_override*/ fun baz(): kotlin.Unit
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         @kotlin.jvm.JvmStatic() protected final fun gav(): kotlin.Unit
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
@@ -38,7 +38,7 @@ public open class Base {
     public final class NestedDerived : Base {
         public constructor NestedDerived()
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-        protected final override /*1*/ /*fake_override*/ fun foo(): kotlin.Unit
+        protected open override /*1*/ /*fake_override*/ fun foo(): kotlin.Unit
         public final fun fromNestedDerived(): kotlin.Unit
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
@@ -48,7 +48,7 @@ public open class Base {
 public final class Derived : Base {
     public constructor Derived()
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-    protected final override /*1*/ /*fake_override*/ fun foo(): kotlin.Unit
+    protected open override /*1*/ /*fake_override*/ fun foo(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public final fun test(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
@@ -80,7 +80,7 @@ public final class Other {
 
 public open class VeryBase {
     public constructor VeryBase()
-    protected final fun baz(): kotlin.Unit
+    protected open fun baz(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String

@@ -52,5 +52,3 @@ package a {
 package some {
     public fun test(/*0*/ a_b: a.b): kotlin.Unit
 }
-
-

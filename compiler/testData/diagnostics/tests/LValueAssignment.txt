@@ -26,8 +26,8 @@ package lvalue_assignment {
 
     public open class B {
         public constructor B()
-        public final var b: kotlin.Int
-        public final val c: kotlin.Int = 34
+        public open var b: kotlin.Int
+        public open val c: kotlin.Int = 34
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
@@ -35,8 +35,8 @@ package lvalue_assignment {
 
     public final class C : lvalue_assignment.B {
         public constructor C()
-        public final override /*1*/ /*fake_override*/ var b: kotlin.Int
-        public final override /*1*/ /*fake_override*/ val c: kotlin.Int
+        public open override /*1*/ /*fake_override*/ var b: kotlin.Int
+        public open override /*1*/ /*fake_override*/ val c: kotlin.Int
         public final var x: kotlin.Int
         public final fun bar(/*0*/ c: lvalue_assignment.C): kotlin.Unit
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean

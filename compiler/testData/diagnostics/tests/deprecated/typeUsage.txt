@@ -14,7 +14,7 @@ public open class Derived : Obsolete {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
-    public final override /*1*/ /*fake_override*/ fun use(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun use(): kotlin.Unit
 }
 
 public final class Derived2 : Derived {
@@ -22,7 +22,7 @@ public final class Derived2 : Derived {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
-    public final override /*1*/ /*fake_override*/ fun use(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun use(): kotlin.Unit
 }
 
 public interface Generic</*0*/ T> {
@@ -36,7 +36,7 @@ public object Object : Obsolete {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
-    public final override /*1*/ /*fake_override*/ fun use(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun use(): kotlin.Unit
 }
 
 @kotlin.Deprecated(message = "Class") public open class Obsolete {
@@ -44,7 +44,7 @@ public object Object : Obsolete {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
-    public final fun use(): kotlin.Unit
+    public open fun use(): kotlin.Unit
 }
 
 @kotlin.Deprecated(message = "Class") public open class Obsolete2 {
@@ -52,7 +52,7 @@ public object Object : Obsolete {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
-    public final fun use(): kotlin.Unit
+    public open fun use(): kotlin.Unit
 }
 
 public final class Properties {

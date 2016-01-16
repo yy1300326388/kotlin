@@ -10,7 +10,7 @@ package foobar {
         public constructor Collection</*0*/ E>()
         public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
         public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
-        public final fun </*0*/ O> iterate(/*0*/ iteratee: foobar.Iteratee<E, O>): O
+        public open fun </*0*/ O> iterate(/*0*/ iteratee: foobar.Iteratee<E, O>): O
         public abstract override /*1*/ /*fake_override*/ fun iterator(): kotlin.Iterator<E>
         public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
     }

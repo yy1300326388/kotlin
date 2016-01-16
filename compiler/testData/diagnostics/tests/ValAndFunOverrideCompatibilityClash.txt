@@ -2,20 +2,20 @@ package
 
 public open class Bar {
     public constructor Bar()
-    public final val v: kotlin.Int = 1
+    public open val v: kotlin.Int = 1
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
-    public final fun v(): kotlin.Int
+    public open fun v(): kotlin.Int
 }
 
 public final class Barr : Bar {
     public constructor Barr()
-    public final override /*1*/ /*fake_override*/ val v: kotlin.Int
+    public open override /*1*/ /*fake_override*/ val v: kotlin.Int
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
-    public final override /*1*/ /*fake_override*/ fun v(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun v(): kotlin.Int
 }
 
 public final class Foo1 : java.util.ArrayList<kotlin.Int> {

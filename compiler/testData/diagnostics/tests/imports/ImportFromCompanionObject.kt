@@ -37,7 +37,7 @@ open class Base {
     fun f() {
     }
 
-    fun <T> g(<!UNUSED_PARAMETER!>t<!>: T) {
+    fun <T> g(t: T) {
     }
 
     val p = 1

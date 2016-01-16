@@ -9,27 +9,27 @@ public open class Super {
 
 public abstract class Test {
     public constructor Test()
-    public final val a: kotlin.Int
-    public final val b: kotlin.Int
-    public final val c: kotlin.Int = 1
-    public final val c1: kotlin.Int = 1
-    public final val c2: kotlin.Int
-    public final val c3: kotlin.Int
-    public final val c4: kotlin.Int
-    public final val c5: kotlin.Int
-    public final var v: kotlin.Int
-    public final var v1: kotlin.Int
-    public final var v10: kotlin.Int
+    public open val a: kotlin.Int
+    public open val b: kotlin.Int
+    public open val c: kotlin.Int = 1
+    public open val c1: kotlin.Int = 1
+    public open val c2: kotlin.Int
+    public open val c3: kotlin.Int
+    public open val c4: kotlin.Int
+    public open val c5: kotlin.Int
+    public open var v: kotlin.Int
+    public open var v1: kotlin.Int
+    public open var v10: kotlin.Int
     public abstract val v11: kotlin.Int
     public abstract var v12: kotlin.Int
-    public final var v2: kotlin.Int
-    public final var v3: kotlin.Int
-    public final var v4: kotlin.Int
-    public final var v5: kotlin.Int
-    public final var v6: kotlin.Int
+    public open var v2: kotlin.Int
+    public open var v3: kotlin.Int
+    public open var v4: kotlin.Int
+    public open var v5: kotlin.Int
+    public open var v6: kotlin.Int
     public abstract val v7: kotlin.Int
     public abstract var v8: kotlin.Int
-    public final var v9: kotlin.Int
+    public open var v9: kotlin.Int
     public abstract val x: kotlin.Int
     public abstract val x1: kotlin.Int
     public abstract val x2: kotlin.Int

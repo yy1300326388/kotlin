@@ -21,7 +21,7 @@ public open class B</*0*/ T : A> {
 
 public abstract class C</*0*/ T : B<kotlin.Int>, /*1*/ X : (B<kotlin.Char>) -> Pair<B<kotlin.Any>, B<A>>> : B<kotlin.Any> {
     public constructor C</*0*/ T : B<kotlin.Int>, /*1*/ X : (B<kotlin.Char>) -> Pair<B<kotlin.Any>, B<A>>>()
-    public final val a: B<kotlin.Char>
+    public open val a: B<kotlin.Char>
     public abstract val x: (B<kotlin.Char>) -> B<kotlin.Any>
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int

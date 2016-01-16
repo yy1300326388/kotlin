@@ -31,16 +31,16 @@ public interface Out</*0*/ out T> {
 
 public abstract class Test</*0*/ in I, /*1*/ out O, /*2*/ P> {
     public constructor Test</*0*/ in I, /*1*/ out O, /*2*/ P>()
-    public final var delegateType1: I
-    public final var delegateType2: O
-    public final var delegateType3: P
-    public final var delegateType4: In<I>
-    public final var delegateType5: In<O>
-    public final var implicitType1: I
-    public final var implicitType2: O
-    public final var implicitType3: P
-    public final var implicitType4: In<I>
-    public final var implicitType5: In<O>
+    public open var delegateType1: I
+    public open var delegateType2: O
+    public open var delegateType3: P
+    public open var delegateType4: In<I>
+    public open var delegateType5: In<O>
+    public open var implicitType1: I
+    public open var implicitType2: O
+    public open var implicitType3: P
+    public open var implicitType4: In<I>
+    public open var implicitType5: In<O>
     public abstract var type1: I
     public abstract var type2: O
     public abstract var type3: P
@@ -51,16 +51,16 @@ public abstract class Test</*0*/ in I, /*1*/ out O, /*2*/ P> {
     public abstract var P.receiver3: kotlin.Int
     public abstract var In<I>.receiver4: kotlin.Int
     public abstract var In<O>.receiver5: kotlin.Int
-    public final var </*0*/ X : In<O>> X.typeParameter0: kotlin.Int
-    public final var </*0*/ X : I> X.typeParameter1: kotlin.Int
-    public final var </*0*/ X : O> X.typeParameter2: kotlin.Int
-    public final var </*0*/ X : P> X.typeParameter3: kotlin.Int
-    public final var </*0*/ X : In<I>> X.typeParameter4: kotlin.Int
-    public final var </*0*/ X : In<O>> X.typeParameter5: kotlin.Int
-    public final var </*0*/ X : I> X.typeParameter6: kotlin.Int
-    public final var </*0*/ X : O> X.typeParameter7: kotlin.Int
-    public final var </*0*/ X : P> X.typeParameter8: kotlin.Int
-    public final var </*0*/ X : In<I>> X.typeParameter9: kotlin.Int
+    public open var </*0*/ X : In<O>> X.typeParameter0: kotlin.Int
+    public open var </*0*/ X : I> X.typeParameter1: kotlin.Int
+    public open var </*0*/ X : O> X.typeParameter2: kotlin.Int
+    public open var </*0*/ X : P> X.typeParameter3: kotlin.Int
+    public open var </*0*/ X : In<I>> X.typeParameter4: kotlin.Int
+    public open var </*0*/ X : In<O>> X.typeParameter5: kotlin.Int
+    public open var </*0*/ X : I> X.typeParameter6: kotlin.Int
+    public open var </*0*/ X : O> X.typeParameter7: kotlin.Int
+    public open var </*0*/ X : P> X.typeParameter8: kotlin.Int
+    public open var </*0*/ X : In<I>> X.typeParameter9: kotlin.Int
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String

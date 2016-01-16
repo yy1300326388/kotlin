@@ -4,7 +4,7 @@ public fun test(/*0*/ notRange1: NotRange1, /*1*/ notRange2: NotRange2, /*2*/ no
 
 public abstract class AmbiguousHasNextIterator {
     public constructor AmbiguousHasNextIterator()
-    public final val hasNext: kotlin.Boolean
+    public open val hasNext: kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public abstract operator fun hasNext(): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
@@ -48,7 +48,7 @@ public abstract class ImproperIterator3 {
 
 public abstract class ImproperIterator4 {
     public constructor ImproperIterator4()
-    public final val hasNext: kotlin.Int
+    public open val hasNext: kotlin.Int
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public abstract operator fun next(): kotlin.Int

@@ -63,5 +63,3 @@ package a {
         // -- Module: <m1> --
     }
 }
-
-

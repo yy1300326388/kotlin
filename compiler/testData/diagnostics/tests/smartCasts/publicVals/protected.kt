@@ -1,5 +1,5 @@
 public open class X {
-    protected val x : String? = null
+    protected final val x : String? = null
     public fun fn(): Int {
         if (x != null)
             // Smartcast is possible for protected value property in the same class

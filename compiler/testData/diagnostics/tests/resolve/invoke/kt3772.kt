@@ -2,7 +2,7 @@
 package bar
 
 open class A {
-    public operator fun invoke(<!UNUSED_PARAMETER!>f<!>: A.() -> Unit) {}
+    public operator fun invoke(f: A.() -> Unit) {}
 }
 
 class B {

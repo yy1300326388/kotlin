@@ -312,13 +312,16 @@ public class DescriptorResolver {
         return defaultVisibility;
     }
 
-    public static Modality getDefaultModality(DeclarationDescriptor containingDescriptor, Visibility visibility, boolean isBodyPresent) {
+    public static Modality getDefaultModality(DeclarationDescriptor containingDescriptor, Visibility visibility, boolean isBodyPresent, boolean isInline) {
         Modality defaultModality;
         if (containingDescriptor instanceof ClassDescriptor) {
-            boolean isTrait = ((ClassDescriptor) containingDescriptor).getKind() == ClassKind.INTERFACE;
-            boolean isDefinitelyAbstract = isTrait && !isBodyPresent;
-            Modality basicModality = isTrait && !Visibilities.isPrivate(visibility) ? Modality.OPEN : Modality.FINAL;
-            defaultModality = isDefinitelyAbstract ? Modality.ABSTRACT : basicModality;
+            ClassDescriptor containingClass = (ClassDescriptor) containingDescriptor;
+
+            boolean isContainerFinal = containingClass.getModality() == Modality.FINAL;
+            Modality basicModality = !isContainerFinal && !Visibilities.isPrivate(visibility) && !isInline ? Modality.OPEN : Modality.FINAL;
+
+            boolean isContainerDefinitelyAbstract = containingClass.getKind() == ClassKind.INTERFACE && !isBodyPresent;
+            defaultModality = isContainerDefinitelyAbstract ? Modality.ABSTRACT : basicModality;
         }
         else {
             defaultModality = Modality.FINAL;
@@ -673,7 +676,7 @@ public class DescriptorResolver {
         boolean hasBody = hasBody(property);
         Visibility visibility = resolveVisibilityFromModifiers(property, getDefaultVisibility(property, containingDeclaration));
         Modality modality = containingDeclaration instanceof ClassDescriptor
-                            ? resolveModalityFromModifiers(property, getDefaultModality(containingDeclaration, visibility, hasBody))
+                            ? resolveModalityFromModifiers(property, getDefaultModality(containingDeclaration, visibility, hasBody, false))
                             : Modality.FINAL;
 
         final AnnotationSplitter.PropertyWrapper wrapper = new AnnotationSplitter.PropertyWrapper();

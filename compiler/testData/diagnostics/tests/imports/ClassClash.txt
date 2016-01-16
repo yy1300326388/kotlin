@@ -82,5 +82,3 @@ public final class B {
 public final class B {
     // -- Module: <top_m2> --
 }
-
-

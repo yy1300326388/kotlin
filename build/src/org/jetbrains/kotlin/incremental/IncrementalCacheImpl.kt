@@ -77,15 +77,12 @@ open class IncrementalCacheImpl<Target>(
     protected val String.storageFile: File
         get() = File(baseDir, this + "." + CACHE_EXTENSION)
 
-    //WIP
-    protected open fun makeSourceToClassesMap(): SourceToClassesMapInterface = registerMap(SourceToClassesMap(SOURCE_TO_CLASSES.storageFile))
-
     private val protoMap = registerMap(ProtoMap(PROTO_MAP.storageFile))
     private val constantsMap = registerMap(ConstantsMap(CONSTANTS_MAP.storageFile))
     private val packagePartMap = registerMap(PackagePartMap(PACKAGE_PARTS.storageFile))
     private val multifileClassFacadeMap = registerMap(MultifileClassFacadeMap(MULTIFILE_CLASS_FACADES.storageFile))
     private val multifileClassPartMap = registerMap(MultifileClassPartMap(MULTIFILE_CLASS_PARTS.storageFile))
-    private val sourceToClassesMap: SourceToClassesMapInterface = makeSourceToClassesMap()
+    private val sourceToClassesMap = registerMap(SourceToClassesMap(SOURCE_TO_CLASSES.storageFile))
     private val dirtyOutputClassesMap = registerMap(DirtyOutputClassesMap(DIRTY_OUTPUT_CLASSES.storageFile))
     private val subtypesMap = registerExperimentalMap(SubtypesMap(SUBTYPES.storageFile))
     private val supertypesMap = registerExperimentalMap(SupertypesMap(SUPERTYPES.storageFile))
@@ -474,23 +471,17 @@ open class IncrementalCacheImpl<Target>(
         override fun dumpValue(value: String): String = value
     }
 
-    interface SourceToClassesMapInterface : BasicMapInterface {
-        fun clearOutputsForSource(sourceFile: File)
-        fun add(sourceFile: File, className: JvmClassName)
-        operator fun get(sourceFile: File): Collection<JvmClassName>
-    }
-
     // TODO: find how to deal with PathStringDescriptor - it seems too deeply rooted in jps
-    inner class SourceToClassesMap(storageFile: File) : SourceToClassesMapInterface, BasicStringMap<Collection<String>>(storageFile, /* PathStringDescriptor.INSTANCE,*/ StringCollectionExternalizer) {
-        override fun clearOutputsForSource(sourceFile: File) {
+    inner class SourceToClassesMap(storageFile: File) : BasicStringMap<Collection<String>>(storageFile, /* PathStringDescriptor.INSTANCE,*/ StringCollectionExternalizer) {
+        fun clearOutputsForSource(sourceFile: File) {
             remove(sourceFile.absolutePath)
         }
 
-        override fun add(sourceFile: File, className: JvmClassName) {
+        fun add(sourceFile: File, className: JvmClassName) {
             storage.append(sourceFile.absolutePath, className.internalName)
         }
 
-        override operator fun get(sourceFile: File): Collection<JvmClassName> =
+        operator fun get(sourceFile: File): Collection<JvmClassName> =
                 storage[sourceFile.absolutePath].orEmpty().map { JvmClassName.byInternalName(it) }
 
         override fun dumpValue(value: Collection<String>) = value.dumpCollection()

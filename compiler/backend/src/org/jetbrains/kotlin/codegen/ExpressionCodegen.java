@@ -2442,7 +2442,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
     }
 
     @NotNull
-    private CallGenerator getOrCreateCallGenerator(@NotNull ResolvedCall<?> resolvedCall) {
+    CallGenerator getOrCreateCallGenerator(@NotNull ResolvedCall<?> resolvedCall) {
         Map<TypeParameterDescriptor, KotlinType> typeArguments = resolvedCall.getTypeArguments();
         TypeParameterMappings mappings = new TypeParameterMappings();
         for (Map.Entry<TypeParameterDescriptor, KotlinType> entry : typeArguments.entrySet()) {
@@ -3457,10 +3457,6 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         ResolvedCall<FunctionDescriptor> resolvedCall = isGetter ? resolvedGetCall : resolvedSetCall;
         assert resolvedCall != null : "couldn't find resolved call: " + expression.getText();
 
-        ArgumentGenerator argumentGenerator = new CallBasedArgumentGenerator(
-                this, defaultCallGenerator, resolvedCall.getResultingDescriptor().getValueParameters(), callable.getValueParameterTypes()
-        );
-
         List<ResolvedValueArgument> valueArguments = resolvedCall.getValueArgumentsByIndex();
         assert valueArguments != null : "Failed to arrange value arguments by index: " + operationDescriptor;
 
@@ -3471,7 +3467,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         }
 
         return new StackValue.CollectionElementReceiver(
-                callable, receiver, resolvedGetCall, resolvedSetCall, isGetter, this, argumentGenerator, valueArguments
+                callable, receiver, resolvedGetCall, resolvedSetCall, isGetter, this, valueArguments
         );
     }
 

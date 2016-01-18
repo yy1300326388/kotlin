@@ -26,7 +26,6 @@ import java.io.File
 import java.util.*
 
 private val DECLARATION_KEYWORDS = listOf("interface", "class", "enum class", "object", "fun", "operator fun", "val", "var")
-private val DECLARATION_STARTS_WITH = DECLARATION_KEYWORDS.map { it + " " }
 
 abstract class AbstractLookupTrackerTest : AbstractIncrementalJpsTest(
         allowNoFilesWithSuffixInTestData = true,
@@ -73,7 +72,7 @@ abstract class AbstractLookupTrackerTest : AbstractIncrementalJpsTest(
                                 when {
                                     rest.startsWith(it.name) || // same name
                                     rest.startsWith("$" + it.name) || // backing field
-                                    DECLARATION_STARTS_WITH.any { rest.startsWith(it) } // it's declaration
+                                    DECLARATION_KEYWORDS.any { keyword -> rest.startsWith("$keyword ${it.name}") } // it's declaration
                                          -> ""
                                     else -> "(" + it.name + ")"
                                 }

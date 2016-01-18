@@ -1135,6 +1135,24 @@ public class ExperimentalIncrementalJpsTestGenerated extends AbstractExperimenta
             doTest(fileName);
         }
 
+        @TestMetadata("implcitUpcast")
+        public void testImplcitUpcast() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/classHierarchyAffected/implcitUpcast/");
+            doTest(fileName);
+        }
+
+        @TestMetadata("inferedTypeArgumentChangedImplicitly")
+        public void testInferedTypeArgumentChangedImplicitly() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/classHierarchyAffected/inferedTypeArgumentChangedImplicitly/");
+            doTest(fileName);
+        }
+
+        @TestMetadata("inferedTypeChangedImplicitly")
+        public void testInferedTypeChangedImplicitly() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/classHierarchyAffected/inferedTypeChangedImplicitly/");
+            doTest(fileName);
+        }
+
         @TestMetadata("jvmNameChanged")
         public void testJvmNameChanged() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("jps-plugin/testData/incremental/classHierarchyAffected/jvmNameChanged/");

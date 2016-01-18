@@ -355,7 +355,7 @@ class KotlinBuilder : ModuleLevelBuilder(BuilderCategory.SOURCE_PROCESSOR) {
     private fun doCompileModuleChunk(
             allCompiledFiles: MutableSet<File>, chunk: ModuleChunk, commonArguments: CommonCompilerArguments, context: CompileContext,
             dirtyFilesHolder: DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget>, environment: CompilerEnvironment,
-            filesToCompile: MultiMap<ModuleBuildTarget, File>, incrementalCaches: Map<ModuleBuildTarget, JpsIncrementalCacheImpl>,
+            filesToCompile: MultiMap<ModuleBuildTarget, File>, incrementalCaches: Map<ModuleBuildTarget, IncrementalCacheImpl<*>>,
             messageCollector: MessageCollectorAdapter, project: JpsProject
     ): OutputItemsCollectorImpl? {
 
@@ -741,12 +741,11 @@ private fun CompilationResult.doProcessChangesUsingLookups(
         compiledFiles: Set<File>,
         dataManager: BuildDataManager,
         fsOperations: FSOperationsHelper,
-        caches: Collection<JpsIncrementalCacheImpl>
+        caches: Collection<IncrementalCacheImpl<*>>
 ) {
     val dirtyLookupSymbols = HashSet<LookupSymbol>()
     val lookupStorage = dataManager.getStorage(KotlinDataContainerTarget, JpsLookupStorageProvider)
-    // WIP wrong rebase
-    val allCaches: Sequence<JpsIncrementalCacheImpl> = caches.asSequence().flatMap { it.dependentsWithThis }.mapNotNull { it as? JpsIncrementalCacheImpl }
+    val allCaches: Sequence<IncrementalCacheImpl<*>> = caches.asSequence().flatMap { it.dependentsWithThis }
 
     KotlinBuilder.LOG.debug("Start processing changes")
 
@@ -797,7 +796,7 @@ private fun CompilationResult.doProcessChangesUsingLookups(
  */
 private fun withSubtypes(
         typeFqName: FqName,
-        caches: Sequence<JpsIncrementalCacheImpl>
+        caches: Sequence<IncrementalCacheImpl<*>>
 ): Set<FqName> {
     val types = linkedListOf(typeFqName)
     val subtypes = hashSetOf<FqName>()

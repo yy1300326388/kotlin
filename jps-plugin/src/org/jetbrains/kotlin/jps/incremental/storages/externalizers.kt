@@ -22,7 +22,6 @@ import com.intellij.util.io.KeyDescriptor
 import gnu.trove.THashSet
 import org.jetbrains.jps.incremental.storage.PathStringDescriptor
 import org.jetbrains.kotlin.incremental.storage.CollectionExternalizer
-import org.jetbrains.kotlin.incremental.storage.PathFunctionPair
 import java.io.DataInput
 import java.io.DataOutput
 

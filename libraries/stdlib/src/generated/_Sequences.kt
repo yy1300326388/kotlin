@@ -935,7 +935,8 @@ public fun <T : Any> Sequence<T?>.requireNoNulls(): Sequence<T> {
 /**
  * Returns a sequence containing all elements of the original sequence without the first occurrence of the given [element].
  */
-public operator fun <T> Sequence<T>.minus(element: T): Sequence<T> {
+@kotlin.internal.LowPriorityInOverloadResolution
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.minus(element: T): Sequence<T> {
     return object: Sequence<T> {
         override fun iterator(): Iterator<T> {
             var removed = false
@@ -949,7 +950,7 @@ public operator fun <T> Sequence<T>.minus(element: T): Sequence<T> {
  * Note that the source sequence and the array being subtracted are iterated only when an `iterator` is requested from
  * the resulting sequence. Changing any of them between successive calls to `iterator` may affect the result.
  */
-public operator fun <T> Sequence<T>.minus(elements: Array<out T>): Sequence<T> {
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.minus(elements: Array<out T>): Sequence<T> {
     if (elements.isEmpty()) return this
     return object: Sequence<T> {
         override fun iterator(): Iterator<T> {
@@ -964,7 +965,7 @@ public operator fun <T> Sequence<T>.minus(elements: Array<out T>): Sequence<T> {
  * Note that the source sequence and the collection being subtracted are iterated only when an `iterator` is requested from
  * the resulting sequence. Changing any of them between successive calls to `iterator` may affect the result.
  */
-public operator fun <T> Sequence<T>.minus(elements: Iterable<T>): Sequence<T> {
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.minus(elements: Iterable<T>): Sequence<T> {
     return object: Sequence<T> {
         override fun iterator(): Iterator<T> {
             val other = elements.convertToSetForSetOperation()
@@ -981,7 +982,7 @@ public operator fun <T> Sequence<T>.minus(elements: Iterable<T>): Sequence<T> {
  * Note that the source sequence and the sequence being subtracted are iterated only when an `iterator` is requested from
  * the resulting sequence. Changing any of them between successive calls to `iterator` may affect the result.
  */
-public operator fun <T> Sequence<T>.minus(elements: Sequence<T>): Sequence<T> {
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.minus(elements: Sequence<T>): Sequence<T> {
     return object: Sequence<T> {
         override fun iterator(): Iterator<T> {
             val other = elements.toHashSet()
@@ -1014,7 +1015,8 @@ public inline fun <T> Sequence<T>.partition(predicate: (T) -> Boolean): Pair<Lis
 /**
  * Returns a sequence containing all elements of the original sequence and then the given [element].
  */
-public operator fun <T> Sequence<T>.plus(element: T): Sequence<T> {
+@kotlin.internal.LowPriorityInOverloadResolution
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.plus(element: T): Sequence<T> {
     return sequenceOf(this, sequenceOf(element)).flatten()
 }
 
@@ -1023,7 +1025,7 @@ public operator fun <T> Sequence<T>.plus(element: T): Sequence<T> {
  * Note that the source sequence and the array being added are iterated only when an `iterator` is requested from
  * the resulting sequence. Changing any of them between successive calls to `iterator` may affect the result.
  */
-public operator fun <T> Sequence<T>.plus(elements: Array<out T>): Sequence<T> {
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.plus(elements: Array<out T>): Sequence<T> {
     return this.plus(elements.asList())
 }
 
@@ -1032,7 +1034,7 @@ public operator fun <T> Sequence<T>.plus(elements: Array<out T>): Sequence<T> {
  * Note that the source sequence and the collection being added are iterated only when an `iterator` is requested from
  * the resulting sequence. Changing any of them between successive calls to `iterator` may affect the result.
  */
-public operator fun <T> Sequence<T>.plus(elements: Iterable<T>): Sequence<T> {
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.plus(elements: Iterable<T>): Sequence<T> {
     return sequenceOf(this, elements.asSequence()).flatten()
 }
 
@@ -1041,7 +1043,7 @@ public operator fun <T> Sequence<T>.plus(elements: Iterable<T>): Sequence<T> {
  * Note that the source sequence and the sequence being added are iterated only when an `iterator` is requested from
  * the resulting sequence. Changing any of them between successive calls to `iterator` may affect the result.
  */
-public operator fun <T> Sequence<T>.plus(elements: Sequence<T>): Sequence<T> {
+public operator fun <@kotlin.internal.OnlyInputTypes T> Sequence<T>.plus(elements: Sequence<T>): Sequence<T> {
     return sequenceOf(this, elements).flatten()
 }
 

@@ -16,8 +16,7 @@
 
 package org.jetbrains.kotlin.types.expressions
 
-import com.google.common.collect.Sets
-import com.intellij.openapi.util.Ref
+import com.google.common.collect.Maps
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isBoolean
 import org.jetbrains.kotlin.cfg.WhenChecker
@@ -39,6 +38,7 @@ import org.jetbrains.kotlin.types.TypeUtils.NO_EXPECTED_TYPE
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.newWritableScopeImpl
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.createTypeInfo
+import org.jetbrains.kotlin.utils.addIfNotNull
 
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
 
@@ -65,92 +65,131 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
         components.dataFlowAnalyzer.recordExpectedType(contextWithExpectedType.trace, expression, contextWithExpectedType.expectedType)
 
-        var context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(INDEPENDENT)
+        val contextBeforeSubject = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(INDEPENDENT)
         // TODO :change scope according to the bound value in the when header
         val subjectExpression = expression.subjectExpression
 
+        val contextAfterSubject: ExpressionTypingContext
         val subjectType: KotlinType
-        var loopBreakContinuePossible = false
+        val subjectDataFlowValue: DataFlowValue
+        val jumpOutPossible: Boolean
+
         if (subjectExpression == null) {
             subjectType = ErrorUtils.createErrorType("Unknown type")
+            subjectDataFlowValue = DataFlowValue.nullValue(components.builtIns)
+            contextAfterSubject = contextBeforeSubject
+            jumpOutPossible = false
         }
         else {
-            val typeInfo = facade.safeGetTypeInfo(subjectExpression, context)
-            loopBreakContinuePossible = typeInfo.jumpOutPossible
-            subjectType = typeInfo.type!!
-            if (TypeUtils.isNullableType(subjectType) && !WhenChecker.containsNullCase(expression, context.trace.bindingContext)) {
-                val trace = TemporaryBindingTrace.create(context.trace, "Temporary trace for when subject nullability")
-                val subjectContext = context.replaceExpectedType(TypeUtils.makeNotNullable(subjectType)).replaceBindingTrace(trace)
+            val subjectTypeInfo = facade.safeGetTypeInfo(subjectExpression, contextBeforeSubject)
+
+            contextAfterSubject = contextBeforeSubject.replaceDataFlowInfo(subjectTypeInfo.dataFlowInfo)
+            subjectType = subjectTypeInfo.type!!
+            subjectDataFlowValue = DataFlowValueFactory.createDataFlowValue(subjectExpression, subjectType, contextAfterSubject)
+            jumpOutPossible = subjectTypeInfo.jumpOutPossible
+
+            if (TypeUtils.isNullableType(subjectType) && !WhenChecker.containsNullCase(expression, contextBeforeSubject.trace.bindingContext)) {
+                val trace = TemporaryBindingTrace.create(contextBeforeSubject.trace, "Temporary trace for when subject nullability")
+                val subjectContext = contextBeforeSubject.replaceExpectedType(TypeUtils.makeNotNullable(subjectType)).replaceBindingTrace(trace)
                 val castResult = DataFlowAnalyzer.checkPossibleCast(
                         subjectType, KtPsiUtil.safeDeparenthesize(subjectExpression), subjectContext)
                 if (castResult != null && castResult.isCorrect) {
                     trace.commit()
                 }
             }
-            context = context.replaceDataFlowInfo(typeInfo.dataFlowInfo)
         }
-        val subjectDataFlowValue = if (subjectExpression != null)
-            DataFlowValueFactory.createDataFlowValue(subjectExpression, subjectType, context)
-        else
-            DataFlowValue.nullValue(components.builtIns)
 
-        // TODO : exhaustive patterns
+        val dataFlowInfoBeforeEntryBodies = collectDataFlowInfoBeforeEntryBodies(expression, contextAfterSubject, subjectType, subjectDataFlowValue)
+        val isExhaustive = WhenChecker.isWhenExhaustive(expression, contextAfterSubject.trace)
 
-        val expressionTypes = Sets.newHashSet<KotlinType>()
-        var commonDataFlowInfo: DataFlowInfo? = null
-        var elseDataFlowInfo = context.dataFlowInfo
-        val whenValue = DataFlowValueFactory.createDataFlowValue(expression, components.builtIns.nullableAnyType, context)
+        return getTypeInfoForIncompleteWhen(expression, isStatement, isExhaustive, contextWithExpectedType,
+                                            contextAfterSubject, jumpOutPossible, dataFlowInfoBeforeEntryBodies)
+    }
+
+    private fun collectDataFlowInfoBeforeEntryBodies(
+            expression: KtWhenExpression,
+            contextAfterSubject: ExpressionTypingContext,
+            subjectType: KotlinType,
+            subjectDataFlowValue: DataFlowValue
+    ): Map<KtWhenEntry, DataFlowInfo> {
+        val subjectExpression = expression.subjectExpression
+        val ifTrueInfos = Maps.newHashMapWithExpectedSize<KtWhenEntry, DataFlowInfo>(expression.entries.size)
+
+        var inputDataFlowInfo = contextAfterSubject.dataFlowInfo
         for (whenEntry in expression.entries) {
-            val infosForCondition = getDataFlowInfosForEntryCondition(
-                    whenEntry, context.replaceDataFlowInfo(elseDataFlowInfo), subjectExpression, subjectType, subjectDataFlowValue)
-            elseDataFlowInfo = elseDataFlowInfo.and(infosForCondition.elseInfo)
+            val (ifTrueInfo, ifFalseInfo) =
+                    getDataFlowInfosForEntryCondition(whenEntry,
+                                                      contextAfterSubject.replaceDataFlowInfo(inputDataFlowInfo),
+                                                      subjectExpression, subjectType, subjectDataFlowValue)
+            ifTrueInfos[whenEntry] = ifTrueInfo
+            inputDataFlowInfo = inputDataFlowInfo.and(ifFalseInfo)
+        }
+
+        return ifTrueInfos
+    }
+
+    private fun getTypeInfoForIncompleteWhen(
+            expression: KtWhenExpression,
+            isStatement: Boolean,
+            isExhaustive: Boolean,
+            contextWithExpectedType: ExpressionTypingContext,
+            contextAfterSubject: ExpressionTypingContext,
+            jumpOutPossibleInSubject: Boolean,
+            dataFlowBeforeEntryBody: Map<KtWhenEntry, DataFlowInfo>
+    ): KotlinTypeInfo {
+        val coercionStrategy = if (isStatement) CoercionStrategy.COERCION_TO_UNIT else CoercionStrategy.NO_COERCION
+
+        val expressionTypes = hashSetOf<KotlinType>()
+        var commonDataFlowInfo: DataFlowInfo? = null
+        var jumpOutPossible = jumpOutPossibleInSubject
+        val whenValue = DataFlowValueFactory.createDataFlowValue(expression, components.builtIns.nullableAnyType, contextAfterSubject)
+
+        for (whenEntry in expression.entries) {
+            val ifTrueInfo = dataFlowBeforeEntryBody[whenEntry]!!
 
             val bodyExpression = whenEntry.expression
             if (bodyExpression != null) {
-                val scopeToExtend = newWritableScopeImpl(context, LexicalScopeKind.WHEN)
-                val newContext = contextWithExpectedType.replaceScope(scopeToExtend).replaceDataFlowInfo(infosForCondition.thenInfo).replaceContextDependency(INDEPENDENT)
-                val coercionStrategy = if (isStatement) CoercionStrategy.COERCION_TO_UNIT else CoercionStrategy.NO_COERCION
-                var typeInfo = components.expressionTypingServices.getBlockReturnedTypeWithWritableScope(
-                        scopeToExtend, listOf(bodyExpression), coercionStrategy, newContext)
-                loopBreakContinuePossible = loopBreakContinuePossible or typeInfo.jumpOutPossible
-                val type = typeInfo.type
-                if (type != null) {
-                    expressionTypes.add(type)
-                    val entryValue = DataFlowValueFactory.createDataFlowValue(bodyExpression, type, context)
-                    typeInfo = typeInfo.replaceDataFlowInfo(typeInfo.dataFlowInfo.assign(whenValue, entryValue))
-                }
-                if (commonDataFlowInfo == null) {
-                    commonDataFlowInfo = typeInfo.dataFlowInfo
-                }
-                else {
-                    commonDataFlowInfo = commonDataFlowInfo.or(typeInfo.dataFlowInfo)
-                }
+                val scopeToExtend = newWritableScopeImpl(contextAfterSubject, LexicalScopeKind.WHEN)
+                val contextForEntry = contextWithExpectedType.replaceScope(scopeToExtend).replaceDataFlowInfo(ifTrueInfo).replaceContextDependency(INDEPENDENT)
+                val entryTypeInfo = components.expressionTypingServices.getBlockReturnedTypeWithWritableScope(
+                        scopeToExtend, listOf(bodyExpression), coercionStrategy, contextForEntry)
+
+                jumpOutPossible = jumpOutPossible or entryTypeInfo.jumpOutPossible
+
+                val entryType = entryTypeInfo.type
+
+                expressionTypes.addIfNotNull(entryType)
+
+                val entryDataFlowInfo = if (entryType != null) {
+                    val entryValue = DataFlowValueFactory.createDataFlowValue(bodyExpression, entryType, contextAfterSubject)
+                    entryTypeInfo.dataFlowInfo.assign(whenValue, entryValue)
+                } else entryTypeInfo.dataFlowInfo
+
+                commonDataFlowInfo = commonDataFlowInfo?.or(entryDataFlowInfo) ?: entryDataFlowInfo
             }
         }
 
-        val isExhaustive = WhenChecker.isWhenExhaustive(expression, context.trace)
         if (commonDataFlowInfo == null) {
-            commonDataFlowInfo = context.dataFlowInfo
+            commonDataFlowInfo = contextAfterSubject.dataFlowInfo
         }
         else if (expression.elseExpression == null && !isExhaustive) {
             // Without else expression in non-exhaustive when, we *must* take initial data flow info into account,
             // because data flow can bypass all when branches in this case
-            commonDataFlowInfo = commonDataFlowInfo.or(context.dataFlowInfo)
+            commonDataFlowInfo = commonDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
         }
 
-        var resultType: KotlinType? = if (expressionTypes.isEmpty()) null else CommonSupertypes.commonSupertype(expressionTypes)
-        if (resultType != null) {
-            val resultValue = DataFlowValueFactory.createDataFlowValue(expression, resultType, context)
+        var resultType: KotlinType? = if (expressionTypes.isNotEmpty()) {
+            val commonSupertype = CommonSupertypes.commonSupertype(expressionTypes)
+            val resultValue = DataFlowValueFactory.createDataFlowValue(expression, commonSupertype, contextAfterSubject)
             commonDataFlowInfo = commonDataFlowInfo.assign(resultValue, whenValue)
-            if (isExhaustive && expression.elseExpression == null && KotlinBuiltIns.isNothing(resultType)) {
-                context.trace.record(BindingContext.IMPLICIT_EXHAUSTIVE_WHEN, expression)
+            if (isExhaustive && expression.elseExpression == null && KotlinBuiltIns.isNothing(commonSupertype)) {
+                contextAfterSubject.trace.record(BindingContext.IMPLICIT_EXHAUSTIVE_WHEN, expression)
             }
-            resultType = components.dataFlowAnalyzer.checkType(resultType, expression, contextWithExpectedType)
+            components.dataFlowAnalyzer.checkType(commonSupertype, expression, contextWithExpectedType)
         }
-        return createTypeInfo(resultType,
-                              commonDataFlowInfo,
-                              loopBreakContinuePossible,
-                              contextWithExpectedType.dataFlowInfo)
+        else null
+
+        return createTypeInfo(resultType, commonDataFlowInfo, jumpOutPossible, contextWithExpectedType.dataFlowInfo)
     }
 
     private fun getDataFlowInfosForEntryCondition(
@@ -158,7 +197,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             context: ExpressionTypingContext,
             subjectExpression: KtExpression?,
             subjectType: KotlinType,
-            subjectDataFlowValue: DataFlowValue): DataFlowInfos {
+            subjectDataFlowValue: DataFlowValue
+    ): DataFlowInfos {
         if (whenEntry.isElse) {
             return DataFlowInfos(context.dataFlowInfo)
         }
@@ -184,22 +224,23 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             subjectType: KotlinType,
             condition: KtWhenCondition,
             context: ExpressionTypingContext,
-            subjectDataFlowValue: DataFlowValue): DataFlowInfos {
-        val newDataFlowInfo = Ref(noChange(context))
+            subjectDataFlowValue: DataFlowValue
+    ): DataFlowInfos {
+        var newDataFlowInfo = noChange(context)
         condition.accept(object : KtVisitorVoid() {
             override fun visitWhenConditionInRange(condition: KtWhenConditionInRange) {
                 val rangeExpression = condition.rangeExpression ?: return
                 if (subjectExpression == null) {
                     context.trace.report(EXPECTED_CONDITION.on(condition))
                     val dataFlowInfo = facade.getTypeInfo(rangeExpression, context).dataFlowInfo
-                    newDataFlowInfo.set(DataFlowInfos(dataFlowInfo, dataFlowInfo))
+                    newDataFlowInfo = DataFlowInfos(dataFlowInfo, dataFlowInfo)
                     return
                 }
                 val argumentForSubject = CallMaker.makeExternalValueArgument(subjectExpression)
                 val typeInfo = facade.checkInExpression(condition, condition.operationReference,
                                                         argumentForSubject, rangeExpression, context)
                 val dataFlowInfo = typeInfo.dataFlowInfo
-                newDataFlowInfo.set(DataFlowInfos(dataFlowInfo, dataFlowInfo))
+                newDataFlowInfo = DataFlowInfos(dataFlowInfo, dataFlowInfo)
                 val type = typeInfo.type
                 if (type == null || !isBoolean(type)) {
                     context.trace.report(TYPE_MISMATCH_IN_RANGE.on(condition))
@@ -213,10 +254,10 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 if (condition.typeReference != null) {
                     val result = checkTypeForIs(context, subjectType, condition.typeReference, subjectDataFlowValue)
                     if (condition.isNegated) {
-                        newDataFlowInfo.set(DataFlowInfos(result.elseInfo, result.thenInfo))
+                        newDataFlowInfo = DataFlowInfos(result.elseInfo, result.thenInfo)
                     }
                     else {
-                        newDataFlowInfo.set(result)
+                        newDataFlowInfo = result
                     }
                 }
             }
@@ -224,8 +265,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             override fun visitWhenConditionWithExpression(condition: KtWhenConditionWithExpression) {
                 val expression = condition.expression
                 if (expression != null) {
-                    newDataFlowInfo.set(checkTypeForExpressionCondition(context, expression, subjectType, subjectExpression == null,
-                                                                        subjectDataFlowValue))
+                    newDataFlowInfo = checkTypeForExpressionCondition(context, expression, subjectType, subjectExpression == null,
+                                                                      subjectDataFlowValue)
                 }
             }
 
@@ -233,10 +274,10 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 context.trace.report(UNSUPPORTED.on(element, javaClass.canonicalName))
             }
         })
-        return newDataFlowInfo.get()
+        return newDataFlowInfo
     }
 
-    private class DataFlowInfos(val thenInfo: DataFlowInfo, val elseInfo: DataFlowInfo = thenInfo)
+    private data class DataFlowInfos(val thenInfo: DataFlowInfo, val elseInfo: DataFlowInfo = thenInfo)
 
     private fun checkTypeForExpressionCondition(
             context: ExpressionTypingContext,

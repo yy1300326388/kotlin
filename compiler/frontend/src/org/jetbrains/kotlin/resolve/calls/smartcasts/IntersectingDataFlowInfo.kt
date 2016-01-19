@@ -61,6 +61,8 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
             if (key.isPredictable) getCollectedTypes(key)
             else emptySet()
 
+    private fun getPredictableType(key: DataFlowValue) = if (key.isPredictable) typeInfo[key] ?: key.type else key.type
+
     override fun clearValueInfo(value: DataFlowValue): DataFlowInfo {
         val newTypeInfo = Maps.newHashMap(typeInfo)
         if (newTypeInfo.remove(value) != null) {
@@ -69,9 +71,15 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         return this
     }
 
+    private fun intersectTypes(vararg types: KotlinType): KotlinType? {
+        val type = TypeIntersector.intersectTypes(KotlinTypeChecker.DEFAULT, types.asList()) ?: return null
+        val nullable = types.all { TypeUtils.isNullableType(it) }
+        return if (nullable && !TypeUtils.isNullableType(type)) TypeUtils.makeNullable(type) else type
+    }
+
     private fun MutableMap<DataFlowValue, KotlinType>.setIntersection(value: DataFlowValue, vararg types: KotlinType): Boolean {
         val intersection = if (types.size > 1) {
-            TypeIntersector.intersectTypes(KotlinTypeChecker.DEFAULT, types.asList()) ?: return false
+            intersectTypes(*types) ?: return false
         }
         else if (types.isEmpty()) {
             return this.remove(value) != null
@@ -85,25 +93,37 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         return this.put(value, intersection) !== intersection
     }
 
+    override fun assign(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
+        val type = getPredictableType(b)
+        val newTypeInfo = Maps.newHashMap(typeInfo)
+        if (newTypeInfo.setIntersection(a, type, a.type)) {
+            return IntersectingDataFlowInfo(newTypeInfo)
+        }
+        return this
+    }
 
-    override fun assign(a: DataFlowValue, b: DataFlowValue): DataFlowInfo =
-            establishSubtyping(a, typeInfo[b] ?: b.type)
 
     override fun equate(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
-        val type = TypeIntersector.intersectTypes(KotlinTypeChecker.DEFAULT, listOf(typeInfo[a] ?: a.type, typeInfo[b] ?: b.type))
+        val type = intersectTypes(getPredictableType(a), getPredictableType(b))
                    ?: return this
-        return establishSubtyping(a, type).establishSubtyping(b, type)
+        val newTypeInfo = Maps.newHashMap(typeInfo)
+        if (newTypeInfo.setIntersection(a, type, a.type) || newTypeInfo.setIntersection(b, type, b.type)) {
+            return IntersectingDataFlowInfo(newTypeInfo)
+        }
+        return this
     }
 
     override fun disequate(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
-        val nullabilityOfA = getPredictableNullability(a)
-        val nullabilityOfB = getPredictableNullability(b)
+        val typeOfA = getPredictableType(a)
+        val typeOfB = getPredictableType(b)
+        val nullabilityOfA = typeOfA.nullability()
+        val nullabilityOfB = typeOfB.nullability()
         val newTypeInfo = Maps.newHashMap(typeInfo)
         if (nullabilityOfA == Nullability.NULL && nullabilityOfB.canBeNonNull()) {
-            newTypeInfo[b] = TypeUtils.makeNotNullable(typeInfo[b] ?: b.type)
+            newTypeInfo[b] = TypeUtils.makeNotNullable(typeOfB)
         }
         else if (nullabilityOfB == Nullability.NULL && nullabilityOfA.canBeNonNull()) {
-            newTypeInfo[a] = TypeUtils.makeNotNullable(typeInfo[a] ?: a.type)
+            newTypeInfo[a] = TypeUtils.makeNotNullable(typeOfA)
         }
         else {
             return this

@@ -5,7 +5,7 @@ fun foo(s: Any?): String {
         else -> null
     } ?: ""
     // Ideally we should have smart cast to String here
-    return <!TYPE_MISMATCH!>t<!>
+    return <!DEBUG_INFO_SMARTCAST!>t<!>
 }
 
 fun bar(s: Any?): String {
@@ -19,7 +19,7 @@ fun bar(s: Any?): String {
         u
     }) ?: "xyz"
     // Ideally we should have smart cast to String here
-    return <!TYPE_MISMATCH!>t<!>
+    return <!DEBUG_INFO_SMARTCAST!>t<!>
 }
 
 fun baz(s: String?, r: String?): String {

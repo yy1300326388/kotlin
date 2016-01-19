@@ -47,8 +47,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         val leftHandSide = expression.leftHandSide
         val typeInfo = facade.safeGetTypeInfo(leftHandSide, context.replaceScope(context.scope))
         val knownType = typeInfo.type
-        if (expression.typeReference != null) {
-            val dataFlowValue = DataFlowValueFactory.createDataFlowValue(leftHandSide, knownType!!, context)
+        if (expression.typeReference != null && knownType != null) {
+            val dataFlowValue = DataFlowValueFactory.createDataFlowValue(leftHandSide, knownType, context)
             val conditionInfo = checkTypeForIs(context, knownType, expression.typeReference, dataFlowValue).thenInfo
             val newDataFlowInfo = conditionInfo.and(typeInfo.dataFlowInfo)
             context.trace.record(BindingContext.DATAFLOW_INFO_AFTER_CONDITION, expression, newDataFlowInfo)
@@ -56,9 +56,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return components.dataFlowAnalyzer.checkType(typeInfo.replaceType(components.builtIns.booleanType), expression, contextWithExpectedType)
     }
 
-    override fun visitWhenExpression(expression: KtWhenExpression, context: ExpressionTypingContext): KotlinTypeInfo {
-        return visitWhenExpression(expression, context, false)
-    }
+    override fun visitWhenExpression(expression: KtWhenExpression, context: ExpressionTypingContext) =
+            visitWhenExpression(expression, context, false)
 
     fun visitWhenExpression(expression: KtWhenExpression, contextWithExpectedType: ExpressionTypingContext, isStatement: Boolean): KotlinTypeInfo {
         WhenChecker.checkDeprecatedWhenSyntax(contextWithExpectedType.trace, expression)
@@ -238,9 +237,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return newDataFlowInfo.get()
     }
 
-    private class DataFlowInfos constructor(val thenInfo: DataFlowInfo, val elseInfo: DataFlowInfo) {
-        constructor(info: DataFlowInfo) : this(info, info)
-    }
+    private class DataFlowInfos(val thenInfo: DataFlowInfo, val elseInfo: DataFlowInfo = thenInfo)
 
     private fun checkTypeForExpressionCondition(
             context: ExpressionTypingContext,
@@ -281,7 +278,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             context: ExpressionTypingContext,
             subjectType: KotlinType,
             typeReferenceAfterIs: KtTypeReference?,
-            subjectDataFlowValue: DataFlowValue): DataFlowInfos {
+            subjectDataFlowValue: DataFlowValue
+    ): DataFlowInfos {
         if (typeReferenceAfterIs == null) {
             return noChange(context)
         }
@@ -300,8 +298,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         if (!subjectType.isMarkedNullable && targetType.isMarkedNullable) {
             val element = typeReferenceAfterIs.typeElement
             assert(element is KtNullableType) { "element must be instance of " + KtNullableType::class.java.name }
-            val nullableType = element as KtNullableType
-            context.trace.report(Errors.USELESS_NULLABLE_CHECK.on(nullableType))
+            context.trace.report(Errors.USELESS_NULLABLE_CHECK.on(element as KtNullableType))
         }
         checkTypeCompatibility(context, targetType, subjectType, typeReferenceAfterIs)
         if (CastDiagnosticsUtil.isCastErased(subjectType, targetType, KotlinTypeChecker.DEFAULT)) {
@@ -310,9 +307,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return DataFlowInfos(context.dataFlowInfo.establishSubtyping(subjectDataFlowValue, targetType), context.dataFlowInfo)
     }
 
-    private fun noChange(context: ExpressionTypingContext): DataFlowInfos {
-        return DataFlowInfos(context.dataFlowInfo, context.dataFlowInfo)
-    }
+    private fun noChange(context: ExpressionTypingContext) = DataFlowInfos(context.dataFlowInfo, context.dataFlowInfo)
 
     /*
      * (a: SubjectType) is Type
@@ -321,7 +316,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             context: ExpressionTypingContext,
             type: KotlinType?,
             subjectType: KotlinType,
-            reportErrorOn: KtElement) {
+            reportErrorOn: KtElement
+    ) {
         // TODO : Take smart casts into account?
         if (type == null) {
             return

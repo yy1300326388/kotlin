@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeIntersector
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.utils.addToStdlib.singletonOrEmptySet
 
 internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue, KotlinType> = emptyMap()) : DataFlowInfo {
@@ -62,9 +63,28 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
 
     override fun clearValueInfo(value: DataFlowValue): DataFlowInfo {
         val newTypeInfo = Maps.newHashMap(typeInfo)
-        newTypeInfo.remove(value)
-        return IntersectingDataFlowInfo(newTypeInfo)
+        if (newTypeInfo.remove(value) != null) {
+            return IntersectingDataFlowInfo(newTypeInfo)
+        }
+        return this
     }
+
+    private fun MutableMap<DataFlowValue, KotlinType>.setIntersection(value: DataFlowValue, vararg types: KotlinType): Boolean {
+        val intersection = if (types.size > 1) {
+            TypeIntersector.intersectTypes(KotlinTypeChecker.DEFAULT, types.asList()) ?: return false
+        }
+        else if (types.isEmpty()) {
+            return this.remove(value) != null
+        }
+        else {
+            types.first()
+        }
+        if (value.type.isSubtypeOf(intersection)) {
+            return false
+        }
+        return this.put(value, intersection) !== intersection
+    }
+
 
     override fun assign(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
         throw UnsupportedOperationException()
@@ -81,19 +101,23 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
     override fun establishSubtyping(value: DataFlowValue, type: KotlinType): DataFlowInfo {
         val newTypeInfo = Maps.newHashMap(typeInfo)
         val previous = typeInfo[value] ?: value.type
-        newTypeInfo[value] = TypeIntersector.intersectTypes(KotlinTypeChecker.DEFAULT, listOf(previous, type))
-        return IntersectingDataFlowInfo(newTypeInfo)
+        if (newTypeInfo.setIntersection(value, previous, type)) {
+            return IntersectingDataFlowInfo(newTypeInfo)
+        }
+        return this
     }
 
     override fun and(other: DataFlowInfo): DataFlowInfo {
         val newTypeInfo = Maps.newHashMap(typeInfo)
         other as IntersectingDataFlowInfo
+        var changed = false
         for ((key, type) in other.typeInfo) {
-            if (newTypeInfo.contains(key)) {
-                newTypeInfo[key] = TypeIntersector.intersectTypes(KotlinTypeChecker.DEFAULT, listOf(newTypeInfo[key], type))
+            val existingType = newTypeInfo[key]
+            if (existingType != null) {
+                changed = changed or newTypeInfo.setIntersection(key, existingType, type)
             }
             else {
-                newTypeInfo[key] = type
+                changed = changed or newTypeInfo.setIntersection(key, type)
             }
         }
         return IntersectingDataFlowInfo(newTypeInfo)
@@ -105,7 +129,7 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         for ((key, otherType) in other.typeInfo) {
             val thisType = typeInfo[key]
             if (thisType != null) {
-                newTypeInfo[key] = CommonSupertypes.commonSupertype(listOf(thisType, otherType))
+                newTypeInfo.setIntersection(key, CommonSupertypes.commonSupertype(listOf(thisType, otherType)))
             }
         }
         return IntersectingDataFlowInfo(newTypeInfo)

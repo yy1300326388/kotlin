@@ -86,16 +86,29 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
     }
 
 
-    override fun assign(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
-        throw UnsupportedOperationException()
-    }
+    override fun assign(a: DataFlowValue, b: DataFlowValue): DataFlowInfo =
+            establishSubtyping(a, typeInfo[b] ?: b.type)
 
     override fun equate(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
-        throw UnsupportedOperationException()
+        val type = TypeIntersector.intersectTypes(KotlinTypeChecker.DEFAULT, listOf(typeInfo[a] ?: a.type, typeInfo[b] ?: b.type))
+                   ?: return this
+        return establishSubtyping(a, type).establishSubtyping(b, type)
     }
 
     override fun disequate(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
-        throw UnsupportedOperationException()
+        val nullabilityOfA = getPredictableNullability(a)
+        val nullabilityOfB = getPredictableNullability(b)
+        val newTypeInfo = Maps.newHashMap(typeInfo)
+        if (nullabilityOfA == Nullability.NULL && nullabilityOfB.canBeNonNull()) {
+            newTypeInfo[b] = TypeUtils.makeNotNullable(typeInfo[b] ?: b.type)
+        }
+        else if (nullabilityOfB == Nullability.NULL && nullabilityOfA.canBeNonNull()) {
+            newTypeInfo[a] = TypeUtils.makeNotNullable(typeInfo[a] ?: a.type)
+        }
+        else {
+            return this
+        }
+        return IntersectingDataFlowInfo(newTypeInfo)
     }
 
     override fun establishSubtyping(value: DataFlowValue, type: KotlinType): DataFlowInfo {

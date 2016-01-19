@@ -43,7 +43,7 @@ fun KtDeclaration.resolveToDescriptor(): DeclarationDescriptor {
 }
 
 fun KtDeclaration.resolveToDescriptorIfAny(): DeclarationDescriptor? {
-    return analyze(BodyResolveMode.PARTIAL).get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
+    return resolveToDescriptor()
 }
 
 fun KtFile.resolveImportReference(fqName: FqName): Collection<DeclarationDescriptor> {

@@ -306,8 +306,6 @@ public open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments
                     getIncrementalCache = { caches[it]!! },
                     generatedFiles = generatedFiles)
 
-            caches.values.forEach { it.cleanDirtyInlineFunctions() }
-
             lookupTracker.lookups.entrySet().forEach {
                 logger.kotlinDebug("lookups to ${it.key.name}:${it.key.scope} from ${it.value.joinToString()}")
             }

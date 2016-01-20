@@ -167,6 +167,11 @@ public abstract class MemberCodegen<T extends KtElement/* TODO: & JetDeclaration
 
         writeInnerClasses();
 
+        //TODO: move to proper place
+        // always generate SMAP
+        if (element != null) {
+            getOrCreateSourceMapper();
+        }
         if (sourceMapper != null) {
             SourceMapper.Companion.flushToClassBuilder(sourceMapper, v);
         }

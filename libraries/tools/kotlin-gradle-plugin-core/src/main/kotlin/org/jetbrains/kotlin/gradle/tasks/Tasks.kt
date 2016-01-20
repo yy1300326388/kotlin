@@ -21,7 +21,7 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import org.jetbrains.kotlin.arguments.ArgumentUtils
+//import org.jetbrains.kotlin.arguments.ArgumentUtils
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
@@ -377,7 +377,7 @@ public open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments
                 }
             }
 
-            logger.kotlinDebug("compiling with args ${ArgumentUtils.convertArgumentsToStringList(args)}")
+//            logger.kotlinDebug("compiling with args ${ArgumentUtils.convertArgumentsToStringList(args)}")
 
             val exitCode = compiler.exec(messageCollector, createCompileServices(incrementalCaches, lookupTracker, compilationCanceledStatus), args)
 

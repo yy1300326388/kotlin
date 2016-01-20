@@ -93,4 +93,11 @@ public enum Nullability {
     public Nullability or(@NotNull Nullability other) {
         return fromFlags(this.canBeNull || other.canBeNull, this.canBeNonNull || other.canBeNonNull);
     }
+
+    public boolean isSubtypeOf(@NotNull Nullability other) {
+        if (this == other) return true;
+        if (canBeNull() && !other.canBeNull()) return false; // T? is not a subtype of T
+        if (canBeNonNull && !other.canBeNonNull) return false; // T is not a subtype of Nothing? / Nothing
+        return true;
+    }
 }

@@ -32,6 +32,8 @@ internal data class TypeWithNullability(
                                                               !KotlinBuiltIns.isNothingOrNullableNothing(type))
 ) {
     fun makeNotNullable() = TypeWithNullability(TypeUtils.makeNotNullable(type), Nullability.fromFlags(false, nullability.canBeNonNull()))
+
+    fun makeNullable() = TypeWithNullability(TypeUtils.makeNullable(type), Nullability.fromFlags(true, nullability.canBeNonNull()))
 }
 
 internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue, TypeWithNullability> = emptyMap()) : DataFlowInfo {
@@ -95,7 +97,7 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         }
         else {
             types.first()
-        }
+        }.let { if (!TypeUtils.isNullableType(it.type) && it.nullability.canBeNull()) it.makeNullable() else it }
         if (!value.type.isFlexible()) {
             if (value.type.isSubtypeOf(intersection.type) && value.immanentNullability.isSubtypeOf(intersection.nullability)) {
                 return false

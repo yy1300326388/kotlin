@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.resolve.calls.smartcasts
 
-import com.google.common.collect.ImmutableMap
 import com.google.common.collect.SetMultimap
 import org.jetbrains.kotlin.types.KotlinType
 

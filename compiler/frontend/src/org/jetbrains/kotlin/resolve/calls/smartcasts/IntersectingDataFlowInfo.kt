@@ -136,16 +136,14 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         val nullabilityOfA = typeOfA.nullability
         val nullabilityOfB = typeOfB.nullability
         val newTypeInfo = Maps.newHashMap(typeInfo)
+        var changed = false
         if (nullabilityOfA == Nullability.NULL) {
-            newTypeInfo.setIntersection(b, typeOfB.makeNotNullable())
+            changed = changed or newTypeInfo.setIntersection(b, typeOfB.makeNotNullable())
         }
-        else if (nullabilityOfB == Nullability.NULL) {
-            newTypeInfo.setIntersection(a, typeOfA.makeNotNullable())
+        if (nullabilityOfB == Nullability.NULL) {
+            changed = changed or newTypeInfo.setIntersection(a, typeOfA.makeNotNullable())
         }
-        else {
-            return this
-        }
-        return IntersectingDataFlowInfo(newTypeInfo)
+        return if (changed) IntersectingDataFlowInfo(newTypeInfo) else this
     }
 
     override fun establishSubtyping(value: DataFlowValue, type: KotlinType): DataFlowInfo {

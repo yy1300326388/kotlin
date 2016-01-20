@@ -25,40 +25,46 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.utils.addToStdlib.singletonOrEmptySet
 
-internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue, KotlinType> = emptyMap()) : DataFlowInfo {
+internal data class TypeWithNullability(
+        val type: KotlinType,
+        val nullability: Nullability  = Nullability.fromFlags(TypeUtils.isNullableType(type),
+                                                              !KotlinBuiltIns.isNothingOrNullableNothing(type))
+)
+
+internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue, TypeWithNullability> = emptyMap()) : DataFlowInfo {
 
     private fun KotlinType.nullability() =
             Nullability.fromFlags(TypeUtils.isNullableType(this), !KotlinBuiltIns.isNothingOrNullableNothing(this))
 
     override val completeNullabilityInfo: Map<DataFlowValue, Nullability> by lazy {
         typeInfo.mapValues {
-            it.value.nullability()
+            it.value.nullability
         }
     }
 
     override val completeTypeInfo: SetMultimap<DataFlowValue, KotlinType> by lazy {
         val multiMap = LinkedHashMultimap.create<DataFlowValue, KotlinType>()
         for ((value, type) in typeInfo) {
-            multiMap.put(value, type)
+            multiMap.put(value, type.type)
         }
         multiMap
     }
 
     override fun getCollectedNullability(key: DataFlowValue): Nullability =
-            typeInfo[key]?.nullability() ?: key.immanentNullability
+            typeInfo[key]?.nullability ?: key.immanentNullability
 
     override fun getPredictableNullability(key: DataFlowValue): Nullability =
             if (key.isPredictable) getCollectedNullability(key)
             else key.immanentNullability
 
     override fun getCollectedTypes(key: DataFlowValue): Set<KotlinType> =
-            typeInfo[key].singletonOrEmptySet()
+            typeInfo[key]?.type.singletonOrEmptySet()
 
     override fun getPredictableTypes(key: DataFlowValue): Set<KotlinType> =
             if (key.isPredictable) getCollectedTypes(key)
             else emptySet()
 
-    private fun getPredictableType(key: DataFlowValue) = if (key.isPredictable) typeInfo[key] ?: key.type else key.type
+    private fun getPredictableType(key: DataFlowValue) = if (key.isPredictable) typeInfo[key]?.type ?: key.type else key.type
 
     override fun clearValueInfo(value: DataFlowValue): DataFlowInfo {
         val newTypeInfo = Maps.newHashMap(typeInfo)
@@ -74,7 +80,7 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         return if (nullable && !TypeUtils.isNullableType(type)) TypeUtils.makeNullable(type) else type
     }
 
-    private fun MutableMap<DataFlowValue, KotlinType>.setIntersection(value: DataFlowValue, vararg types: KotlinType): Boolean {
+    private fun MutableMap<DataFlowValue, TypeWithNullability>.setIntersection(value: DataFlowValue, vararg types: KotlinType): Boolean {
         val intersection = if (types.size > 1) {
             intersectTypes(*types) ?: return false
         }
@@ -90,7 +96,8 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         else {
             if (value.type == intersection) return false
         }
-        return this.put(value, intersection) !== intersection
+        val intersectionWithNullability = TypeWithNullability(intersection)
+        return this.put(value, intersectionWithNullability) !== intersectionWithNullability
     }
 
     override fun assign(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
@@ -120,10 +127,10 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         val nullabilityOfB = typeOfB.nullability()
         val newTypeInfo = Maps.newHashMap(typeInfo)
         if (nullabilityOfA == Nullability.NULL) {
-            newTypeInfo[b] = TypeUtils.makeNotNullable(typeOfB)
+            newTypeInfo.setIntersection(b, TypeUtils.makeNotNullable(typeOfB))
         }
         else if (nullabilityOfB == Nullability.NULL) {
-            newTypeInfo[a] = TypeUtils.makeNotNullable(typeOfA)
+            newTypeInfo.setIntersection(a, TypeUtils.makeNotNullable(typeOfA))
         }
         else {
             return this
@@ -133,7 +140,7 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
 
     override fun establishSubtyping(value: DataFlowValue, type: KotlinType): DataFlowInfo {
         val newTypeInfo = Maps.newHashMap(typeInfo)
-        val previous = typeInfo[value] ?: value.type
+        val previous = typeInfo[value]?.type ?: value.type
         if (newTypeInfo.setIntersection(value, previous, type)) {
             return IntersectingDataFlowInfo(newTypeInfo)
         }
@@ -145,24 +152,24 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         other as IntersectingDataFlowInfo
         var changed = false
         for ((key, type) in other.typeInfo) {
-            val existingType = newTypeInfo[key]
+            val existingType = newTypeInfo[key]?.type
             if (existingType != null) {
-                changed = changed or newTypeInfo.setIntersection(key, existingType, type)
+                changed = changed or newTypeInfo.setIntersection(key, existingType, type.type)
             }
             else {
-                changed = changed or newTypeInfo.setIntersection(key, type)
+                changed = changed or newTypeInfo.setIntersection(key, type.type)
             }
         }
         return IntersectingDataFlowInfo(newTypeInfo)
     }
 
     override fun or(other: DataFlowInfo): DataFlowInfo {
-        val newTypeInfo = Maps.newHashMap<DataFlowValue, KotlinType>()
+        val newTypeInfo = Maps.newHashMap<DataFlowValue, TypeWithNullability>()
         other as IntersectingDataFlowInfo
         for ((key, otherType) in other.typeInfo) {
-            val thisType = typeInfo[key]
+            val thisType = typeInfo[key]?.type
             if (thisType != null) {
-                newTypeInfo.setIntersection(key, CommonSupertypes.commonSupertype(listOf(thisType, otherType)))
+                newTypeInfo.setIntersection(key, CommonSupertypes.commonSupertype(listOf(thisType, otherType.type)))
             }
         }
         return IntersectingDataFlowInfo(newTypeInfo)

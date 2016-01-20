@@ -84,8 +84,11 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         else {
             types.first()
         }
-        if (!value.type.isFlexible() && value.type.isSubtypeOf(intersection)) {
-            return false
+        if (!value.type.isFlexible()) {
+            if (value.type.isSubtypeOf(intersection)) return false
+        }
+        else {
+            if (value.type == intersection) return false
         }
         return this.put(value, intersection) !== intersection
     }

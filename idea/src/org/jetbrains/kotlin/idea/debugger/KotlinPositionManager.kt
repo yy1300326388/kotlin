@@ -292,10 +292,13 @@ class KotlinPositionManager(private val myDebugProcess: DebugProcess) : MultiReq
                 emptySet()
             }
             else {
-                val file = element.containingFile as KtFile
-                val isInLibrary = LibraryUtil.findLibraryEntry(file.virtualFile, file.project) != null
-                val typeMapper = if (!isInLibrary) prepareTypeMapper(file) else createTypeMapperForLibraryFile(element, file)
-                getInternalClassNameForElement(element, typeMapper, file, isInLibrary)
+                KotlinPositionManagerCache.getOrComputeClassNames(element) {
+                    element ->
+                    val file = element.containingFile as KtFile
+                    val isInLibrary = LibraryUtil.findLibraryEntry(file.virtualFile, file.project) != null
+                    val typeMapper = if (!isInLibrary) prepareTypeMapper(file) else createTypeMapperForLibraryFile(element, file)
+                    getInternalClassNameForElement(element, typeMapper, file, isInLibrary)
+                }
             }
         }
     }

@@ -41,6 +41,7 @@ import java.util.List;
 public class LazyDeclarationResolver {
 
     @NotNull private final TopLevelDescriptorProvider topLevelDescriptorProvider;
+    @NotNull private final NoDescriptorForDeclarationDiagnostics diagnostics;
     @NotNull private final BindingTrace trace;
 
     protected DeclarationScopeProvider scopeProvider;
@@ -55,9 +56,11 @@ public class LazyDeclarationResolver {
     public LazyDeclarationResolver(
             @NotNull GlobalContext globalContext,
             @NotNull BindingTrace delegationTrace,
-            @NotNull TopLevelDescriptorProvider topLevelDescriptorProvider
+            @NotNull TopLevelDescriptorProvider topLevelDescriptorProvider,
+            @NotNull NoDescriptorForDeclarationDiagnostics diagnostics
     ) {
         this.topLevelDescriptorProvider = topLevelDescriptorProvider;
+        this.diagnostics = diagnostics;
         LockBasedLazyResolveStorageManager lockBasedLazyResolveStorageManager =
                 new LockBasedLazyResolveStorageManager(globalContext.getStorageManager());
 
@@ -233,7 +236,7 @@ public class LazyDeclarationResolver {
             }
         }, null);
         if (result == null) {
-            throw new NoDescriptorForDeclarationException(declaration);
+            return diagnostics.diagnoseDescriptorNotFound(declaration);
         }
         return result;
     }

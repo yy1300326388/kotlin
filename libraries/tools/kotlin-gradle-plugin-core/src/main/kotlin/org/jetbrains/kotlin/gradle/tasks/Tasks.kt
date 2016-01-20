@@ -224,15 +224,15 @@ public open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments
         val moduleName = args.moduleName
         val targets = listOf(TargetId(moduleName, targetType))
         val outputDir = File(args.destination)
-        val caches = hashMapOf<TargetId, BasicIncrementalCacheImpl<TargetId>>()
+        val caches = hashMapOf<TargetId, IncrementalCacheImpl<TargetId>>()
         val lookupStorage = BasicLookupStorage(File(cachesBaseDir, "lookups"))
         val lookupTracker = LookupTrackerImpl(LookupTracker.DO_NOTHING)
         var currentRemoved = removed
 
-        fun getOrCreateIncrementalCache(target: TargetId): BasicIncrementalCacheImpl<TargetId> {
+        fun getOrCreateIncrementalCache(target: TargetId): IncrementalCacheImpl<TargetId> {
             val cacheDir = File(cachesBaseDir, "increCache.${target.name}")
             cacheDir.mkdirs()
-            return BasicIncrementalCacheImpl(targetDataRoot = cacheDir, targetOutputDir = outputDir, target = target)
+            return IncrementalCacheImpl(targetDataRoot = cacheDir, targetOutputDir = outputDir, target = target)
         }
 
         fun PsiClass.findLookupSymbols(): Iterable<LookupSymbol> {
@@ -355,7 +355,7 @@ public open class KotlinCompile() : AbstractKotlinCompile<K2JVMCompilerArguments
                                sourcesToCompile: List<File>,
                                outputDir: File,
                                args: K2JVMCompilerArguments,
-                               getIncrementalCache: (TargetId) -> BasicIncrementalCacheImpl<TargetId>,
+                               getIncrementalCache: (TargetId) -> IncrementalCacheImpl<TargetId>,
                                lookupTracker: LookupTracker)
             : CompileChangedResults
     {

@@ -36,7 +36,8 @@ internal data class TypeWithNullability(
     fun makeNullable() = TypeWithNullability(TypeUtils.makeNullable(type), Nullability.fromFlags(true, nullability.canBeNonNull()))
 }
 
-internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue, TypeWithNullability> = emptyMap()) : DataFlowInfo {
+// We need data class here for correct comparison in KotlinTypeInfo.replaceDataFlowInfo
+internal data class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue, TypeWithNullability> = emptyMap()) : DataFlowInfo {
 
     override val completeNullabilityInfo: Map<DataFlowValue, Nullability> by lazy {
         typeInfo.mapValues {

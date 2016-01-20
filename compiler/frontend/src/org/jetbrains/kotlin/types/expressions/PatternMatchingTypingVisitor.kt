@@ -16,29 +16,26 @@
 
 package org.jetbrains.kotlin.types.expressions
 
-import com.google.common.collect.Maps
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isBoolean
 import org.jetbrains.kotlin.cfg.WhenChecker
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.Errors.*
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.resolve.TemporaryBindingTrace
-import org.jetbrains.kotlin.resolve.TypeResolutionContext
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.calls.context.ContextDependency.INDEPENDENT
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
 import org.jetbrains.kotlin.resolve.calls.util.CallMaker
-import org.jetbrains.kotlin.resolve.scopes.LexicalScopeKind
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.TypeUtils.NO_EXPECTED_TYPE
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
-import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.newWritableScopeImpl
+import org.jetbrains.kotlin.types.expressions.ControlStructureTypingUtils.*
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.createTypeInfo
-import org.jetbrains.kotlin.utils.addIfNotNull
+import java.util.*
 
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
 
@@ -59,7 +56,11 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
     override fun visitWhenExpression(expression: KtWhenExpression, context: ExpressionTypingContext) =
             visitWhenExpression(expression, context, false)
 
-    fun visitWhenExpression(expression: KtWhenExpression, contextWithExpectedType: ExpressionTypingContext, isStatement: Boolean): KotlinTypeInfo {
+    fun visitWhenExpression(
+            expression: KtWhenExpression,
+            contextWithExpectedType: ExpressionTypingContext,
+            @Suppress("UNUSED_PARAMETER") isStatement: Boolean
+    ): KotlinTypeInfo {
         WhenChecker.checkDeprecatedWhenSyntax(contextWithExpectedType.trace, expression)
         WhenChecker.checkReservedPrefix(contextWithExpectedType.trace, expression)
 
@@ -69,127 +70,141 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         // TODO :change scope according to the bound value in the when header
         val subjectExpression = expression.subjectExpression
 
-        val contextAfterSubject: ExpressionTypingContext
-        val subjectType: KotlinType
-        val subjectDataFlowValue: DataFlowValue
-        val jumpOutPossible: Boolean
+        val subjectTypeInfo = subjectExpression?.let { facade.getTypeInfo(it, contextBeforeSubject) }
+        val contextAfterSubject = subjectTypeInfo?.let { contextBeforeSubject.replaceDataFlowInfo(it.dataFlowInfo) } ?: contextBeforeSubject
+        val subjectType = subjectTypeInfo?.type ?: ErrorUtils.createErrorType("Unknown type")
+        val jumpOutPossibleInSubject: Boolean = subjectTypeInfo?.jumpOutPossible ?: false
+        val subjectDataFlowValue = subjectExpression?.let {
+            DataFlowValueFactory.createDataFlowValue(it, subjectType, contextAfterSubject)
+        } ?: DataFlowValue.nullValue(components.builtIns)
 
-        if (subjectExpression == null) {
-            subjectType = ErrorUtils.createErrorType("Unknown type")
-            subjectDataFlowValue = DataFlowValue.nullValue(components.builtIns)
-            contextAfterSubject = contextBeforeSubject
-            jumpOutPossible = false
-        }
-        else {
-            val subjectTypeInfo = facade.safeGetTypeInfo(subjectExpression, contextBeforeSubject)
+        checkSmartCastsInSubjectIfRequired(expression, contextBeforeSubject, subjectType)
 
-            contextAfterSubject = contextBeforeSubject.replaceDataFlowInfo(subjectTypeInfo.dataFlowInfo)
-            subjectType = subjectTypeInfo.type!!
-            subjectDataFlowValue = DataFlowValueFactory.createDataFlowValue(subjectExpression, subjectType, contextAfterSubject)
-            jumpOutPossible = subjectTypeInfo.jumpOutPossible
+        val resolvedCall = resolveSpecialCallForWhen(expression, contextWithExpectedType, contextAfterSubject, subjectDataFlowValue, subjectType)
 
-            if (TypeUtils.isNullableType(subjectType) && !WhenChecker.containsNullCase(expression, contextBeforeSubject.trace.bindingContext)) {
-                val trace = TemporaryBindingTrace.create(contextBeforeSubject.trace, "Temporary trace for when subject nullability")
-                val subjectContext = contextBeforeSubject.replaceExpectedType(TypeUtils.makeNotNullable(subjectType)).replaceBindingTrace(trace)
-                val castResult = DataFlowAnalyzer.checkPossibleCast(
-                        subjectType, KtPsiUtil.safeDeparenthesize(subjectExpression), subjectContext)
-                if (castResult != null && castResult.isCorrect) {
-                    trace.commit()
-                }
-            }
-        }
+        val whenReturnType = resolvedCall.resultingDescriptor.returnType
+        val whenResultValue = whenReturnType?.let { DataFlowValueFactory.createDataFlowValue(expression, it, contextAfterSubject) }
 
-        val dataFlowInfoBeforeEntryBodies = collectDataFlowInfoBeforeEntryBodies(expression, contextAfterSubject, subjectType, subjectDataFlowValue)
+        val (currentDataFlowInfo, jumpOutPossible) =
+                joinWhenExpressionBranches(expression, contextAfterSubject, jumpOutPossibleInSubject, whenResultValue)
+
         val isExhaustive = WhenChecker.isWhenExhaustive(expression, contextAfterSubject.trace)
 
-        return getTypeInfoForIncompleteWhen(expression, isStatement, isExhaustive, contextWithExpectedType,
-                                            contextAfterSubject, jumpOutPossible, dataFlowInfoBeforeEntryBodies)
-    }
-
-    private fun collectDataFlowInfoBeforeEntryBodies(
-            expression: KtWhenExpression,
-            contextAfterSubject: ExpressionTypingContext,
-            subjectType: KotlinType,
-            subjectDataFlowValue: DataFlowValue
-    ): Map<KtWhenEntry, DataFlowInfo> {
-        val subjectExpression = expression.subjectExpression
-        val thenInfo = Maps.newHashMapWithExpectedSize<KtWhenEntry, DataFlowInfo>(expression.entries.size)
-
-        var inputDataFlowInfo = contextAfterSubject.dataFlowInfo
-        for (whenEntry in expression.entries) {
-            val conditionsInfo = analyzeWhenEntryConditions(whenEntry,
-                                                            contextAfterSubject.replaceDataFlowInfo(inputDataFlowInfo),
-                                                            subjectExpression, subjectType, subjectDataFlowValue)
-            thenInfo[whenEntry] = conditionsInfo.thenInfo
-            inputDataFlowInfo = inputDataFlowInfo.and(conditionsInfo.elseInfo)
-        }
-
-        return thenInfo
-    }
-
-    private fun getTypeInfoForIncompleteWhen(
-            expression: KtWhenExpression,
-            isStatement: Boolean,
-            isExhaustive: Boolean,
-            contextWithExpectedType: ExpressionTypingContext,
-            contextAfterSubject: ExpressionTypingContext,
-            jumpOutPossibleInSubject: Boolean,
-            dataFlowBeforeEntryBody: Map<KtWhenEntry, DataFlowInfo>
-    ): KotlinTypeInfo {
-        val coercionStrategy = if (isStatement) CoercionStrategy.COERCION_TO_UNIT else CoercionStrategy.NO_COERCION
-
-        val expressionTypes = hashSetOf<KotlinType>()
-        var commonDataFlowInfo: DataFlowInfo? = null
-        var jumpOutPossible = jumpOutPossibleInSubject
-        val whenValue = DataFlowValueFactory.createDataFlowValue(expression, components.builtIns.nullableAnyType, contextAfterSubject)
-
-        for (whenEntry in expression.entries) {
-            val ifTrueInfo = dataFlowBeforeEntryBody[whenEntry]!!
-
-            val bodyExpression = whenEntry.expression
-            if (bodyExpression != null) {
-                val scopeToExtend = newWritableScopeImpl(contextAfterSubject, LexicalScopeKind.WHEN)
-                val contextForEntry = contextWithExpectedType.replaceScope(scopeToExtend).replaceDataFlowInfo(ifTrueInfo).replaceContextDependency(INDEPENDENT)
-                val entryTypeInfo = components.expressionTypingServices.getBlockReturnedTypeWithWritableScope(
-                        scopeToExtend, listOf(bodyExpression), coercionStrategy, contextForEntry)
-
-                jumpOutPossible = jumpOutPossible or entryTypeInfo.jumpOutPossible
-
-                val entryType = entryTypeInfo.type
-
-                expressionTypes.addIfNotNull(entryType)
-
-                val entryDataFlowInfo = if (entryType != null) {
-                    val entryValue = DataFlowValueFactory.createDataFlowValue(bodyExpression, entryType, contextAfterSubject)
-                    entryTypeInfo.dataFlowInfo.assign(whenValue, entryValue)
-                }
-                else entryTypeInfo.dataFlowInfo
-
-                commonDataFlowInfo = commonDataFlowInfo?.or(entryDataFlowInfo) ?: entryDataFlowInfo
-            }
-        }
-
-        if (commonDataFlowInfo == null) {
-            commonDataFlowInfo = contextAfterSubject.dataFlowInfo
-        }
+        var resultDataFlowInfo = if (currentDataFlowInfo == null)
+            contextAfterSubject.dataFlowInfo
         else if (expression.elseExpression == null && !isExhaustive) {
             // Without else expression in non-exhaustive when, we *must* take initial data flow info into account,
             // because data flow can bypass all when branches in this case
-            commonDataFlowInfo = commonDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
+            currentDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
+        }
+        else {
+            currentDataFlowInfo
         }
 
-        var resultType: KotlinType? = if (expressionTypes.isNotEmpty()) {
-            val commonSupertype = CommonSupertypes.commonSupertype(expressionTypes)
-            val resultValue = DataFlowValueFactory.createDataFlowValue(expression, commonSupertype, contextAfterSubject)
-            commonDataFlowInfo = commonDataFlowInfo.assign(resultValue, whenValue)
-            if (isExhaustive && expression.elseExpression == null && KotlinBuiltIns.isNothing(commonSupertype)) {
-                contextAfterSubject.trace.record(BindingContext.IMPLICIT_EXHAUSTIVE_WHEN, expression)
+        if (whenReturnType != null && isExhaustive && expression.elseExpression == null && KotlinBuiltIns.isNothing(whenReturnType)) {
+            contextAfterSubject.trace.record(BindingContext.IMPLICIT_EXHAUSTIVE_WHEN, expression)
+        }
+
+        val resultType: KotlinType? = whenReturnType?.let {
+            components.dataFlowAnalyzer.checkType(it, expression, contextWithExpectedType)
+        }
+
+        return createTypeInfo(resultType, resultDataFlowInfo, jumpOutPossible, contextWithExpectedType.dataFlowInfo)
+    }
+
+    private fun resolveSpecialCallForWhen(
+            expression: KtWhenExpression,
+            contextWithExpectedType: ExpressionTypingContext,
+            contextAfterSubject: ExpressionTypingContext,
+            subjectDataFlowValue: DataFlowValue,
+            subjectType: KotlinType
+    ): ResolvedCall<FunctionDescriptor> {
+        val subjectExpression = expression.subjectExpression
+
+        val wrappedArgumentExpressions = ArrayList<KtExpression>()
+        val argumentDataFlowInfos = ArrayList<DataFlowInfo>()
+
+        val psiFactory = KtPsiFactory(expression)
+        var inputDataFlowInfo = contextAfterSubject.dataFlowInfo
+        expression.entries.forEachIndexed { i, whenEntry ->
+            val conditionsInfo = analyzeWhenEntryConditions(whenEntry,
+                                                            contextAfterSubject.replaceDataFlowInfo(inputDataFlowInfo),
+                                                            subjectExpression, subjectType, subjectDataFlowValue)
+            inputDataFlowInfo = inputDataFlowInfo.and(conditionsInfo.elseInfo)
+
+            whenEntry.expression?.let { entryExpression ->
+                wrappedArgumentExpressions.add(psiFactory.wrapInABlockWrapper(entryExpression))
+                argumentDataFlowInfos.add(conditionsInfo.thenInfo)
             }
-            components.dataFlowAnalyzer.checkType(commonSupertype, expression, contextWithExpectedType)
         }
-        else null
 
-        return createTypeInfo(resultType, commonDataFlowInfo, jumpOutPossible, contextWithExpectedType.dataFlowInfo)
+        val callForWhen = createCallForSpecialConstruction(expression, expression, wrappedArgumentExpressions)
+        val dataFlowInfoForArguments = createDataFlowInfoForArgumentsOfWhenCall(callForWhen, contextAfterSubject.dataFlowInfo, argumentDataFlowInfos)
+
+        return components.controlStructureTypingUtils.resolveSpecialConstructionAsCall(
+                callForWhen, ResolveConstruct.WHEN,
+                object : AbstractList<String>() {
+                    override fun get(index: Int): String = "entry$index"
+                    override val size: Int get() = wrappedArgumentExpressions.size
+                },
+                Collections.nCopies(wrappedArgumentExpressions.size, false),
+                contextWithExpectedType, dataFlowInfoForArguments)
+    }
+
+    private fun joinWhenExpressionBranches(
+            expression: KtWhenExpression,
+            contextAfterSubject: ExpressionTypingContext,
+            jumpOutPossibleInSubject: Boolean,
+            whenResultValue: DataFlowValue?
+    ): Pair<DataFlowInfo?, Boolean> {
+        val bindingContext = contextAfterSubject.trace.bindingContext
+
+        var currentDataFlowInfo: DataFlowInfo? = null
+        var jumpOutPossible = jumpOutPossibleInSubject
+        for (whenEntry in expression.entries) {
+            val entryExpression = whenEntry.expression ?: continue
+
+            val entryTypeInfo = BindingContextUtils.getRecordedTypeInfo(entryExpression, bindingContext) ?:
+                                throw AssertionError("When entry was not processed")
+            val entryType = entryTypeInfo.type
+
+            val entryDataFlowInfo =
+                    if (whenResultValue != null && entryType != null) {
+                        val entryValue = DataFlowValueFactory.createDataFlowValue(entryExpression, entryType, contextAfterSubject)
+                        entryTypeInfo.dataFlowInfo.assign(whenResultValue, entryValue)
+                    }
+                    else {
+                        entryTypeInfo.dataFlowInfo
+                    }
+
+            currentDataFlowInfo =
+                    if (entryType != null && KotlinBuiltIns.isNothing(entryType))
+                        currentDataFlowInfo
+                    else if (currentDataFlowInfo != null)
+                        currentDataFlowInfo.or(entryDataFlowInfo)
+                    else
+                        entryDataFlowInfo
+
+            jumpOutPossible = jumpOutPossible or entryTypeInfo.jumpOutPossible
+        }
+
+        return Pair(currentDataFlowInfo, jumpOutPossible)
+    }
+
+    private fun checkSmartCastsInSubjectIfRequired(expression: KtWhenExpression, contextBeforeSubject: ExpressionTypingContext, subjectType: KotlinType) {
+        val subjectExpression = expression.subjectExpression
+        if (subjectExpression != null &&
+            TypeUtils.isNullableType(subjectType) &&
+            !WhenChecker.containsNullCase(expression, contextBeforeSubject.trace.bindingContext)
+        ) {
+            val trace = TemporaryBindingTrace.create(contextBeforeSubject.trace, "Temporary trace for when subject nullability")
+            val subjectContext = contextBeforeSubject.replaceExpectedType(TypeUtils.makeNotNullable(subjectType)).replaceBindingTrace(trace)
+            val castResult = DataFlowAnalyzer.checkPossibleCast(
+                    subjectType, KtPsiUtil.safeDeparenthesize(subjectExpression), subjectContext)
+            if (castResult != null && castResult.isCorrect) {
+                trace.commit()
+            }
+        }
     }
 
     private fun analyzeWhenEntryConditions(

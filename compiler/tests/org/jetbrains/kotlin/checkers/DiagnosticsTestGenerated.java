@@ -16480,6 +16480,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/smartCasts/loops/whileTrueReturn.kt");
                     doTest(fileName);
                 }
+
+                @TestMetadata("WhileTrueWithBreakInIfCondition.kt")
+                public void testWhileTrueWithBreakInIfCondition() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/smartCasts/loops/WhileTrueWithBreakInIfCondition.kt");
+                    doTest(fileName);
+                }
             }
 
             @TestMetadata("compiler/testData/diagnostics/tests/smartCasts/objectLiterals")

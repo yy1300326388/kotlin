@@ -335,6 +335,19 @@ public class ControlStructureTypingUtils {
             }
 
             @Override
+            public Boolean visitWhenExpression(@NotNull KtWhenExpression whenExpression, CheckTypeContext c) {
+                boolean errorWasReported = false;
+                for (KtWhenEntry whenEntry : whenExpression.getEntries()) {
+                    KtExpression entryExpression = whenEntry.getExpression();
+                    if (entryExpression != null) {
+                        errorWasReported |= checkExpressionTypeRecursively(entryExpression, c);
+                    }
+                }
+                errorWasReported |= checkExpressionType(whenExpression, c);
+                return errorWasReported;
+            }
+
+            @Override
             public Boolean visitIfExpression(@NotNull KtIfExpression ifExpression, CheckTypeContext c) {
                 KtExpression thenBranch = ifExpression.getThen();
                 KtExpression elseBranch = ifExpression.getElse();

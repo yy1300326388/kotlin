@@ -32,7 +32,8 @@ import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackages
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import org.jetbrains.kotlin.idea.core.getPackage
 import org.jetbrains.kotlin.idea.refactoring.canRefactor
-import org.jetbrains.kotlin.idea.refactoring.move.moveDeclarations.ui.MoveKotlinNestedClassesToUpperLevelDialog
+import org.jetbrains.kotlin.idea.refactoring.move.moveDeclarations.ui.KotlinSelectNestedClassRefactoringDialog
+import org.jetbrains.kotlin.idea.refactoring.move.moveDeclarations.ui.MoveKotlinNestedClassesDialog
 import org.jetbrains.kotlin.idea.refactoring.move.moveDeclarations.ui.MoveKotlinTopLevelDeclarationsDialog
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
@@ -96,13 +97,23 @@ class MoveKotlinDeclarationsHandler : MoveHandlerDelegate() {
             }
 
             is KtClassOrObject -> {
-                if (elementsToSearch.size > 1) return false
-
-                val outerClass = container.parent as KtClassOrObject
-                val newContainer = targetContainer
-                                   ?: outerClass.containingClassOrObject
-                                   ?: outerClass.containingFile.let { it.containingDirectory ?: it }
-                MoveKotlinNestedClassesToUpperLevelDialog(project, elementsToSearch.first() as KtClassOrObject, newContainer).show()
+                if (elementsToSearch.size > 1) {
+                    // todo: allow moving multiple classes to upper level
+                    if (targetContainer !is KtClassOrObject) {
+                        val message = RefactoringBundle.getCannotRefactorMessage("Moving multiple nested classes to top-level is not supported")
+                        CommonRefactoringUtil.showErrorHint(project, editor, message, MOVE_DECLARATIONS, null)
+                        return true
+                    }
+                    @Suppress("UNCHECKED_CAST")
+                    MoveKotlinNestedClassesDialog(project,
+                                                  elementsToSearch.filterIsInstance<KtClassOrObject>(),
+                                                  container,
+                                                  targetContainer,
+                                                  callback).show()
+                    return true
+                }
+                KotlinSelectNestedClassRefactoringDialog.chooseNestedClassRefactoring(elementsToSearch.first() as KtClassOrObject,
+                                                                                      targetContainer)
             }
 
             else -> throw AssertionError("Unexpected container: ${container.getElementTextWithContext()}")
@@ -113,7 +124,11 @@ class MoveKotlinDeclarationsHandler : MoveHandlerDelegate() {
 
     private fun canMove(elements: Array<out PsiElement>, targetContainer: PsiElement?, editorMode: Boolean): Boolean {
         if (!super.canMove(elements, targetContainer)) return false
-        if (getUniqueContainer(elements) == null) return false
+        val container = getUniqueContainer(elements) ?: return false
+
+        if (container is KtClassOrObject && targetContainer != null && targetContainer !is KtClassOrObject && elements.size > 1) {
+            return false
+        }
 
         return elements.all { e ->
             if (e is KtClass || (e is KtObjectDeclaration && !e.isObjectLiteral()) || e is KtNamedFunction || e is KtProperty) {
@@ -128,7 +143,10 @@ class MoveKotlinDeclarationsHandler : MoveHandlerDelegate() {
     }
 
     override fun isValidTarget(psiElement: PsiElement?, sources: Array<out PsiElement>): Boolean {
-        return psiElement is PsiPackage || (psiElement is PsiDirectory && psiElement.getPackage() != null) || psiElement is KtFile
+        return psiElement is PsiPackage
+               || (psiElement is PsiDirectory && psiElement.getPackage() != null)
+               || psiElement is KtFile
+               || psiElement is KtClassOrObject
     }
 
     override fun doMove(project: Project, elements: Array<out PsiElement>, targetContainer: PsiElement?, callback: MoveCallback?) {

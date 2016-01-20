@@ -125,7 +125,7 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         val type = intersectTypes(getPredictableType(a), getPredictableType(b))
                    ?: return this
         val newTypeInfo = Maps.newHashMap(typeInfo)
-        if (newTypeInfo.setIntersection(a, type, a.immanentTypeWithNullability()) ||
+        if (newTypeInfo.setIntersection(a, type, a.immanentTypeWithNullability()) or
             newTypeInfo.setIntersection(b, type, b.immanentTypeWithNullability())) {
             return IntersectingDataFlowInfo(newTypeInfo)
         }

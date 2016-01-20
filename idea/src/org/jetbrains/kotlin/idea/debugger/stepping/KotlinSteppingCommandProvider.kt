@@ -87,10 +87,6 @@ class KotlinSteppingCommandProvider: JvmSteppingCommandProvider() {
             return null
         }
 
-        if (inlineArguments.isEmpty() && inlineFunctionCalls.any { it.shouldNotUseStepOver(sourcePosition.elementAt) }) {
-            return null
-        }
-
         val additionalElementsToSkip = sourcePosition.elementAt.getAdditionalElementsToSkip()
 
         return DebuggerSteppingHelper.createStepOverCommand(suspendContext, ignoreBreakpoints, file, linesRange, inlineArguments, additionalElementsToSkip)

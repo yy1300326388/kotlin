@@ -16,11 +16,11 @@ fun test(a: A?) {
     }
 
     if (a is B && a is C) {
-        <info descr="Smart cast to A">a</info>.foo()
+        <info descr="Smart cast to {B & C}">a</info>.foo()
     }
 
     if (a is B? && a is C?) {
-        <info descr="Smart cast to B?">a</info><info>?.</info>bar()
+        <info descr="Smart cast to {B & C}?">a</info><info>?.</info>bar()
     }
 
     a<info>?.</info>foo()
@@ -30,6 +30,6 @@ fun test(a: A?) {
 
     if (a is B && a is D) {
         //when it's resolved, the message should be 'Smart cast to A'
-        <info>a</info>.<error>foo</error>
+        <info descr="Smart cast to {B & D}">a</info>.<error>foo</error>
     }
 }

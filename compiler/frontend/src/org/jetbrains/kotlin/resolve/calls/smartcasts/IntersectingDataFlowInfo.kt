@@ -20,10 +20,7 @@ import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.Maps
 import com.google.common.collect.SetMultimap
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.types.CommonSupertypes
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.TypeIntersector
-import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 import org.jetbrains.kotlin.utils.addToStdlib.singletonOrEmptySet
@@ -87,7 +84,7 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         else {
             types.first()
         }
-        if (value.type.isSubtypeOf(intersection)) {
+        if (!value.type.isFlexible() && value.type.isSubtypeOf(intersection)) {
             return false
         }
         return this.put(value, intersection) !== intersection
@@ -119,10 +116,10 @@ internal class IntersectingDataFlowInfo(private val typeInfo: Map<DataFlowValue,
         val nullabilityOfA = typeOfA.nullability()
         val nullabilityOfB = typeOfB.nullability()
         val newTypeInfo = Maps.newHashMap(typeInfo)
-        if (nullabilityOfA == Nullability.NULL && nullabilityOfB.canBeNonNull()) {
+        if (nullabilityOfA == Nullability.NULL) {
             newTypeInfo[b] = TypeUtils.makeNotNullable(typeOfB)
         }
-        else if (nullabilityOfB == Nullability.NULL && nullabilityOfA.canBeNonNull()) {
+        else if (nullabilityOfB == Nullability.NULL) {
             newTypeInfo[a] = TypeUtils.makeNotNullable(typeOfA)
         }
         else {

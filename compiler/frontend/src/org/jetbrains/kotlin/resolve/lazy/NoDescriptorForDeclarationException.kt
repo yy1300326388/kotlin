@@ -19,5 +19,6 @@ package org.jetbrains.kotlin.resolve.lazy
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.getElementTextWithContext
 
-class NoDescriptorForDeclarationException(declaration: KtDeclaration) :
-        IllegalStateException("Descriptor wasn't found for declaration $declaration\n${declaration.getElementTextWithContext()}")
+class NoDescriptorForDeclarationException @JvmOverloads constructor(declaration: KtDeclaration, additionalDetails: String? = null) :
+        IllegalStateException("Descriptor wasn't found for declaration $declaration\n${declaration.getElementTextWithContext()}"
+                              + (additionalDetails?.let { "\n---------------------------------------------------\n$it" } ?: ""))

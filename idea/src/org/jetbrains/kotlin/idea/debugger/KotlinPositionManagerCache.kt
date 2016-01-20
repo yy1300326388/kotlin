@@ -57,6 +57,8 @@ class KotlinPositionManagerCache(private val project: Project) {
                 val cachedValue = classNamesCache[psiElement]
                 if (cachedValue != null) return cachedValue
 
+                println("CREATE CLASSNAMES FOR $psiElement - ${psiElement.text}")
+
                 val newValue = create(psiElement)
 
                 classNamesCache[psiElement] = newValue
@@ -77,6 +79,8 @@ class KotlinPositionManagerCache(private val project: Project) {
                     val cachedValue = typeMappersCache[file]
                     if (cachedValue != null) return cachedValue
 
+                    println("CREATE TYPE_MAPPER FOR FILE $psiElement - ${file.name}")
+
                     val newValue = createTypeMapperForSourceFile(file)
                     typeMappersCache[file] = newValue
                     return newValue
@@ -86,6 +90,8 @@ class KotlinPositionManagerCache(private val project: Project) {
                     val element = getElementToCreateTypeMapperForLibraryFile(psiElement)
                     val cachedValue = typeMappersCache[psiElement]
                     if (cachedValue != null) return cachedValue
+
+                    println("CREATE TYPE_MAPPER FOR  $element - ${element.text} in ${file.name}")
 
                     val newValue = createTypeMapperForLibraryFile(element, file)
                     typeMappersCache[psiElement] = newValue

@@ -112,7 +112,7 @@ abstract class FunctionContext(
         if (descriptor != null && descriptor in functionReader) return functionReader[descriptor]
 
         /** remove ending `()` */
-        var callQualifier = call.qualifier
+        var callQualifier: JsNode = call.qualifier
 
         /** remove ending `.call()` */
         if (isCallInvocation(call)) {

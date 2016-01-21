@@ -190,7 +190,7 @@ class DefaultParameterValueSubstitutor(val state: GenerationState) {
         }
 
         // for default constructors: just marks default constructor (see DEFAULT_CONSTRUCTOR_MARKER)
-        // for default methods: contains MethodHandle for super calls (super calls not applicable for overloads)
+        // for default methods: contains MethodHandle for super calls ('null' cause not super call)
         v.aconst(null)
 
         val defaultMethod = typeMapper.mapDefaultMethod(delegateFunctionDescriptor, contextKind)

@@ -455,7 +455,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
                             "private "
                         else ""
 
-                val declaration : KtNamedDeclaration = when (callableInfo.kind) {
+                val declaration: KtDeclaration = when (callableInfo.kind) {
                     CallableKind.FUNCTION, CallableKind.SECONDARY_CONSTRUCTOR -> {
                         val body = when {
                             containingElement is KtClass && containingElement.isInterface() && !config.isExtension -> ""
@@ -593,7 +593,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
         }
 
         private fun addDeclarationToClassOrObject(classOrObject: KtClassOrObject,
-                                                  declaration: KtNamedDeclaration): KtNamedDeclaration {
+                                                  declaration: KtDeclaration): KtNamedDeclaration {
             val classBody = classOrObject.getOrCreateBody()
             return if (declaration is KtNamedFunction) {
                 val anchor = PsiTreeUtil.skipSiblingsBackward(

@@ -728,13 +728,33 @@ class DefaultExpressionConverter : JavaElementVisitor(), ExpressionConverter {
         }
 
         val callParams = if (needThis) parameters.drop(1) else parameters
-        val statement = if (expression.isConstructor) {
-            MethodCallExpression.build(null, convertMethodReferenceQualifier(qualifier), callParams.map { it.first }, emptyList(), false).assignNoPrototype()
+
+        val specialMethod = method?.let { SpecialMethod.match(it, callParams.size, converter.services) }
+        val statement: Statement = if (expression.isConstructor) {
+            MethodCallExpression.build(null, convertMethodReferenceQualifier(qualifier), callParams.map { it.first }, emptyList(), false)
+        }
+        else if (specialMethod != null) {
+            val factory = PsiElementFactory.SERVICE.getInstance(converter.project)
+            val fakeReceiver = receiver?.let {
+                (if (qualifier is PsiExpression) qualifier else factory.createExpressionFromText("fakeReceiver", null)) to it.first
+            }
+            val fakeParams = callParams.mapIndexed { i, param -> factory.createExpressionFromText("fake$i", null) to param.first }
+            val patchedConverter = codeConverter.withSpecialExpressionConverter(object : SpecialExpressionConverter {
+                override fun convertExpression(expression: PsiExpression, codeConverter: CodeConverter): Expression? {
+                    if (expression == fakeReceiver?.first) return fakeReceiver?.second
+                    return fakeParams.find { it.first == expression }!!.second
+                }
+            })
+
+            val arguments = fakeParams.map { it.first }.toTypedArray()
+            specialMethod.convertCall(fakeReceiver?.first, arguments, emptyList(), patchedConverter)!!
         }
         else {
             val referenceName = expression.referenceName!!
-            MethodCallExpression.build(receiver?.first, referenceName, callParams.map { it.first }, emptyList(), false).assignNoPrototype()
+            MethodCallExpression.build(receiver?.first, referenceName, callParams.map { it.first }, emptyList(), false)
         }
+
+        statement.assignNoPrototype()
 
         val lambdaParameterList = ParameterList(
                 if (parameters.size == 1 && !isKotlinFunctionType) {

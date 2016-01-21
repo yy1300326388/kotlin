@@ -91,9 +91,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
         val isExhaustive = WhenChecker.isWhenExhaustive(expression, contextAfterSubject.trace)
 
-        val resultDataFlowInfo = if (outputDataFlowInfo == null)
-            contextAfterSubject.dataFlowInfo
-        else if (expression.elseExpression == null && !isExhaustive) {
+        val resultDataFlowInfo = if (expression.elseExpression == null && !isExhaustive) {
             // Without else expression in non-exhaustive when, we *must* take initial data flow info into account,
             // because data flow can bypass all when branches in this case
             outputDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
@@ -172,7 +170,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             contextAfterSubject: ExpressionTypingContext,
             jumpOutPossibleInSubject: Boolean,
             whenResultValue: DataFlowValue?
-    ): Pair<DataFlowInfo?, Boolean> {
+    ): Pair<DataFlowInfo, Boolean> {
         val bindingContext = contextAfterSubject.trace.bindingContext
 
         var currentDataFlowInfo: DataFlowInfo? = null
@@ -204,7 +202,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             jumpOutPossible = jumpOutPossible or entryTypeInfo.jumpOutPossible
         }
 
-        return Pair(currentDataFlowInfo, jumpOutPossible)
+        return Pair(currentDataFlowInfo ?: contextAfterSubject.dataFlowInfo, jumpOutPossible)
     }
 
     private fun checkSmartCastsInSubjectIfRequired(expression: KtWhenExpression, contextBeforeSubject: ExpressionTypingContext, subjectType: KotlinType) {

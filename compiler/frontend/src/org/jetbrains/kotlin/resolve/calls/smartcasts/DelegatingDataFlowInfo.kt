@@ -277,10 +277,6 @@ internal class DelegatingDataFlowInfo private constructor(
             newTypeInfo.putAll(key, myTypeInfo[key].intersect(otherTypeInfo[key]))
         }
 
-        if (nullabilityMapBuilder.isEmpty() && newTypeInfo.isEmpty) {
-            return DataFlowInfo.EMPTY
-        }
-
         return create(null, ImmutableMap.copyOf(nullabilityMapBuilder), newTypeInfo)
     }
 
@@ -310,6 +306,9 @@ internal class DelegatingDataFlowInfo private constructor(
                         iterator.remove()
                     }
                 }
+            }
+            if (nullabilityInfo.isEmpty() && typeInfo.isEmpty && valueWithGivenTypeInfo == null) {
+                return (parent ?: DataFlowInfoFactory.EMPTY) as DelegatingDataFlowInfo
             }
             return DelegatingDataFlowInfo(parent, nullabilityInfo, typeInfo, valueWithGivenTypeInfo)
         }

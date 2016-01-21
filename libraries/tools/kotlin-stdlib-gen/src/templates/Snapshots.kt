@@ -111,10 +111,10 @@ fun snapshots(): List<GenericFunction> {
         typeParam("V")
         returns("Map<K, V>")
         annotations("""@kotlin.jvm.JvmName("toMapOfPairs")""")
-        deprecate(Deprecation("Use arrange instead.", replaceWith = "arrange(transform)"))
+        deprecate(Deprecation("Use associate instead.", replaceWith = "associate(transform)"))
     }
 
-    templates add f("arrange(transform: (T) -> Pair<K, V>)") {
+    templates add f("associate(transform: (T) -> Pair<K, V>)") {
         inline(true)
         include(CharSequences)
         typeParam("K")
@@ -172,10 +172,10 @@ fun snapshots(): List<GenericFunction> {
         typeParam("K")
         returns("Map<K, T>")
         include(CharSequences)
-        deprecate(Deprecation("Use arrangeBy instead.", replaceWith = "arrangeBy(selector)"))
+        deprecate(Deprecation("Use associateBy instead.", replaceWith = "associateBy(selector)"))
     }
 
-    templates add f("arrangeBy(keySelector: (T) -> K)") {
+    templates add f("associateBy(keySelector: (T) -> K)") {
         inline(true)
         typeParam("K")
         doc { f ->
@@ -245,7 +245,7 @@ fun snapshots(): List<GenericFunction> {
             """
         }
         returns("Map<K, V>")
-        deprecate(Deprecation("Use arrangeBy instead.", "arrangeBy(selector, transform)"))
+        deprecate(Deprecation("Use associateBy instead.", "associateBy(selector, transform)"))
     }
 
     templates add f("toMapBy(selector: (T) -> K, transform: (T) -> V)") {
@@ -254,10 +254,10 @@ fun snapshots(): List<GenericFunction> {
         typeParam("V")
         include(CharSequences)
         returns("Map<K, V>")
-        deprecate(Deprecation("Use arrangeBy instead.", replaceWith = "arrangeBy(selector, transform)"))
+        deprecate(Deprecation("Use associateBy instead.", replaceWith = "associateBy(selector, transform)"))
     }
 
-    templates add f("arrangeBy(keySelector: (T) -> K, valueTransform: (T) -> V)") {
+    templates add f("associateBy(keySelector: (T) -> K, valueTransform: (T) -> V)") {
         inline(true)
         typeParam("K")
         typeParam("V")

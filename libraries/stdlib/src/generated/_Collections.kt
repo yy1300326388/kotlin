@@ -917,7 +917,7 @@ public fun Collection<Short>.toShortArray(): ShortArray {
  * Returns a [Map] containing key-value pairs provided by [transform] function applied to elements of the given collection.
  * If any of two pairs would have the same key the last one gets added to the map.
  */
-public inline fun <T, K, V> Iterable<T>.arrange(transform: (T) -> Pair<K, V>): Map<K, V> {
+public inline fun <T, K, V> Iterable<T>.associate(transform: (T) -> Pair<K, V>): Map<K, V> {
     val capacity = (collectionSizeOrDefault(10)/.75f) + 1
     val result = LinkedHashMap<K, V>(Math.max(capacity.toInt(), 16))
     for (element in this) {
@@ -931,7 +931,7 @@ public inline fun <T, K, V> Iterable<T>.arrange(transform: (T) -> Pair<K, V>): M
  * returned from [keySelector] function applied to each element.
  * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
  */
-public inline fun <T, K> Iterable<T>.arrangeBy(keySelector: (T) -> K): Map<K, T> {
+public inline fun <T, K> Iterable<T>.associateBy(keySelector: (T) -> K): Map<K, T> {
     val capacity = (collectionSizeOrDefault(10)/.75f) + 1
     val result = LinkedHashMap<K, T>(Math.max(capacity.toInt(), 16))
     for (element in this) {
@@ -944,7 +944,7 @@ public inline fun <T, K> Iterable<T>.arrangeBy(keySelector: (T) -> K): Map<K, T>
  * Returns a [Map] containing the values provided by [valueTransform] and indexed by [keySelector] functions applied to elements of the given collection.
  * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
  */
-public inline fun <T, K, V> Iterable<T>.arrangeBy(keySelector: (T) -> K, valueTransform: (T) -> V): Map<K, V> {
+public inline fun <T, K, V> Iterable<T>.associateBy(keySelector: (T) -> K, valueTransform: (T) -> V): Map<K, V> {
     val capacity = (collectionSizeOrDefault(10)/.75f) + 1
     val result = LinkedHashMap<K, V>(Math.max(capacity.toInt(), 16))
     for (element in this) {
@@ -997,25 +997,25 @@ public fun <T> Iterable<T>.toList(): List<T> {
  * Returns a [Map] containing the values provided by [transform] and indexed by [selector] functions applied to elements of the given collection.
  * If any two elements would have the same key returned by [selector] the last one gets added to the map.
  */
-@Deprecated("Use arrangeBy instead.", ReplaceWith("arrangeBy(selector, transform)"))
+@Deprecated("Use associateBy instead.", ReplaceWith("associateBy(selector, transform)"))
 public inline fun <T, K, V> Iterable<T>.toMap(selector: (T) -> K, transform: (T) -> V): Map<K, V> {
-    return arrangeBy(selector, transform)
+    return associateBy(selector, transform)
 }
 
-@Deprecated("Use arrange instead.", ReplaceWith("arrange(transform)"))
+@Deprecated("Use associate instead.", ReplaceWith("associate(transform)"))
 @kotlin.jvm.JvmName("toMapOfPairs")
 public inline fun <T, K, V> Iterable<T>.toMap(transform: (T) -> Pair<K, V>): Map<K, V> {
-    return arrange(transform)
+    return associate(transform)
 }
 
-@Deprecated("Use arrangeBy instead.", ReplaceWith("arrangeBy(selector)"))
+@Deprecated("Use associateBy instead.", ReplaceWith("associateBy(selector)"))
 public inline fun <T, K> Iterable<T>.toMapBy(selector: (T) -> K): Map<K, T> {
-    return arrangeBy(selector)
+    return associateBy(selector)
 }
 
-@Deprecated("Use arrangeBy instead.", ReplaceWith("arrangeBy(selector, transform)"))
+@Deprecated("Use associateBy instead.", ReplaceWith("associateBy(selector, transform)"))
 public inline fun <T, K, V> Iterable<T>.toMapBy(selector: (T) -> K, transform: (T) -> V): Map<K, V> {
-    return arrangeBy(selector, transform)
+    return associateBy(selector, transform)
 }
 
 /**

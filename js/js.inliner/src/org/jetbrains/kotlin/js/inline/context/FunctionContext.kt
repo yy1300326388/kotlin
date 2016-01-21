@@ -112,7 +112,7 @@ abstract class FunctionContext(
         if (descriptor != null && descriptor in functionReader) return functionReader[descriptor]
 
         /** remove ending `()` */
-        var callQualifier = call.qualifier
+        var callQualifier: JsNode = call.qualifier
 
         /** remove ending `.call()` */
         if (isCallInvocation(call)) {
@@ -124,8 +124,8 @@ abstract class FunctionContext(
             val staticRef = callQualifier.name?.staticRef
 
             callQualifier = when (staticRef) {
-                is JsNameRef -> staticRef
-                is JsInvocation -> staticRef
+                is JsNameRef -> staticRef as JsNode // KT-10752
+                is JsInvocation -> staticRef as JsNode // KT-10752
                 is JsFunction, null -> callQualifier
                 else -> throw AssertionError("Unexpected static reference type ${staticRef.javaClass}")
             }

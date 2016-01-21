@@ -486,10 +486,6 @@ open class IncrementalCacheImpl<Target>(
 
         override fun dumpValue(value: Collection<String>) = value.dumpCollection()
 
-        override fun clean() {
-            storage.keys.forEach { remove(it) }
-        }
-
         private fun remove(path: String) {
             storage.remove(path)
         }

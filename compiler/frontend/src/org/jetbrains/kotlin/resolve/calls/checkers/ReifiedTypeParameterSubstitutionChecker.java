@@ -18,11 +18,11 @@ package org.jetbrains.kotlin.resolve.calls.checkers;
 
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.descriptors.CallableDescriptor;
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor;
-import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor;
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
+import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.diagnostics.Errors;
 import org.jetbrains.kotlin.psi.KtExpression;
+import org.jetbrains.kotlin.resolve.DescriptorUtils;
 import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext;
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall;
 import org.jetbrains.kotlin.types.KotlinType;
@@ -41,19 +41,24 @@ public class ReifiedTypeParameterSubstitutionChecker implements CallChecker {
             KotlinType argument = entry.getValue();
             ClassifierDescriptor argumentDeclarationDescription = argument.getConstructor().getDeclarationDescriptor();
 
-            if (parameter.isReified()) {
+            if (parameter.isReified() || isTypeParameterOfKotlinArray(parameter)) {
                 if (argumentDeclarationDescription instanceof TypeParameterDescriptor &&
                     !((TypeParameterDescriptor) argumentDeclarationDescription).isReified()
                 ) {
-                    context.trace.report(
-                            Errors.TYPE_PARAMETER_AS_REIFIED.on(getCallElement(context), parameter)
-                    );
+                    context.trace.report(Errors.TYPE_PARAMETER_AS_REIFIED.on(getCallElement(context), parameter));
                 }
                 else if (TypeUtilsKt.cannotBeReified(argument)) {
                     context.trace.report(Errors.REIFIED_TYPE_FORBIDDEN_SUBSTITUTION.on(getCallElement(context), argument));
                 }
             }
         }
+    }
+
+    private static boolean isTypeParameterOfKotlinArray(@NotNull TypeParameterDescriptor parameter) {
+        DeclarationDescriptor container = parameter.getContainingDeclaration();
+        return container instanceof ClassDescriptor &&
+               container.getName().equals(KotlinBuiltIns.FQ_NAMES.array.shortName()) ||
+               DescriptorUtils.getFqName(container).equals(KotlinBuiltIns.FQ_NAMES.array);
     }
 
     @NotNull

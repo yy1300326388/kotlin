@@ -2390,7 +2390,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         List<ResolvedValueArgument> valueArguments = resolvedCall.getValueArgumentsByIndex();
         assert valueArguments != null : "Failed to arrange value arguments by index: " + resolvedCall.getResultingDescriptor();
 
-        DefaultCallArgs masks =
+        DefaultCallArgs defaultArgs =
                 argumentGenerator.generate(valueArguments, new ArrayList<ResolvedValueArgument>(resolvedCall.getValueArguments().values()));
 
         if (tailRecursionCodegen.isTailRecursion(resolvedCall)) {
@@ -2398,7 +2398,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             return;
         }
 
-        boolean defaultMaskWasGenerated = masks.generateOnStackIfNeeded(callGenerator, isConstructor);
+        boolean defaultMaskWasGenerated = defaultArgs.generateOnStackIfNeeded(callGenerator, isConstructor);
 
         // Extra constructor marker argument
         if (callableMethod instanceof CallableMethod) {

@@ -57,9 +57,9 @@ public class CallBasedArgumentGenerator extends ArgumentGenerator {
     ) {
         boolean shouldMarkLineNumbers = this.codegen.isShouldMarkLineNumbers();
         this.codegen.setShouldMarkLineNumbers(false);
-        DefaultCallArgs masks = super.generate(valueArgumentsByIndex, valueArgs);
+        DefaultCallArgs defaultArgs = super.generate(valueArgumentsByIndex, valueArgs);
         this.codegen.setShouldMarkLineNumbers(shouldMarkLineNumbers);
-        return masks;
+        return defaultArgs;
     }
 
     @Override

@@ -48,7 +48,7 @@ abstract class ArgumentGenerator {
             }
         }
 
-        val masks = DefaultCallArgs(valueArgumentsByIndex.size)
+        val defaultArgs = DefaultCallArgs(valueArgumentsByIndex.size)
 
         for (argumentWithDeclIndex in actualArgsWithDeclIndex) {
             val argument = argumentWithDeclIndex.arg
@@ -59,7 +59,7 @@ abstract class ArgumentGenerator {
                     generateExpression(declIndex, argument)
                 }
                 is DefaultValueArgument -> {
-                    masks.mark(declIndex)
+                    defaultArgs.mark(declIndex)
                     generateDefault(declIndex, argument)
                 }
                 is VarargValueArgument -> {
@@ -73,7 +73,7 @@ abstract class ArgumentGenerator {
 
         reorderArgumentsIfNeeded(actualArgsWithDeclIndex)
 
-        return masks
+        return defaultArgs
     }
 
     protected open fun generateExpression(i: Int, argument: ExpressionValueArgument) {

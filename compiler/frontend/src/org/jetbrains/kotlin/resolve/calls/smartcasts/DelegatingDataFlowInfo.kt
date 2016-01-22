@@ -31,7 +31,7 @@ internal class DelegatingDataFlowInfo private constructor(
         private val parent: DataFlowInfo?,
         private val nullabilityInfo: ImmutableMap<DataFlowValue, Nullability>,
         // Also immutable
-        private val typeInfo: SetMultimap<DataFlowValue, KotlinType>,
+        private val typeInfo: ImmutableSetMultimap<DataFlowValue, KotlinType>,
         /**
          * Value for which type info was cleared or reassigned at this point
          * so parent type info should not be in use
@@ -39,7 +39,7 @@ internal class DelegatingDataFlowInfo private constructor(
         private val valueWithGivenTypeInfo: DataFlowValue?
 ) : DataFlowInfo {
 
-    constructor(): this(null, ImmutableMap.of(), newTypeInfo(), null)
+    constructor(): this(null, ImmutableMap.of(), EMPTY_TYPE_INFO, null)
 
     override val completeNullabilityInfo: Map<DataFlowValue, Nullability>
         get() {
@@ -70,7 +70,7 @@ internal class DelegatingDataFlowInfo private constructor(
                 info.valueWithGivenTypeInfo?.let { withGivenTypeInfo.add(it) }
                 info = info.parent as DelegatingDataFlowInfo?
             }
-            return result
+            return result.build()
         }
 
     override fun getCollectedNullability(key: DataFlowValue) = getNullability(key, false)
@@ -140,15 +140,14 @@ internal class DelegatingDataFlowInfo private constructor(
         val newTypeInfo = newTypeInfo()
         var typesForB = getPredictableTypes(b)
         // Own type of B must be recorded separately, e.g. for a constant
-        // But if its type is the same as A, there is no reason to do it
-        // because own type is not saved in this set
-        // Error types are also not saved
-        if (!b.type.isError && a.type != b.type) {
+        // But error types are not saved here
+        if (!b.type.isError) {
             typesForB += b.type
         }
         newTypeInfo.putAll(a, typesForB)
+        val builtTypeInfo = newTypeInfo.build()
 
-        return create(this, ImmutableMap.copyOf(nullability), if (newTypeInfo.isEmpty) EMPTY_TYPE_INFO else newTypeInfo, a)
+        return create(this, ImmutableMap.copyOf(nullability), if (builtTypeInfo.isEmpty) EMPTY_TYPE_INFO else builtTypeInfo, a)
     }
 
     override fun equate(a: DataFlowValue, b: DataFlowValue): DataFlowInfo {
@@ -163,21 +162,17 @@ internal class DelegatingDataFlowInfo private constructor(
         newTypeInfo.putAll(a, getPredictableTypes(b, false))
         newTypeInfo.putAll(b, getPredictableTypes(a, false))
         if (a.type != b.type) {
-            // To avoid recording base types of own type
-            if (!a.type.isSubtypeOf(b.type)) {
-                newTypeInfo.put(a, b.type)
-            }
-            if (!b.type.isSubtypeOf(a.type)) {
-                newTypeInfo.put(b, a.type)
-            }
+            newTypeInfo.put(a, b.type)
+            newTypeInfo.put(b, a.type)
         }
-        changed = changed or !newTypeInfo.isEmpty
+        val builtTypeInfo = newTypeInfo.build()
+        changed = changed or !builtTypeInfo.isEmpty
 
         return if (!changed) {
             this
         }
         else {
-            create(this, ImmutableMap.copyOf(builder), if (newTypeInfo.isEmpty) EMPTY_TYPE_INFO else newTypeInfo)
+            create(this, ImmutableMap.copyOf(builder), if (builtTypeInfo.isEmpty) EMPTY_TYPE_INFO else builtTypeInfo)
         }
     }
 
@@ -219,9 +214,7 @@ internal class DelegatingDataFlowInfo private constructor(
         if (getCollectedTypes(value).contains(type)) return this
         if (!value.type.isFlexible() && value.type.isSubtypeOf(type)) return this
         val newNullabilityInfo = if (type.isMarkedNullable) EMPTY_NULLABILITY_INFO else ImmutableMap.of(value, NOT_NULL)
-        val newTypeInfo = newTypeInfo()
-        newTypeInfo.put(value, type)
-        return create(this, newNullabilityInfo, newTypeInfo)
+        return create(this, newNullabilityInfo, ImmutableSetMultimap.of(value, type))
     }
 
     override fun and(other: DataFlowInfo): DataFlowInfo {
@@ -246,7 +239,7 @@ internal class DelegatingDataFlowInfo private constructor(
             return this
         }
 
-        return create(this, ImmutableMap.copyOf(nullabilityMapBuilder), otherTypeInfo)
+        return create(this, ImmutableMap.copyOf(nullabilityMapBuilder), ImmutableSetMultimap.copyOf(otherTypeInfo))
     }
 
     private fun Set<KotlinType>.containsNothing() = any { KotlinBuiltIns.isNothing(it) }
@@ -277,40 +270,31 @@ internal class DelegatingDataFlowInfo private constructor(
             newTypeInfo.putAll(key, myTypeInfo[key].intersect(otherTypeInfo[key]))
         }
 
-        return create(null, ImmutableMap.copyOf(nullabilityMapBuilder), newTypeInfo)
+        return create(null, ImmutableMap.copyOf(nullabilityMapBuilder), newTypeInfo.build())
     }
 
     override fun toString() = if (typeInfo.isEmpty && nullabilityInfo.isEmpty()) "EMPTY" else "Non-trivial DataFlowInfo"
 
     companion object {
         private val EMPTY_NULLABILITY_INFO = ImmutableMap.of<DataFlowValue, Nullability>()
-        private val EMPTY_TYPE_INFO = newTypeInfo()
+        private val EMPTY_TYPE_INFO = ImmutableSetMultimap.of<DataFlowValue, KotlinType>()
 
         private fun containsAll(first: SetMultimap<DataFlowValue, KotlinType>, second: SetMultimap<DataFlowValue, KotlinType>) =
                 first.entries().containsAll(second.entries())
 
-        fun newTypeInfo(): SetMultimap<DataFlowValue, KotlinType> = LinkedHashMultimap.create<DataFlowValue, KotlinType>()
+        fun newTypeInfo() = ImmutableSetMultimap.builder<DataFlowValue, KotlinType>()
 
         private fun create(parent: DataFlowInfo?,
                            nullabilityInfo: ImmutableMap<DataFlowValue, Nullability>,
-                           // NB: typeInfo must be mutable here!
-                           typeInfo: SetMultimap<DataFlowValue, KotlinType>,
+                           typeInfo: ImmutableSetMultimap<DataFlowValue, KotlinType>,
                            valueWithGivenTypeInfo: DataFlowValue? = null
         ): DataFlowInfo {
-            for (value in typeInfo.keys()) {
-                var iterator = typeInfo[value].iterator()
-                while (iterator.hasNext()) {
-                    val type = iterator.next()
-                    // Remove original type and for not flexible type also all its supertypes (see also KT-10666)
-                    if (if (value.type.isFlexible()) value.type == type else value.type.isSubtypeOf(type)) {
-                        iterator.remove()
-                    }
-                }
-            }
-            if (nullabilityInfo.isEmpty() && typeInfo.isEmpty && valueWithGivenTypeInfo == null) {
+            val newTypeInfo = LinkedHashMultimap.create(typeInfo)
+            newTypeInfo.entries().removeAll { if (it.key.type.isFlexible()) it.key.type == it.value else it.key.type.isSubtypeOf(it.value) }
+            if (nullabilityInfo.isEmpty() && newTypeInfo.isEmpty && valueWithGivenTypeInfo == null) {
                 return parent ?: DataFlowInfoFactory.EMPTY
             }
-            return DelegatingDataFlowInfo(parent, nullabilityInfo, typeInfo, valueWithGivenTypeInfo)
+            return DelegatingDataFlowInfo(parent, nullabilityInfo, ImmutableSetMultimap.copyOf(newTypeInfo), valueWithGivenTypeInfo)
         }
     }
 }

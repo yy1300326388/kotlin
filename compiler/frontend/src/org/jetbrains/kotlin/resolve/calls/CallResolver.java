@@ -395,7 +395,7 @@ public class CallResolver {
 
         BasicCallResolutionContext context = BasicCallResolutionContext.create(
                 trace, scope,
-                CallMaker.makeCall(null, null, call),
+                CallMaker.makeConstructorCallWithoutTypeArguments(call),
                 NO_EXPECTED_TYPE,
                 dataFlowInfo, ContextDependency.INDEPENDENT, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
                 CallChecker.DoNothing.INSTANCE, false);
@@ -459,7 +459,17 @@ public class CallResolver {
                                   calleeConstructor.getContainingDeclaration().getDefaultType() :
                                   DescriptorUtils.getSuperClassType(currentClassDescriptor);
 
-        TypeSubstitutor knownTypeParametersSubstitutor = TypeSubstitutor.create(expectedType);
+
+        // If any constructor has type parameter (currently it only can be true for ones from Java), try to infer arguments for them
+        // Otherwise use NO_EXPECTED_TYPE and knownTypeParametersSubstitutor
+        boolean anyConstructorHasDeclaredTypeParameters =
+                DescriptorUtils.anyConstructorHasDeclaredTypeParameters(expectedType.getConstructor().getDeclarationDescriptor());
+
+        TypeSubstitutor knownTypeParametersSubstitutor = anyConstructorHasDeclaredTypeParameters ? null : TypeSubstitutor.create(expectedType);
+        if (anyConstructorHasDeclaredTypeParameters) {
+            context = context.replaceExpectedType(expectedType);
+        }
+
         for (CallableDescriptor descriptor : constructors) {
             candidates.add(ResolutionCandidate.create(
                     context.call, descriptor, constructorDispatchReceiver, null,

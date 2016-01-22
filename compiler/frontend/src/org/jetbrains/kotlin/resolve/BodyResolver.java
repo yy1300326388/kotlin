@@ -305,21 +305,29 @@ public class BodyResolver {
                 }
                 KtTypeReference typeReference = call.getTypeReference();
                 if (typeReference == null) return;
+
+                KotlinType supertype = trace.getBindingContext().get(BindingContext.TYPE, typeReference);
+                boolean anyConstructorHasDeclaredTypeParameters =
+                        supertype != null
+                        && DescriptorUtils.anyConstructorHasDeclaredTypeParameters(supertype.getConstructor().getDeclarationDescriptor());
+
                 if (primaryConstructor == null) {
                     if (descriptor.getKind() != ClassKind.INTERFACE) {
                         trace.report(SUPERTYPE_INITIALIZED_WITHOUT_PRIMARY_CONSTRUCTOR.on(call));
                     }
-                    recordSupertype(typeReference, trace.getBindingContext().get(BindingContext.TYPE, typeReference));
+                    recordSupertype(typeReference, supertype);
                     return;
                 }
                 OverloadResolutionResults<FunctionDescriptor> results = callResolver.resolveFunctionCall(
                         trace, scopeForConstructor,
-                        CallMaker.makeCall(null, null, call), NO_EXPECTED_TYPE, outerDataFlowInfo, false);
+                        anyConstructorHasDeclaredTypeParameters
+                        ? CallMaker.makeConstructorCallWithoutTypeArguments(call)
+                        : CallMaker.makeCall(null, null, call),
+                        anyConstructorHasDeclaredTypeParameters ? supertype : NO_EXPECTED_TYPE,
+                        outerDataFlowInfo, false);
                 if (results.isSuccess()) {
-                    KotlinType supertype = results.getResultingDescriptor().getReturnType();
                     recordSupertype(typeReference, supertype);
-                    ClassDescriptor classDescriptor = TypeUtils.getClassDescriptor(supertype);
-                    if (classDescriptor != null) {
+                    if (supertype != null && TypeUtils.getClassDescriptor(supertype) != null) {
                         // allow only one delegating constructor
                         if (primaryConstructorDelegationCall[0] == null) {
                             primaryConstructorDelegationCall[0] = results.getResultingCall();
@@ -334,7 +342,7 @@ public class BodyResolver {
                                  TypeInfoFactoryKt.noTypeInfo(results.getResultingCall().getDataFlowInfoForArguments().getResultInfo()));
                 }
                 else {
-                    recordSupertype(typeReference, trace.getBindingContext().get(BindingContext.TYPE, typeReference));
+                    recordSupertype(typeReference, supertype);
                 }
             }
 

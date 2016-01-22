@@ -26,9 +26,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.*;
+import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.hash.LinkedHashMap;
+import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.load.java.JvmAbi;
@@ -41,8 +43,10 @@ import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.resolve.jvm.KotlinFinderMarker;
 import org.jetbrains.kotlin.utils.Profiler;
 
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.jetbrains.kotlin.asJava.LightClassUtilsKt.toLightClass;
 
@@ -62,7 +66,7 @@ public class JavaElementFinder extends PsiElementFinder implements KotlinFinderM
     private final Project project;
     private final PsiManager psiManager;
     private final LightClassGenerationSupport lightClassGenerationSupport;
-    private final ThreadLocal<CachedValue<Map<FindClassesRequest, WeakReference<PsiClass[]>>>> findClassesCache;
+    private final CachedValue<ConcurrentMap<GlobalSearchScope, Map<String, PsiClass[]>>> findClassesCache;
 
     public JavaElementFinder(
             @NotNull Project project,
@@ -72,70 +76,61 @@ public class JavaElementFinder extends PsiElementFinder implements KotlinFinderM
         this.psiManager = PsiManager.getInstance(project);
         this.lightClassGenerationSupport = lightClassGenerationSupport;
 
-        this.findClassesCache = new ThreadLocal<CachedValue<Map<FindClassesRequest, WeakReference<PsiClass[]>>>>() {
-            @Override
-            protected CachedValue<Map<FindClassesRequest, WeakReference<PsiClass[]>>> initialValue() {
-                return CachedValuesManager.getManager(JavaElementFinder.this.project).createCachedValue(
-                        new CachedValueProvider<Map<FindClassesRequest, WeakReference<PsiClass[]>>>() {
+        this.findClassesCache = CachedValuesManager.getManager(this.project).createCachedValue(
+                        new CachedValueProvider<ConcurrentMap<GlobalSearchScope, Map<String, PsiClass[]>>>() {
                             @Nullable
                             @Override
-                            public Result<Map<FindClassesRequest, WeakReference<PsiClass[]>>> compute() {
-                                System.out.println("=================================" + Thread.currentThread().getName());
-                                return Result.<Map<FindClassesRequest, WeakReference<PsiClass[]>>>createSingleDependency(
-                                        new LinkedHashMap<FindClassesRequest, WeakReference<PsiClass[]>>() {
-                                            @Override
-                                            protected boolean removeEldestEntry(Map.Entry<FindClassesRequest, WeakReference<PsiClass[]>> eldest) {
-                                                return size() > 10;
-                                            }
-                                        }, PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
+                            public Result<ConcurrentMap<GlobalSearchScope, Map<String, PsiClass[]>>> compute() {
+                                System.out.println("=================================");
+                                return Result.createSingleDependency(
+                                        ContainerUtil.<GlobalSearchScope, Map<String, PsiClass[]>>createConcurrentWeakKeySoftValueMap(),
+                                        PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
                             }
-                        }, false
-                );
-            }
-        };
+                        }, false);
     }
 
     @Override
     public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-        Profiler profiler = Profiler.create("-- " + qualifiedName).setPrintAccuracy(5).start();
-        try {
-            PsiClass[] allClasses = doFindClasses(qualifiedName, scope);
-            return allClasses.length > 0 ? allClasses[0] : null;
-        }
-        finally {
-            profiler.end();
-        }
+        PsiClass[] allClasses = findClasses(qualifiedName, scope);
+        return allClasses.length > 0 ? allClasses[0] : null;
     }
 
     @NotNull
     @Override
     public PsiClass[] findClasses(@NotNull String qualifiedNameString, @NotNull GlobalSearchScope scope) {
-        Map<FindClassesRequest, WeakReference<PsiClass[]>> value = findClassesCache.get().getValue();
+        if (!FqNamesUtilKt.isValidJavaFqName(qualifiedNameString)) {
+            return PsiClass.EMPTY_ARRAY;
+        }
 
         Profiler profiler = Profiler.create("").mute().start();
         boolean fromCache = false;
-        //PsiClass[] classes = PsiClass.EMPTY_ARRAY;
+        PsiClass[] classes;
 
         try {
-            FindClassesRequest request = new FindClassesRequest(qualifiedNameString, scope);
-            WeakReference<PsiClass[]> cachedClasses = value.get(request);
-            if (cachedClasses != null) {
-                PsiClass[] classes = cachedClasses.get();
-                if (classes != null) {
-                    fromCache = true;
-                    return classes;
-                }
+            ConcurrentMap<GlobalSearchScope, Map<String, PsiClass[]>> cachedValue = findClassesCache.getValue();
+            Map<String, PsiClass[]> scopeCache = cachedValue.get(scope);
+            if (scopeCache == null) {
+                scopeCache = ContainerUtil.createConcurrentWeakValueMap();
+                scopeCache = ConcurrencyUtil.cacheOrGet(cachedValue, scope, scopeCache);
             }
 
-            PsiClass[] classes = doFindClasses(qualifiedNameString, scope);
-            value.put(request, new WeakReference<PsiClass[]>(classes));
+            classes = scopeCache.get(qualifiedNameString);
+            if (classes != null) {
+                fromCache = true;
+                return classes;
+            }
+
+            classes = doFindClasses(qualifiedNameString, scope);
+            scopeCache.put(qualifiedNameString, classes);
 
             return classes;
         }
         finally {
-            System.out.println(String.format("%s %s %d %s", qualifiedNameString, Thread.currentThread().getName(),
-                                             profiler.pause().getCumulative(), fromCache
-                                             //, classes.length == 0 ? "empty" : classes[0].hashCode()
+            System.out.println(String.format("*%s %d %s %s",
+                                             fromCache,
+                                             profiler.pause().getCumulative(),
+                                             qualifiedNameString,
+                                             Thread.currentThread().getName()
             ));
 
             profiler.end();
@@ -144,10 +139,6 @@ public class JavaElementFinder extends PsiElementFinder implements KotlinFinderM
 
     @NotNull
     private PsiClass[] doFindClasses(String qualifiedNameString, GlobalSearchScope scope) {
-        if (!FqNamesUtilKt.isValidJavaFqName(qualifiedNameString)) {
-            return PsiClass.EMPTY_ARRAY;
-        }
-
         List<PsiClass> answer = new SmartList<PsiClass>();
 
         FqName qualifiedName = new FqName(qualifiedNameString);

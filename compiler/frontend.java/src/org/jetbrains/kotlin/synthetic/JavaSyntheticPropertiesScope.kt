@@ -290,7 +290,7 @@ class JavaSyntheticPropertiesScope(storageManager: StorageManager, private val l
         companion object {
             fun create(ownerClass: ClassDescriptor, getMethod: FunctionDescriptor, setMethod: FunctionDescriptor?, name: Name, type: KotlinType): MyPropertyDescriptor {
                 val visibility = syntheticExtensionVisibility(getMethod)
-                val descriptor = MyPropertyDescriptor(DescriptorUtils.getContainingModule(ownerClass),
+                val descriptor = MyPropertyDescriptor(ownerClass,
                                                       null,
                                                       Annotations.EMPTY,
                                                       Modality.FINAL,
